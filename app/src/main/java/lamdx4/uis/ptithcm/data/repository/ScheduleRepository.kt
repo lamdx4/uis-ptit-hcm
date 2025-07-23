@@ -96,13 +96,12 @@ class ScheduleRepository {
     }
 
     /**
-     * Lấy danh sách các tuần có lịch học (không rỗng)
+     * Lấy danh sách các tuần có lịch học (bao gồm cả tuần rỗng)
      */
     suspend fun getAvailableWeeks(accessToken: String, semesterCode: Int): List<WeeklySchedule> {
         val scheduleResponse = getWeeklySchedule(accessToken, semesterCode)
-        return scheduleResponse.data.weeklySchedules.filter { 
-            it.scheduleItems.isNotEmpty() 
-        }
+        // Hiển thị tất cả tuần, kể cả tuần không có môn học
+        return scheduleResponse.data.weeklySchedules
     }
 
     /**
@@ -129,9 +128,8 @@ class ScheduleRepository {
         val currentDate = System.currentTimeMillis()
         val dateFormat = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
         
-        // Tìm tuần hiện tại dựa trên ngày
+        // Tìm tuần hiện tại dựa trên ngày (bao gồm cả tuần không có lịch học)
         return scheduleResponse.data.weeklySchedules
-            .filter { it.scheduleItems.isNotEmpty() }
             .find { week ->
                 try {
                     val startDate = week.startDate?.let { dateFormat.parse(it) }

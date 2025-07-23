@@ -58,6 +58,7 @@ fun WeekSelector(
         ) {
             weeks.forEach { week ->
                 val isCurrentWeek = currentWeek?.absoluteWeek == week.absoluteWeek
+                val isSelected = selectedWeek?.absoluteWeek == week.absoluteWeek
                 
                 DropdownMenuItem(
                     text = { 
@@ -69,33 +70,45 @@ fun WeekSelector(
                                 Text(
                                     text = week.weekInfo ?: "Tuần học",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = if (isCurrentWeek) 
-                                        MaterialTheme.colorScheme.primary 
-                                    else 
-                                        MaterialTheme.colorScheme.onSurface
+                                    color = when {
+                                        isSelected -> MaterialTheme.colorScheme.primary
+                                        isCurrentWeek -> MaterialTheme.colorScheme.secondary
+                                        else -> MaterialTheme.colorScheme.onSurface
+                                    }
                                 )
                                 if (isCurrentWeek) {
                                     Text(
                                         text = "• Hiện tại",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = if (isSelected) 
+                                            MaterialTheme.colorScheme.primary
+                                        else 
+                                            MaterialTheme.colorScheme.secondary
                                     )
                                 }
                             }
                             Text(
                                 text = "${week.startDate} - ${week.endDate}",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (isCurrentWeek) 
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
-                                else 
-                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                color = when {
+                                    isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                                    isCurrentWeek -> MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                }
                             )
                         }
                     },
                     onClick = {
                         onWeekSelected(week)
                         expanded = false
-                    }
+                    },
+                    colors = MenuDefaults.itemColors(
+                        textColor = when {
+                            isSelected -> MaterialTheme.colorScheme.primary
+                            isCurrentWeek -> MaterialTheme.colorScheme.secondary
+                            else -> MaterialTheme.colorScheme.onSurface
+                        }
+                    )
                 )
             }
         }

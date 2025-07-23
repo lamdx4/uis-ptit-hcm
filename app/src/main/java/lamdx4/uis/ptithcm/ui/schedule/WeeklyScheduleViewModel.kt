@@ -66,19 +66,22 @@ class WeeklyScheduleViewModel : ViewModel() {
     }
 
     fun selectSemester(semester: Semester, accessToken: String) {
-        _uiState.value = _uiState.value.copy(selectedSemester = semester)
+        _uiState.value = _uiState.value.copy(
+            selectedSemester = semester,
+            isLoadingSchedule = true,
+            error = null
+        )
         loadScheduleForSemester(accessToken, semester)
     }
 
     private fun loadScheduleForSemester(accessToken: String, semester: Semester) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoadingSchedule = true, error = null)
+            // Không cần set loading lại vì đã set ở selectSemester
             
             try {
                 val scheduleResponse = scheduleRepository.getWeeklySchedule(accessToken, semester.semesterCode)
-                val availableWeeks = scheduleResponse.data.weeklySchedules.filter { 
-                    it.scheduleItems.isNotEmpty() 
-                }
+                // Hiển thị tất cả tuần, kể cả tuần không có lịch học
+                val availableWeeks = scheduleResponse.data.weeklySchedules
                 
                 // Tìm tuần hiện tại hoặc tuần đầu tiên nếu không có tuần hiện tại
                 val currentWeek = scheduleRepository.getCurrentWeek(accessToken, semester.semesterCode)
@@ -191,7 +194,7 @@ class WeeklyScheduleViewModel : ViewModel() {
     
     fun setWeeklySchedules(schedules: List<WeeklySchedule>) {
         _uiState.value = _uiState.value.copy(
-            weeklySchedules = schedules.filter { it.scheduleItems.isNotEmpty() },
+            weeklySchedules = schedules, // Hiển thị tất cả tuần, kể cả tuần rỗng
             isLoading = false
         )
         
@@ -200,7 +203,7 @@ class WeeklyScheduleViewModel : ViewModel() {
             selectWeek(currentWeek)
         } ?: run {
             // If no current week, select first available week
-            schedules.firstOrNull { it.scheduleItems.isNotEmpty() }?.let { firstWeek ->
+            schedules.firstOrNull()?.let { firstWeek ->
                 selectWeek(firstWeek)  
             }
         }

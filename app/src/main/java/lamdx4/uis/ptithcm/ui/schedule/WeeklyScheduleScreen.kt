@@ -68,7 +68,7 @@ fun WeeklyScheduleScreen(
         }
     ) { padding ->
         when {
-            scheduleState.isLoadingSemesters || scheduleState.isLoadingSchedule -> {
+            scheduleState.isLoadingSemesters -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -80,7 +80,7 @@ fun WeeklyScheduleScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         CircularProgressIndicator()
-                        Text("Đang tải thời khóa biểu...")
+                        Text("Đang tải danh sách học kỳ...")
                     }
                 }
             }
@@ -164,82 +164,36 @@ fun WeeklyScheduleScreen(
                         onWeekSelected = { weeklyScheduleViewModel.selectWeek(it) }
                     )
                     
-                    // Current week info and schedule
-                    scheduleState.currentWeekDisplay?.let { weekDisplay ->
-                        val isCurrentWeek = scheduleState.currentWeek?.absoluteWeek == scheduleState.selectedWeek?.absoluteWeek
-                        WeekInfoCard(
-                            weekInfo = weekDisplay.weekInfo,
-                            startDate = weekDisplay.startDate,
-                            endDate = weekDisplay.endDate,
-                            isCurrentWeek = isCurrentWeek
-                        )
-                        
-                        // Weekly schedule
-                        WeeklyScheduleView(
-                            daySchedules = weekDisplay.daySchedules,
-                            modifier = Modifier.weight(1f)
-                        )
+                    // Weekly schedule content
+                    if (scheduleState.isLoadingSchedule) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                CircularProgressIndicator()
+                                Text(
+                                    text = "Đang tải thời khóa biểu...",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    } else {
+                        scheduleState.currentWeekDisplay?.let { weekDisplay ->
+                            WeeklyScheduleView(
+                                daySchedules = weekDisplay.daySchedules,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun WeekInfoCard(
-    weekInfo: String,
-    startDate: String,
-    endDate: String,
-    isCurrentWeek: Boolean = false,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CalendarToday,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = weekInfo,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                if (isCurrentWeek) {
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Text(
-                            text = "Tuần hiện tại",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-            }
-            
-            Text(
-                text = "Từ $startDate đến $endDate",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
         }
     }
 }
@@ -295,24 +249,38 @@ fun SemesterSelector(
                     onDismissRequest = { expanded = false }
                 ) {
                     semesters.forEach { semester ->
+                        val isSelected = selectedSemester?.semesterCode == semester.semesterCode
                         DropdownMenuItem(
                             text = {
                                 Column {
                                     Text(
                                         text = semester.displayName,
-                                        style = MaterialTheme.typography.bodyMedium
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = if (isSelected) 
+                                            MaterialTheme.colorScheme.primary 
+                                        else 
+                                            MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
                                         text = "${semester.startDate} - ${semester.endDate}",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = if (isSelected) 
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                                        else 
+                                            MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             },
                             onClick = {
                                 onSemesterSelected(semester)
                                 expanded = false
-                            }
+                            },
+                            colors = MenuDefaults.itemColors(
+                                textColor = if (isSelected) 
+                                    MaterialTheme.colorScheme.primary 
+                                else 
+                                    MaterialTheme.colorScheme.onSurface
+                            )
                         )
                     }
                 }
