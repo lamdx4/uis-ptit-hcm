@@ -107,6 +107,7 @@ class ScheduleRepository {
 
     /**
      * Lấy học kỳ hiện tại dựa trên ngày
+     * Sử dụng hoc_ky_theo_ngay_hien_tai từ API
      */
     suspend fun getCurrentSemester(accessToken: String): Semester? {
         val semesterResponse = getSemesters(accessToken)
@@ -115,9 +116,36 @@ class ScheduleRepository {
         return if (currentSemesterCode > 0) {
             semesterResponse.data.semesters.find { it.semesterCode == currentSemesterCode }
         } else {
-            // Nếu không có semester hiện tại, lấy semester mới nhất
+            // Nếu không có semester hiện tại theo ngày, lấy semester mới nhất
             semesterResponse.data.semesters.firstOrNull()
         }
+    }
+
+    /**
+     * Lấy tuần hiện tại dựa trên ngày hiện tại và ngày bắt đầu học kỳ
+     */
+    suspend fun getCurrentWeek(accessToken: String, semesterCode: Int): WeeklySchedule? {
+        val scheduleResponse = getWeeklySchedule(accessToken, semesterCode)
+        val currentDate = System.currentTimeMillis()
+        val dateFormat = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+        
+        // Tìm tuần hiện tại dựa trên ngày
+        return scheduleResponse.data.weeklySchedules
+            .filter { it.scheduleItems.isNotEmpty() }
+            .find { week ->
+                try {
+                    val startDate = week.startDate?.let { dateFormat.parse(it) }
+                    val endDate = week.endDate?.let { dateFormat.parse(it) }
+                    
+                    if (startDate != null && endDate != null) {
+                        currentDate >= startDate.time && currentDate <= endDate.time
+                    } else {
+                        false
+                    }
+                } catch (e: Exception) {
+                    false
+                }
+            }
     }
 
     fun close() {

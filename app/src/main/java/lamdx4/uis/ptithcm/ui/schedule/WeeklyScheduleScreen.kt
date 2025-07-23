@@ -160,15 +160,18 @@ fun WeeklyScheduleScreen(
                     WeekSelector(
                         weeks = scheduleState.weeklySchedules,
                         selectedWeek = scheduleState.selectedWeek,
+                        currentWeek = scheduleState.currentWeek,
                         onWeekSelected = { weeklyScheduleViewModel.selectWeek(it) }
                     )
                     
                     // Current week info and schedule
                     scheduleState.currentWeekDisplay?.let { weekDisplay ->
+                        val isCurrentWeek = scheduleState.currentWeek?.absoluteWeek == scheduleState.selectedWeek?.absoluteWeek
                         WeekInfoCard(
                             weekInfo = weekDisplay.weekInfo,
                             startDate = weekDisplay.startDate,
-                            endDate = weekDisplay.endDate
+                            endDate = weekDisplay.endDate,
+                            isCurrentWeek = isCurrentWeek
                         )
                         
                         // Weekly schedule
@@ -188,6 +191,7 @@ fun WeekInfoCard(
     weekInfo: String,
     startDate: String,
     endDate: String,
+    isCurrentWeek: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -215,6 +219,20 @@ fun WeekInfoCard(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
+                if (isCurrentWeek) {
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text(
+                            text = "Tuần hiện tại",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
             }
             
             Text(

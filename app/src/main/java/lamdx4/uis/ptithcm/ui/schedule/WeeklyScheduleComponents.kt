@@ -30,6 +30,7 @@ import lamdx4.uis.ptithcm.data.model.WeeklySchedule
 fun WeekSelector(
     weeks: List<WeeklySchedule>,
     selectedWeek: WeeklySchedule?,
+    currentWeek: WeeklySchedule? = null, // Tuần hiện tại để highlight
     onWeekSelected: (WeeklySchedule) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -56,17 +57,38 @@ fun WeekSelector(
             onDismissRequest = { expanded = false }
         ) {
             weeks.forEach { week ->
+                val isCurrentWeek = currentWeek?.absoluteWeek == week.absoluteWeek
+                
                 DropdownMenuItem(
                     text = { 
                         Column {
-                            Text(
-                                text = week.weekInfo ?: "Tuần học",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = week.weekInfo ?: "Tuần học",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = if (isCurrentWeek) 
+                                        MaterialTheme.colorScheme.primary 
+                                    else 
+                                        MaterialTheme.colorScheme.onSurface
+                                )
+                                if (isCurrentWeek) {
+                                    Text(
+                                        text = "• Hiện tại",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
                             Text(
                                 text = "${week.startDate} - ${week.endDate}",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (isCurrentWeek) 
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                                else 
+                                    MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     },

@@ -22,6 +22,7 @@ data class WeeklyScheduleUiState(
     val selectedSemester: Semester? = null,
     val weeklySchedules: List<WeeklySchedule> = emptyList(),
     val selectedWeek: WeeklySchedule? = null,
+    val currentWeek: WeeklySchedule? = null, // Tuần hiện tại dựa trên ngày
     val currentWeekDisplay: WeekScheduleDisplay? = null,
     val isLoadingSemesters: Boolean = false,
     val isLoadingSchedule: Boolean = false
@@ -79,11 +80,16 @@ class WeeklyScheduleViewModel : ViewModel() {
                     it.scheduleItems.isNotEmpty() 
                 }
                 
+                // Tìm tuần hiện tại hoặc tuần đầu tiên nếu không có tuần hiện tại
+                val currentWeek = scheduleRepository.getCurrentWeek(accessToken, semester.semesterCode)
+                val selectedWeek = currentWeek ?: availableWeeks.firstOrNull()
+                
                 _uiState.value = _uiState.value.copy(
                     isLoadingSchedule = false,
                     weeklySchedules = availableWeeks,
-                    selectedWeek = availableWeeks.firstOrNull(),
-                    currentWeekDisplay = availableWeeks.firstOrNull()?.let { createWeekDisplay(it) }
+                    selectedWeek = selectedWeek,
+                    currentWeek = currentWeek, // Track tuần hiện tại
+                    currentWeekDisplay = selectedWeek?.let { createWeekDisplay(it) }
                 )
                 
             } catch (e: Exception) {
@@ -168,17 +174,19 @@ class WeeklyScheduleViewModel : ViewModel() {
     
     fun getCurrentWeek(): WeeklySchedule? {
         val currentDate = Date()
-        return _uiState.value.weeklySchedules.find { week ->
-            try {
-                val startDate = week.startDate?.let { dateFormat.parse(it) }
-                val endDate = week.endDate?.let { dateFormat.parse(it) }
-                
-                startDate != null && endDate != null &&
-                currentDate.after(startDate) && currentDate.before(endDate)
-            } catch (e: Exception) {
-                false
+        return _uiState.value.weeklySchedules
+            .filter { it.scheduleItems.isNotEmpty() }
+            .find { week ->
+                try {
+                    val startDate = week.startDate?.let { dateFormat.parse(it) }
+                    val endDate = week.endDate?.let { dateFormat.parse(it) }
+                    
+                    startDate != null && endDate != null &&
+                    currentDate.time >= startDate.time && currentDate.time <= endDate.time
+                } catch (e: Exception) {
+                    false
+                }
             }
-        }
     }
     
     fun setWeeklySchedules(schedules: List<WeeklySchedule>) {
