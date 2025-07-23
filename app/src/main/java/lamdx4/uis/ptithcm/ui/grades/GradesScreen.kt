@@ -94,6 +94,13 @@ fun GradesScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(16.dp)
                 ) {
+                    // Overall grade summary (always shown first)
+                    if (gradesState.semesters.isNotEmpty()) {
+                        item {
+                            OverallGradeSummaryCard(gradesState.semesters)
+                        }
+                    }
+                    
                     // Semester selector
                     if (gradesState.semesters.isNotEmpty()) {
                         item {

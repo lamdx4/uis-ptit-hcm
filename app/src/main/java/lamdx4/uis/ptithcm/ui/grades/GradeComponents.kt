@@ -9,6 +9,8 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Grade
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -59,6 +61,177 @@ fun SemesterSelector(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun OverallGradeSummaryCard(semesters: List<SemesterGrade>) {
+    val latestSemester = semesters.maxByOrNull { semester ->
+        // Parse semester to determine the latest one based on name
+        semester.semesterName
+    }
+    
+    val totalCreditsAttempted = semesters.sumOf { 
+        it.subjectGrades.sumOf { subject -> subject.credits.toIntOrNull() ?: 0 }
+    }
+    
+    val totalCreditsPassed = semesters.sumOf { semester ->
+        semester.subjectGrades.filter { it.result == 1 }
+            .sumOf { subject -> subject.credits.toIntOrNull() ?: 0 }
+    }
+    
+    val passedSubjects = semesters.sumOf { semester ->
+        semester.subjectGrades.count { it.result == 1 }
+    }
+    
+    val failedSubjects = semesters.sumOf { semester ->
+        semester.subjectGrades.count { it.result == 0 }
+    }
+    
+    val currentGpa10 = latestSemester?.cumulativeGpa10
+    val currentGpa4 = latestSemester?.cumulativeGpa4
+    val currentRank = latestSemester?.semesterRank
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Assessment,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.tertiary
+                )
+                Text(
+                    text = "Kết quả tích lũy toàn khóa",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+            
+            // Main GPA Stats
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                StatisticItemLarge(
+                    label = "GPA (10)",
+                    value = currentGpa10 ?: "---",
+                    color = getGpaColor(currentGpa10?.toDoubleOrNull()),
+                    icon = Icons.Default.TrendingUp
+                )
+                StatisticItemLarge(
+                    label = "GPA (4)",
+                    value = currentGpa4 ?: "---",
+                    color = getGpaColor(currentGpa4?.toDoubleOrNull()),
+                    icon = Icons.Default.Grade
+                )
+                StatisticItemLarge(
+                    label = "Xếp loại",
+                    value = currentRank ?: "---",
+                    color = getRankColor(currentRank),
+                    icon = Icons.Default.EmojiEvents
+                )
+            }
+            
+            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+            
+            // Credits and Subject Summary
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                StatisticItem(
+                    label = "Tín chỉ đạt",
+                    value = "$totalCreditsPassed",
+                    color = MaterialTheme.colorScheme.primary
+                )
+                StatisticItem(
+                    label = "Tổng tín chỉ",
+                    value = "$totalCreditsAttempted"
+                )
+                StatisticItem(
+                    label = "Môn đạt",
+                    value = "$passedSubjects",
+                    color = Color(0xFF4CAF50)
+                )
+                StatisticItem(
+                    label = "Môn rớt",
+                    value = "$failedSubjects",
+                    color = if (failedSubjects > 0) Color(0xFFF44336) else MaterialTheme.colorScheme.onTertiaryContainer
+                )
+            }
+            
+            // Progress indicator
+            if (totalCreditsAttempted > 0) {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Tiến độ hoàn thành",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                        Text(
+                            text = "${(totalCreditsPassed.toFloat() / totalCreditsAttempted * 100).toInt()}%",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    LinearProgressIndicator(
+                        progress = { totalCreditsPassed.toFloat() / totalCreditsAttempted },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StatisticItemLarge(
+    label: String,
+    value: String,
+    color: Color = MaterialTheme.colorScheme.onTertiaryContainer,
+    icon: androidx.compose.ui.graphics.vector.ImageVector
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(20.dp)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = color
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onTertiaryContainer
+        )
     }
 }
     
