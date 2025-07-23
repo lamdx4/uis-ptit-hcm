@@ -16,6 +16,7 @@ curl --location 'https://uis.ptithcm.edu.vn/api/sch/w-locdshockytkbuser' \
         ]
     }
 }'
+res ->
 {
     "data": {
         "total_items": 6,
@@ -92,7 +93,7 @@ curl --location 'https://uis.ptithcm.edu.vn/api/sch/w-locdstkbtuanusertheohocky'
         ]
     }
 }'
-
+res ->
 {
     "data": {
         "total_items": 31,

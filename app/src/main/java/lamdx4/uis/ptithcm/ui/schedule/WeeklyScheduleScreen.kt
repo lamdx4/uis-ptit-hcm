@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import lamdx4.uis.ptithcm.ui.AppViewModel
+import lamdx4.uis.ptithcm.data.model.Semester
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,116 +28,11 @@ fun WeeklyScheduleScreen(
     val appState by appViewModel.uiState.collectAsState()
     val scheduleState by weeklyScheduleViewModel.uiState.collectAsState()
 
-    // Load schedule when screen is first shown
+    // Load semesters when screen is first shown
     LaunchedEffect(appState.accessToken) {
         appState.accessToken?.let { token ->
-            weeklyScheduleViewModel.loadSchedule(token)
+            weeklyScheduleViewModel.loadSemesters(token)
         }
-    }
-
-    // TODO: Remove this when API is implemented - Sample data for testing
-    LaunchedEffect(Unit) {
-        // Sample data based on your API structure
-        val sampleWeeks = listOf(
-            lamdx4.uis.ptithcm.data.model.WeeklySchedule(
-                semesterWeek = 14,
-                absoluteWeek = 1246,
-                weekInfo = "Tuần 14 [từ ngày 13/11/2023 đến ngày 19/11/2023]",
-                startDate = "13/11/2023",
-                endDate = "19/11/2023",
-                scheduleItems = listOf(
-                    lamdx4.uis.ptithcm.data.model.ScheduleItem(
-                        dayOfWeek = 3, // Tuesday
-                        startPeriod = 1,
-                        numberOfPeriods = 4,
-                        subjectCode = "SKD1101",
-                        subjectName = "Kỹ năng thuyết trình",
-                        credits = "1",
-                        groupCode = "03",
-                        teacherName = "Hoàng Hà Linh",
-                        roomCode = "2A2425-2A2425"
-                    ),
-                    lamdx4.uis.ptithcm.data.model.ScheduleItem(
-                        dayOfWeek = 3, // Tuesday
-                        startPeriod = 7,
-                        numberOfPeriods = 4,
-                        subjectCode = "INT1339",
-                        subjectName = "Ngôn ngữ lập trình C++",
-                        credits = "3",
-                        groupCode = "02",
-                        teacherName = "Phan Nghĩa Hiệp",
-                        roomCode = "2B11-2B11 (Q9)"
-                    ),
-                    lamdx4.uis.ptithcm.data.model.ScheduleItem(
-                        dayOfWeek = 4, // Wednesday
-                        startPeriod = 1,
-                        numberOfPeriods = 4,
-                        subjectCode = "BAS1158",
-                        subjectName = "Tiếng Anh (Course 2)",
-                        credits = "4",
-                        groupCode = "03",
-                        teacherName = "Nguyễn Đại Phong",
-                        roomCode = "2E17-Ngoai ngu"
-                    ),
-                    lamdx4.uis.ptithcm.data.model.ScheduleItem(
-                        dayOfWeek = 4, // Wednesday
-                        startPeriod = 7,
-                        numberOfPeriods = 4,
-                        subjectCode = "BAS1152",
-                        subjectName = "Chủ nghĩa xã hội khoa học",
-                        credits = "2",
-                        groupCode = "03",
-                        teacherName = "Nguyễn Xuân Lưu",
-                        roomCode = "2A16-2A16"
-                    ),
-                    lamdx4.uis.ptithcm.data.model.ScheduleItem(
-                        dayOfWeek = 6, // Friday
-                        startPeriod = 7,
-                        numberOfPeriods = 4,
-                        subjectCode = "BAS1158",
-                        subjectName = "Tiếng Anh (Course 2)",
-                        credits = "4",
-                        groupCode = "03",
-                        teacherName = "Dương Trần Thuỷ Trinh",
-                        roomCode = "2E14-Ngoai ngu"
-                    )
-                ),
-                conflictingScheduleIds = emptyList()
-            ),
-            lamdx4.uis.ptithcm.data.model.WeeklySchedule(
-                semesterWeek = 15,
-                absoluteWeek = 1247,
-                weekInfo = "Tuần 15 [từ ngày 20/11/2023 đến ngày 26/11/2023]",
-                startDate = "20/11/2023",
-                endDate = "26/11/2023",
-                scheduleItems = listOf(
-                    lamdx4.uis.ptithcm.data.model.ScheduleItem(
-                        dayOfWeek = 3, // Tuesday
-                        startPeriod = 1,
-                        numberOfPeriods = 4,
-                        subjectCode = "SKD1101",
-                        subjectName = "Kỹ năng thuyết trình",
-                        credits = "1",
-                        groupCode = "03",
-                        teacherName = "Hoàng Hà Linh",
-                        roomCode = "2A2425-2A2425"
-                    ),
-                    lamdx4.uis.ptithcm.data.model.ScheduleItem(
-                        dayOfWeek = 3, // Tuesday
-                        startPeriod = 7,
-                        numberOfPeriods = 4,
-                        subjectCode = "INT1339",
-                        subjectName = "Ngôn ngữ lập trình C++",
-                        credits = "3",
-                        groupCode = "02",
-                        teacherName = "Phan Nghĩa Hiệp",
-                        roomCode = "2B11-2B11 (Q9)"
-                    )
-                ),
-                conflictingScheduleIds = emptyList()
-            )
-        )
-        weeklyScheduleViewModel.setWeeklySchedules(sampleWeeks)
     }
 
     Scaffold(
@@ -172,7 +68,7 @@ fun WeeklyScheduleScreen(
         }
     ) { padding ->
         when {
-            scheduleState.isLoading -> {
+            scheduleState.isLoadingSemesters || scheduleState.isLoadingSchedule -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -249,6 +145,17 @@ fun WeeklyScheduleScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // Semester selector
+                    SemesterSelector(
+                        semesters = scheduleState.semesters,
+                        selectedSemester = scheduleState.selectedSemester,
+                        onSemesterSelected = { semester ->
+                            appState.accessToken?.let { token ->
+                                weeklyScheduleViewModel.selectSemester(semester, token)
+                            }
+                        }
+                    )
+                    
                     // Week selector
                     WeekSelector(
                         weeks = scheduleState.weeklySchedules,
@@ -315,6 +222,83 @@ fun WeekInfoCard(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SemesterSelector(
+    semesters: List<Semester>,
+    selectedSemester: Semester?,
+    onSemesterSelected: (Semester) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "Chọn học kỳ:",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = !expanded },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                OutlinedTextField(
+                    value = selectedSemester?.displayName ?: "Chọn học kỳ",
+                    onValueChange = { },
+                    readOnly = true,
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = expanded
+                        )
+                    },
+                    colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth()
+                )
+                
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    semesters.forEach { semester ->
+                        DropdownMenuItem(
+                            text = {
+                                Column {
+                                    Text(
+                                        text = semester.displayName,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = "${semester.startDate} - ${semester.endDate}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            },
+                            onClick = {
+                                onSemesterSelected(semester)
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
         }
     }
 }
