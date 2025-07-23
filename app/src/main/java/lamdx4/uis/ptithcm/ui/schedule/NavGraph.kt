@@ -15,7 +15,15 @@ fun NavGraphBuilder.scheduleNavGraph(
 ) {
     composable("schedule") {
         ScheduleScreen(
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            navController = navController
+        )
+    }
+    
+    composable("weekly_schedule") {
+        WeeklyScheduleScreen(
+            modifier = Modifier.padding(innerPadding),
+            navController = navController
         )
     }
 }

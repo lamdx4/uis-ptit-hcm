@@ -4,12 +4,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScheduleScreen(modifier: Modifier = Modifier) {
+fun ScheduleScreen(
+    modifier: Modifier = Modifier,
+    navController: NavHostController? = null
+) {
     Scaffold(
         modifier = modifier,
         topBar = { TopAppBar(title = { Text("Thời khoá biểu") }) }
@@ -28,15 +33,21 @@ fun ScheduleScreen(modifier: Modifier = Modifier) {
                 }
             }
             if (selectedTab == 0) {
-                // Danh sách tuần (giả lập)
-                LazyColumn {
-                    items(3) { i ->
-                        Card(Modifier.padding(8.dp).fillMaxWidth()) {
-                            ListItem(
-                                headlineContent = { Text("Tuần ${i + 1}: 01/01 - 07/01") },
-                                supportingContent = { Text("Danh sách môn học tuần này...") }
-                            )
-                        }
+                // Dạng tuần - Navigate to WeeklyScheduleScreen when tab is first selected
+                LaunchedEffect(Unit) {
+                    navController?.navigate("weekly_schedule")
+                }
+                // Show loading or placeholder while navigating
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        CircularProgressIndicator()
+                        Text("Đang chuyển đến thời khoá biểu tuần...")
                     }
                 }
             } else {

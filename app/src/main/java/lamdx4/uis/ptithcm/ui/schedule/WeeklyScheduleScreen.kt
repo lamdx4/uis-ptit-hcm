@@ -3,6 +3,7 @@ package lamdx4.uis.ptithcm.ui.schedule
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.*
@@ -12,12 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import lamdx4.uis.ptithcm.ui.AppViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeeklyScheduleScreen(
     modifier: Modifier = Modifier,
+    navController: NavHostController? = null,
     appViewModel: AppViewModel = viewModel(),
     weeklyScheduleViewModel: WeeklyScheduleViewModel = viewModel()
 ) {
@@ -152,9 +155,18 @@ fun WeeklyScheduleScreen(
                         Text("Thời khóa biểu tuần")
                     }
                 },
+                navigationIcon = {
+                    IconButton(onClick = { navController?.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Quay lại"
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         }
