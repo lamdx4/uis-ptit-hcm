@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "18cm60p"
 include(":app")
- 
+include(":baselineprofile")
