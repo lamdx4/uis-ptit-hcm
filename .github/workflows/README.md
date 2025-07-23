@@ -57,13 +57,6 @@ This project uses GitHub Actions for continuous integration and deployment. The 
 - Memory usage tracking
 - Performance comments on PRs
 
-### 5. 🔄 Dependency Updates (`dependency-updates.yml`)
-**Triggers:** Weekly schedule (Mondays 9 AM UTC), Manual dispatch
-
-**Jobs:**
-- **Check Dependencies**: Generate dependency update reports
-- **Gradle Wrapper Update**: Automatically update Gradle wrapper
-
 ## Setup Instructions
 
 ### Prerequisites
@@ -101,7 +94,7 @@ git push origin v1.0.0
 
 ### Manual Workflow Triggers
 Some workflows can be triggered manually:
-- Dependency Updates: Go to Actions → Dependency Updates → Run workflow
+- Release: Create and push a tag to trigger release workflow
 - Performance Monitoring: Triggered automatically on main branch
 
 ## Monitoring
