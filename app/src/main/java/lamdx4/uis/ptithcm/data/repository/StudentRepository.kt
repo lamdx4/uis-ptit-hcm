@@ -18,6 +18,7 @@ import lamdx4.uis.ptithcm.data.model.SemesterFilter
 import lamdx4.uis.ptithcm.data.model.SemesterAdditional
 import lamdx4.uis.ptithcm.data.model.SemesterPaging
 import lamdx4.uis.ptithcm.data.model.SemesterOrdering
+import lamdx4.uis.ptithcm.data.model.GradeResponse
 import io.ktor.client.call.body
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -158,5 +159,14 @@ class StudentRepository {
         } catch (e: Exception) {
             null
         }
+    }
+
+    suspend fun getAllGrades(accessToken: String): GradeResponse {
+        return client.post("https://uis.ptithcm.edu.vn/api/srm/w-locdsdiemsinhvien") {
+            header(HttpHeaders.Authorization, "Bearer $accessToken")
+            header(HttpHeaders.Accept, "application/json, text/plain, */*")
+            header(HttpHeaders.ContentType, ContentType.Text.Plain)
+            setBody("")
+        }.body()
     }
 }

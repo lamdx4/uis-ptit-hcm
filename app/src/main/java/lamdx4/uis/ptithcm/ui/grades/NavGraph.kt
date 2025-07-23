@@ -15,7 +15,8 @@ fun NavGraphBuilder.gradesNavGraph(
 ) {
     composable("grades") {
         GradesScreen(
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            appViewModel = appViewModel
         )
     }
 }
