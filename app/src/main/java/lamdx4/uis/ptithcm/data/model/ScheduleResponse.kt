@@ -42,11 +42,11 @@ data class PeriodInfo(
     @SerialName("tiet")
     val period: Int,
     @SerialName("gio_bat_dau")
-    val startTime: String,
+    val startTime: String = "",
     @SerialName("gio_ket_thuc")
-    val endTime: String,
+    val endTime: String = "",
     @SerialName("so_phut")
-    val durationMinutes: Int,
+    val durationMinutes: Int = 0,
     @SerialName("nhhk")
     val semesterCode: Int
 )
