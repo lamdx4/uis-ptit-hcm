@@ -3,12 +3,10 @@ package lamdx4.uis.ptithcm.ui.profile
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
 import android.util.Base64
-import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
@@ -40,7 +38,6 @@ import lamdx4.uis.ptithcm.ui.statistics.StatisticsViewModel
 import lamdx4.uis.ptithcm.ui.statistics.StatisticsUiState
 import lamdx4.uis.ptithcm.ui.components.GradeChart
 import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
-import lamdx4.uis.ptithcm.data.model.SemesterInfo
 import lamdx4.uis.ptithcm.ui.theme.PTITColors
 import kotlin.text.*
 
@@ -504,7 +501,6 @@ private fun QuickStatCard(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TabbedInformationSection(profile: CompleteStudentInfo) {
     val pagerState = rememberPagerState(pageCount = { 2 })
@@ -917,7 +913,7 @@ private fun ImprovedStatisticsSection(
                         
                         // Chart - maximum space with minimal padding
                             GradeChart(
-                                subjects = statisticsState.academicResult.ds_du_lieu!!,
+                                subjects = statisticsState.academicResult.ds_du_lieu,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(400.dp) // Increased height significantly
@@ -931,7 +927,7 @@ private fun ImprovedStatisticsSection(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "${statisticsState.academicResult.ds_du_lieu!!.size} môn học",
+                                text = "${statisticsState.academicResult.ds_du_lieu.size} môn học",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

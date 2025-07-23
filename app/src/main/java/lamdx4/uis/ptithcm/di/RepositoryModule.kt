@@ -1,33 +1,17 @@
 package lamdx4.uis.ptithcm.di
 
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import lamdx4.uis.ptithcm.data.repository.ScheduleRepository
-import lamdx4.uis.ptithcm.data.repository.GradeRepository
-import lamdx4.uis.ptithcm.data.repository.StudentRepository
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object RepositoryModule {
-
-    @Provides
-    @Singleton
-    fun provideScheduleRepository(): ScheduleRepository {
-        return ScheduleRepository()
-    }
-
-    @Provides
-    @Singleton
-    fun provideGradeRepository(): GradeRepository {
-        return GradeRepository()
-    }
-
-    @Provides
-    @Singleton
-    fun provideStudentRepository(): StudentRepository {
-        return StudentRepository()
-    }
+    // 🎯 All repositories now use @Inject constructor() and @Singleton annotation
+    // Hilt automatically provides them without manual @Provides methods!
+    
+    // No need for @Provides when using @Inject constructor() + @Singleton:
+    // - ScheduleRepository: @Singleton class + @Inject constructor() ✅
+    // - GradeRepository: @Singleton class + @Inject constructor() ✅  
+    // - StudentRepository: @Singleton class + @Inject constructor() ✅
 }

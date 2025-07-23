@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.data.repository.GradeRepository
-import lamdx4.uis.ptithcm.data.repository.GradeStatistics
+import lamdx4.uis.ptithcm.data.model.GradeStatistics
 import lamdx4.uis.ptithcm.data.model.SemesterGrade
 import lamdx4.uis.ptithcm.data.model.SubjectGrade
 import dagger.hilt.android.lifecycle.HiltViewModel

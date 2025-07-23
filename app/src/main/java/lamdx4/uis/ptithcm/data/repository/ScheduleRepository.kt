@@ -13,8 +13,21 @@ import lamdx4.uis.ptithcm.data.model.SemesterResponse
 import lamdx4.uis.ptithcm.data.model.ScheduleResponse
 import lamdx4.uis.ptithcm.data.model.Semester
 import lamdx4.uis.ptithcm.data.model.WeeklySchedule
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class ScheduleRepository {
+@Singleton
+class ScheduleRepository @Inject constructor() {
+    
+    // 🎯 Cache data to avoid reloading
+    private var cachedSemesters: SemesterResponse? = null
+    private val cachedSchedules = mutableMapOf<String, ScheduleResponse>()
+    private var lastSemestersFetch: Long = 0
+    private val scheduleLastFetch = mutableMapOf<String, Long>()
+    
+    // Cache duration: 5 minutes
+    private val CACHE_DURATION = 5 * 60 * 1000L
+    
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json(Json {
@@ -29,11 +42,21 @@ class ScheduleRepository {
     }
 
     /**
-     * Lấy danh sách học kỳ có thời khóa biểu
+     * Lấy danh sách học kỳ có thời khóa biểu (với caching)
      * API: w-locdshockytkbuser
      */
     suspend fun getSemesters(accessToken: String): SemesterResponse {
-        return client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdshockytkbuser") {
+        val currentTime = System.currentTimeMillis()
+        
+        // 🎯 Check cache first
+        cachedSemesters?.let { cached ->
+            if (currentTime - lastSemestersFetch < CACHE_DURATION) {
+                return cached
+            }
+        }
+        
+        // 📡 Fetch from API if not cached or expired
+        val response = client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdshockytkbuser") {
             header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
@@ -58,15 +81,33 @@ class ScheduleRepository {
                     }
                 }
             """.trimIndent())
-        }.body()
+        }.body<SemesterResponse>()
+        
+        // 💾 Cache the response
+        cachedSemesters = response
+        lastSemestersFetch = currentTime
+        
+        return response
     }
 
     /**
-     * Lấy thời khóa biểu tuần theo học kỳ
+     * Lấy thời khóa biểu tuần theo học kỳ (với caching)
      * API: w-locdstkbtuanusertheohocky
      */
     suspend fun getWeeklySchedule(accessToken: String, semesterCode: Int): ScheduleResponse {
-        return client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdstkbtuanusertheohocky") {
+        val cacheKey = semesterCode.toString()
+        val currentTime = System.currentTimeMillis()
+        
+        // 🎯 Check cache first
+        cachedSchedules[cacheKey]?.let { cached ->
+            val lastFetch = scheduleLastFetch[cacheKey] ?: 0
+            if (currentTime - lastFetch < CACHE_DURATION) {
+                return cached
+            }
+        }
+        
+        // 📡 Fetch from API if not cached or expired
+        val response = client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdstkbtuanusertheohocky") {
             header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
@@ -92,7 +133,13 @@ class ScheduleRepository {
                     }
                 }
             """.trimIndent())
-        }.body()
+        }.body<ScheduleResponse>()
+        
+        // 💾 Cache the response
+        cachedSchedules[cacheKey] = response
+        scheduleLastFetch[cacheKey] = currentTime
+        
+        return response
     }
 
     /**
@@ -144,6 +191,25 @@ class ScheduleRepository {
                     false
                 }
             }
+    }
+    
+    // 🧹 Cache management methods
+    fun clearCache() {
+        cachedSemesters = null
+        cachedSchedules.clear()
+        lastSemestersFetch = 0
+        scheduleLastFetch.clear()
+    }
+    
+    fun clearScheduleCache(semesterCode: Int? = null) {
+        if (semesterCode != null) {
+            val key = semesterCode.toString()
+            cachedSchedules.remove(key)
+            scheduleLastFetch.remove(key)
+        } else {
+            cachedSchedules.clear()
+            scheduleLastFetch.clear()
+        }
     }
 
     fun close() {

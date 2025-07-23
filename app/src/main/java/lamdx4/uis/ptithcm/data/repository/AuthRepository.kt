@@ -8,6 +8,7 @@ import io.ktor.client.plugins.contentnegotiation.* //  Ktor 2.x
 import io.ktor.serialization.kotlinx.json.*         //  json()
 import io.ktor.http.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -34,9 +35,9 @@ class AuthRepository {
                 )
             }
             val json = Json.parseToJsonElement(response.bodyAsText()).jsonObject
-            val token = json["access_token"]?.jsonPrimitive?.content
+            val token = json["access_token"]?.jsonPrimitive?.contentOrNull
             if (token != null) Result.success(token)
-            else Result.failure(Exception(json["error_description"]?.jsonPrimitive?.content ?: "Đăng nhập thất bại"))
+            else Result.failure(Exception(json["message"]?.jsonPrimitive?.content ?: "Đăng nhập thất bại"))
         } catch (e: Exception) {
             Result.failure(e)
         }
