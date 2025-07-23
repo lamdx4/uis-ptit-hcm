@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "18cm60p"
+rootProject.name = "UIS PTIT HCM"
 include(":app")
 include(":baselineprofile")
