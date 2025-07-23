@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.R
 import lamdx4.uis.ptithcm.ui.AppViewModel
@@ -61,7 +62,7 @@ fun decodeBase64ToBitmap(base64String: String): android.graphics.Bitmap? {
 @Composable
 fun ProfileScreen(
     appViewModel: AppViewModel = viewModel(),
-    profileViewModel: ProfileViewModel = viewModel(),
+    profileViewModel: ProfileViewModel = hiltViewModel(),
     statisticsViewModel: StatisticsViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {

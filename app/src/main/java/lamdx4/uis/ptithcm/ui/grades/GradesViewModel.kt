@@ -1,7 +1,6 @@
 package lamdx4.uis.ptithcm.ui.grades
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,6 +10,8 @@ import lamdx4.uis.ptithcm.data.repository.GradeRepository
 import lamdx4.uis.ptithcm.data.repository.GradeStatistics
 import lamdx4.uis.ptithcm.data.model.SemesterGrade
 import lamdx4.uis.ptithcm.data.model.SubjectGrade
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 data class GradesUiState(
     val isLoading: Boolean = false,
@@ -21,9 +22,10 @@ data class GradesUiState(
     val statistics: GradeStatistics? = null
 )
 
-class GradesViewModel(app: Application) : AndroidViewModel(app) {
-    private val gradeRepository = GradeRepository()
-    
+@HiltViewModel
+class GradesViewModel @Inject constructor(
+    private val gradeRepository: GradeRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(GradesUiState())
     val uiState: StateFlow<GradesUiState> = _uiState.asStateFlow()
 

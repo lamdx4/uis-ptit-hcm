@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.data.model.Semester
@@ -23,7 +24,7 @@ fun WeeklyScheduleScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController? = null,
     appViewModel: AppViewModel = viewModel(),
-    weeklyScheduleViewModel: WeeklyScheduleViewModel = viewModel()
+    weeklyScheduleViewModel: WeeklyScheduleViewModel = hiltViewModel()
 ) {
     val appState by appViewModel.uiState.collectAsState()
     val scheduleState by weeklyScheduleViewModel.uiState.collectAsState()

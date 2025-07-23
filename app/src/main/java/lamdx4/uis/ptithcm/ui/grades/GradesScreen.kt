@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import lamdx4.uis.ptithcm.data.model.SubjectGrade
 import lamdx4.uis.ptithcm.ui.AppViewModel
 
@@ -19,7 +20,7 @@ import lamdx4.uis.ptithcm.ui.AppViewModel
 fun GradesScreen(
     modifier: Modifier = Modifier,
     appViewModel: AppViewModel = viewModel(),
-    gradesViewModel: GradesViewModel = viewModel()
+    gradesViewModel: GradesViewModel = hiltViewModel()
 ) {
     val appState by appViewModel.uiState.collectAsState()
     val gradesState by gradesViewModel.uiState.collectAsState()

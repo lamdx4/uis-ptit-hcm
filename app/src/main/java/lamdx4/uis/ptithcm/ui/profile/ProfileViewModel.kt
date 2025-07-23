@@ -3,10 +3,12 @@ package lamdx4.uis.ptithcm.ui.profile
 import lamdx4.uis.ptithcm.data.repository.StudentRepository
 import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
-
-class ProfileViewModel(
-    private val studentRepository: StudentRepository = StudentRepository()
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
+    private val studentRepository: StudentRepository
 ) : ViewModel() {
 
     // Thêm hàm này để dùng cho flow mới: trả về profile, không update uiState

@@ -12,8 +12,10 @@ import lamdx4.uis.ptithcm.data.model.DaySchedule
 import lamdx4.uis.ptithcm.data.model.ScheduleItem
 import lamdx4.uis.ptithcm.data.model.Semester
 import lamdx4.uis.ptithcm.data.repository.ScheduleRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.inject.Inject
 
 data class WeeklyScheduleUiState(
     val isLoading: Boolean = false,
@@ -28,11 +30,13 @@ data class WeeklyScheduleUiState(
     val isLoadingSchedule: Boolean = false
 )
 
-class WeeklyScheduleViewModel : ViewModel() {
+@HiltViewModel
+class WeeklyScheduleViewModel @Inject constructor(
+    private val scheduleRepository: ScheduleRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(WeeklyScheduleUiState())
     val uiState: StateFlow<WeeklyScheduleUiState> = _uiState.asStateFlow()
 
-    private val scheduleRepository = ScheduleRepository()
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     fun loadSemesters(accessToken: String) {
@@ -214,8 +218,6 @@ class WeeklyScheduleViewModel : ViewModel() {
         }
     }
     
-    override fun onCleared() {
-        super.onCleared()
-        scheduleRepository.close()
-    }
+    // Hilt automatically manages repository lifecycle
+    // No need for onCleared() method
 }

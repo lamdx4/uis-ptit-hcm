@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.baselineprofile)
-    id("com.google.devtools.ksp") version "2.0.21-1.0.27"
+    id("com.google.devtools.ksp") version "2.0.0-1.0.21"
     id("com.google.dagger.hilt.android") version "2.56.2"
 
 }
@@ -95,5 +95,6 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.ktor.client.logging)
     implementation(libs.hilt.android)
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
     ksp(libs.hilt.android.compiler)
 }
