@@ -16,12 +16,10 @@ sealed class MainNavDest(
     object Profile : MainNavDest("profile", "Thông tin", Icons.Default.Person)
     object Schedule : MainNavDest("schedule", "Thời khoá biểu", Icons.Default.CalendarMonth)
     object Grades : MainNavDest("grades", "Kết quả", Icons.Default.Star)
-    object Exam : MainNavDest("exam", "Lịch thi", Icons.Default.Event)
-    object Register : MainNavDest("register", "Đăng ký", Icons.Default.Edit)
     object More : MainNavDest("more", "More", Icons.Default.MoreHoriz)
 
     companion object {
-        val items = listOf(Profile, Schedule, Grades, Exam, Register, More)
+        val items = listOf(Profile, Schedule, Grades, More)
     }
 }
 

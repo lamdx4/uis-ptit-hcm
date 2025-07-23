@@ -1,0 +1,93 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Build release APK
+      run: ./gradlew assembleRelease --stacktrace
+      
+    - name: Sign APK
+      if: github.repository == 'lamdx4/uis-ptit-hcm'
+      run: echo "APK signing would go here with keystore secrets"
+      
+    - name: Get version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        name: Release ${{ steps.get_version.outputs.VERSION }}
+        body: |
+          ## Changes in this Release
+          
+          ### New Features
+          - Grade chart visualization with semester selection
+          - Improved navigation layout (moved Exams and Registration to More tab)
+          - Base64 image support for profile pictures
+          
+          ### Bug Fixes
+          - Fixed navigation content overlap issues
+          - Improved chart alignment and spacing
+          
+          ### Technical Improvements
+          - Added GitHub Actions CI/CD pipeline
+          - Code quality checks and automated testing
+          - Optimized chart performance and user experience
+          
+          ## Installation
+          Download the APK file below and install on your Android device.
+          
+          **Minimum Android Version:** Android 7.0 (API level 24)
+          
+        draft: false
+        prerelease: false
+        files: |
+          ./app/build/outputs/apk/release/app-release.apk
+        
+  notify:
+    runs-on: ubuntu-latest
+    needs: build-release
+    if: always()
+    
+    steps:
+    - name: Notify success
+      if: needs.build-release.result == 'success'
+      run: echo "✅ Release build successful!"
+      
+    - name: Notify failure
+      if: needs.build-release.result == 'failure'
+      run: echo "❌ Release build failed!"

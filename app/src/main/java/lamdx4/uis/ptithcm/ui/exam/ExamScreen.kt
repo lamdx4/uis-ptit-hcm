@@ -9,8 +9,9 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExamScreen() {
+fun ExamScreen(modifier: Modifier = Modifier) {
     Scaffold(
+        modifier = modifier,
         topBar = { TopAppBar(title = { Text("Lịch thi") }) }
     ) { padding ->
         LazyColumn(Modifier.padding(padding).fillMaxSize()) {

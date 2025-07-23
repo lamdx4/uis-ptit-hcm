@@ -9,8 +9,9 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GradesScreen() {
+fun GradesScreen(modifier: Modifier = Modifier) {
     Scaffold(
+        modifier = modifier,
         topBar = { TopAppBar(title = { Text("Kết quả học tập") }) }
     ) { padding ->
         LazyColumn(Modifier.padding(padding).fillMaxSize()) {

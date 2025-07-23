@@ -1,15 +1,21 @@
 package lamdx4.uis.ptithcm.ui.grades
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import lamdx4.uis.ptithcm.ui.AppViewModel
 
 fun NavGraphBuilder.gradesNavGraph(
     navController: NavHostController,
-    innerPadding: PaddingValues
+    innerPadding: PaddingValues,
+    appViewModel: AppViewModel
 ) {
     composable("grades") {
-        GradesScreen()
+        GradesScreen(
+            modifier = Modifier.padding(innerPadding)
+        )
     }
 }

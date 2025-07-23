@@ -9,8 +9,9 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScheduleScreen() {
+fun ScheduleScreen(modifier: Modifier = Modifier) {
     Scaffold(
+        modifier = modifier,
         topBar = { TopAppBar(title = { Text("Thời khoá biểu") }) }
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {

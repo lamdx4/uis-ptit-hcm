@@ -15,7 +15,9 @@ class AuthRepository {
     // Singleton
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
-            json()
+            json(Json {
+                ignoreUnknownKeys = true // <-- dòng này rất quan trọng!
+            })
         }
     }
 

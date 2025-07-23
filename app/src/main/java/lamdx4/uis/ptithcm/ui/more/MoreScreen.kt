@@ -1,19 +1,21 @@
 package lamdx4.uis.ptithcm.ui.more
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudSync
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.AttachMoney
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoreScreen() {
+fun MoreScreen(
+    navController: NavController? = null,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
         topBar = { TopAppBar(title = { Text("More") }) }
     ) { padding ->
@@ -24,6 +26,25 @@ fun MoreScreen() {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // Chức năng chính được chuyển từ navigation bar
+            ListItem(
+                headlineContent = { Text("Lịch thi") },
+                leadingContent = { Icon(Icons.Default.Event, contentDescription = null) },
+                modifier = Modifier.clickable { 
+                    navController?.navigate("exam") 
+                }
+            )
+            ListItem(
+                headlineContent = { Text("Đăng ký môn học") },
+                leadingContent = { Icon(Icons.Default.Edit, contentDescription = null) },
+                modifier = Modifier.clickable { 
+                    navController?.navigate("register") 
+                }
+            )
+            
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            
+            // Các chức năng khác
             ListItem(
                 headlineContent = { Text("Học phí") },
                 leadingContent = { Icon(Icons.Default.AttachMoney, contentDescription = null) }
