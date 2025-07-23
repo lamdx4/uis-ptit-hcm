@@ -31,7 +31,7 @@ class GradeRepository {
      * Lấy tất cả điểm của sinh viên qua các học kỳ
      */
     suspend fun getAllGrades(accessToken: String): GradeResponse {
-        return client.post("https://uis.ptithcm.edu.vn/api/srm/w-locdsdiemsinhvien") {
+        return client.post("http://uis.ptithcm.edu.vn/api/srm/w-locdsdiemsinhvien") {
             header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Text.Plain)

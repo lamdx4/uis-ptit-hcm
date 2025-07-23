@@ -2,11 +2,14 @@ package lamdx4.uis.ptithcm.ui.more
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
@@ -17,66 +20,144 @@ fun MoreScreen(
     modifier: Modifier = Modifier
 ) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text("More") }) }
+        topBar = { 
+            TopAppBar(
+                title = { 
+                    Text(
+                        "Thêm", 
+                        fontWeight = FontWeight.Bold
+                    ) 
+                }
+            ) 
+        }
     ) { padding ->
-        Column(
-            Modifier
+        LazyColumn(
+            modifier = Modifier
                 .padding(padding)
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // Header cho chức năng chính
+            item {
+                Text(
+                    text = "Chức năng chính",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+            
             // Chức năng chính được chuyển từ navigation bar
-            ListItem(
-                headlineContent = { Text("Lịch thi") },
-                leadingContent = { Icon(Icons.Default.Event, contentDescription = null) },
-                modifier = Modifier.clickable { 
-                    navController?.navigate("exam") 
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    ListItem(
+                        headlineContent = { Text("Lịch thi") },
+                        supportingContent = { Text("Xem lịch thi các môn học") },
+                        leadingContent = { 
+                            Icon(
+                                Icons.Default.Event, 
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            ) 
+                        },
+                        trailingContent = { 
+                            Icon(Icons.Default.ChevronRight, contentDescription = null) 
+                        },
+                        modifier = Modifier.clickable { 
+                            navController?.navigate("exam") 
+                        }
+                    )
                 }
-            )
-            ListItem(
-                headlineContent = { Text("Đăng ký môn học") },
-                leadingContent = { Icon(Icons.Default.Edit, contentDescription = null) },
-                modifier = Modifier.clickable { 
-                    navController?.navigate("register") 
+            }
+            
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    ListItem(
+                        headlineContent = { Text("Đăng ký môn học") },
+                        supportingContent = { Text("Đăng ký các môn học trong học kỳ") },
+                        leadingContent = { 
+                            Icon(
+                                Icons.Default.Edit, 
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            ) 
+                        },
+                        trailingContent = { 
+                            Icon(Icons.Default.ChevronRight, contentDescription = null) 
+                        },
+                        modifier = Modifier.clickable { 
+                            navController?.navigate("register") 
+                        }
+                    )
                 }
+            }
+            
+            // Spacer
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            
+            // Header cho các chức năng khác
+            item {
+                Text(
+                    text = "Tiện ích khác",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+            
+            // Danh sách các chức năng khác
+            val otherFeatures = listOf(
+                Triple("Học phí", "Xem thông tin học phí và thanh toán", Icons.Default.AttachMoney) to "fee",
+                Triple("Thông báo", "Thông báo từ ban quản trị", Icons.Default.Notifications) to "notifications",
+                Triple("Chương trình đào tạo", "Xem chương trình đào tạo", Icons.Default.MenuBook) to "curriculum",
+                Triple("Môn học tiên quyết", "Xem môn học tiên quyết", Icons.Default.AccountTree) to "prerequisites",
+                Triple("Hóa đơn điện tử", "Quản lý hóa đơn điện tử", Icons.Default.Receipt) to "invoices",
+                Triple("Cập nhật thông tin", "Cập nhật thông tin thường trú", Icons.Default.Edit) to "update_info",
+                Triple("Gửi ý kiến", "Gửi ý kiến ban quản trị", Icons.Default.Send) to "feedback",
+                Triple("Đồng bộ Calendar", "Đồng bộ với Google Calendar", Icons.Default.CloudSync) to "sync_calendar"
             )
             
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            items(otherFeatures) { (feature, route) ->
+                val (title, description, icon) = feature
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    ListItem(
+                        headlineContent = { Text(title) },
+                        supportingContent = { Text(description) },
+                        leadingContent = { 
+                            Icon(
+                                icon, 
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            ) 
+                        },
+                        trailingContent = { 
+                            Icon(Icons.Default.ChevronRight, contentDescription = null) 
+                        },
+                        modifier = Modifier.clickable { 
+                            navController?.navigate(route) 
+                        }
+                    )
+                }
+            }
             
-            // Các chức năng khác
-            ListItem(
-                headlineContent = { Text("Học phí") },
-                leadingContent = { Icon(Icons.Default.AttachMoney, contentDescription = null) }
-            )
-            ListItem(
-                headlineContent = { Text("Thông báo từ ban quản trị") },
-                leadingContent = { Icon(Icons.Default.Info, contentDescription = null) }
-            )
-            ListItem(
-                headlineContent = { Text("Xem chương trình đào tạo") },
-                leadingContent = { Icon(Icons.Default.Info, contentDescription = null) }
-            )
-            ListItem(
-                headlineContent = { Text("Xem môn học tiên quyết") },
-                leadingContent = { Icon(Icons.Default.Info, contentDescription = null) }
-            )
-            ListItem(
-                headlineContent = { Text("Hóa đơn điện tử") },
-                leadingContent = { Icon(Icons.Default.Info, contentDescription = null) }
-            )
-            ListItem(
-                headlineContent = { Text("Cập nhật thông tin thường trú") },
-                leadingContent = { Icon(Icons.Default.Info, contentDescription = null) }
-            )
-            ListItem(
-                headlineContent = { Text("Gửi ý kiến ban quản trị") },
-                leadingContent = { Icon(Icons.Default.Send, contentDescription = null) }
-            )
-            ListItem(
-                headlineContent = { Text("Đồng bộ với Google Calendar") },
-                leadingContent = { Icon(Icons.Default.CloudSync, contentDescription = null) }
-            )
+            // Bottom spacer
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 }

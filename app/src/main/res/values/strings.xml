@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">UIS PTIT HCM</string>
+    <string name="tb">ĐTB: %1$s</string>
 </resources>

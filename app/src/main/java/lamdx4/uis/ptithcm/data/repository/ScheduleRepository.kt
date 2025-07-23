@@ -33,7 +33,7 @@ class ScheduleRepository {
      * API: w-locdshockytkbuser
      */
     suspend fun getSemesters(accessToken: String): SemesterResponse {
-        return client.post("https://uis.ptithcm.edu.vn/api/sch/w-locdshockytkbuser") {
+        return client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdshockytkbuser") {
             header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
@@ -66,7 +66,7 @@ class ScheduleRepository {
      * API: w-locdstkbtuanusertheohocky
      */
     suspend fun getWeeklySchedule(accessToken: String, semesterCode: Int): ScheduleResponse {
-        return client.post("https://uis.ptithcm.edu.vn/api/sch/w-locdstkbtuanusertheohocky") {
+        return client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdstkbtuanusertheohocky") {
             header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
