@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
- * Response from API w-locdstkbtuansvien 
+ * Response from API w-locdstkbtuanusertheohocky 
  * For student weekly schedule
  */
 @Serializable
@@ -19,6 +19,12 @@ data class ScheduleResponse(
 
 @Serializable
 data class ScheduleData(
+    @SerialName("total_items")
+    val totalItems: Int,
+    @SerialName("total_pages")
+    val totalPages: Int,
+    @SerialName("ds_tiet_trong_ngay")
+    val periodsInDay: List<PeriodInfo>,
     @SerialName("ds_tuan_tkb")
     val weeklySchedules: List<WeeklySchedule>,
     @SerialName("is_duoc_diem_danh")
@@ -29,6 +35,20 @@ data class ScheduleData(
     val canManageMaterials: Boolean,
     @SerialName("is_show_tiet")
     val showPeriod: Boolean
+)
+
+@Serializable
+data class PeriodInfo(
+    @SerialName("tiet")
+    val period: Int,
+    @SerialName("gio_bat_dau")
+    val startTime: String,
+    @SerialName("gio_ket_thuc")
+    val endTime: String,
+    @SerialName("so_phut")
+    val durationMinutes: Int,
+    @SerialName("nhhk")
+    val semesterCode: Int
 )
 
 @Serializable

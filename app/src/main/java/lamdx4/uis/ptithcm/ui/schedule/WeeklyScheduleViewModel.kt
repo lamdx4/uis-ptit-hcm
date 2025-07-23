@@ -11,6 +11,7 @@ import lamdx4.uis.ptithcm.data.model.WeekScheduleDisplay
 import lamdx4.uis.ptithcm.data.model.DaySchedule
 import lamdx4.uis.ptithcm.data.model.ScheduleItem
 import lamdx4.uis.ptithcm.data.model.Semester
+import lamdx4.uis.ptithcm.data.repository.ScheduleRepository
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -30,6 +31,7 @@ class WeeklyScheduleViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(WeeklyScheduleUiState())
     val uiState: StateFlow<WeeklyScheduleUiState> = _uiState.asStateFlow()
 
+    private val scheduleRepository = ScheduleRepository()
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
     fun loadSemesters(accessToken: String) {
@@ -37,28 +39,21 @@ class WeeklyScheduleViewModel : ViewModel() {
             _uiState.value = _uiState.value.copy(isLoadingSemesters = true, error = null)
             
             try {
-                // TODO: Implement API call to fetch semesters
-                // Call w-locdshockytkbuser API
-                // val response = apiService.getSemesters(accessToken)
+                val semesterResponse = scheduleRepository.getSemesters(accessToken)
+                val semesters = semesterResponse.data.semesters
                 
-                // For now, use sample data
-                val sampleSemesters = listOf(
-                    Semester(20233, "Học kỳ 3 Năm học 2023-2024", 0, "01/04/2024", "05/08/2024"),
-                    Semester(20232, "Học kỳ 2 Năm học 2023-2024", 0, "04/12/2023", "03/06/2024"),
-                    Semester(20231, "Học kỳ 1 Năm học 2023-2024", 0, "14/08/2023", "18/03/2024"),
-                    Semester(20223, "Học kỳ 3 Năm học 2022-2023", 0, "03/04/2023", "14/08/2023"),
-                    Semester(20222, "Học kỳ 2 Năm học 2022-2023", 0, "02/01/2023", "26/06/2023"),
-                    Semester(20221, "Học kỳ 1 Năm học 2022-2023", 0, "15/08/2022", "02/01/2023")
-                )
+                // Lấy học kỳ hiện tại hoặc mặc định học kỳ đầu tiên
+                val currentSemester = scheduleRepository.getCurrentSemester(accessToken) 
+                    ?: semesters.firstOrNull()
                 
                 _uiState.value = _uiState.value.copy(
                     isLoadingSemesters = false,
-                    semesters = sampleSemesters,
-                    selectedSemester = sampleSemesters.firstOrNull() // Default to first semester (most recent)
+                    semesters = semesters,
+                    selectedSemester = currentSemester
                 )
                 
                 // Auto-load schedule for default semester
-                sampleSemesters.firstOrNull()?.let { loadScheduleForSemester(accessToken, it) }
+                currentSemester?.let { loadScheduleForSemester(accessToken, it) }
                 
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -79,18 +74,16 @@ class WeeklyScheduleViewModel : ViewModel() {
             _uiState.value = _uiState.value.copy(isLoadingSchedule = true, error = null)
             
             try {
-                // TODO: Implement API call to fetch schedule for specific semester
-                // Call w-locdstkbtuanusertheohocky API with semester.semesterCode
-                // val response = apiService.getWeeklySchedule(accessToken, semester.semesterCode)
-                
-                // For now, use sample data based on the API structure
-                val sampleSchedules = createSampleSchedules(semester.semesterCode)
+                val scheduleResponse = scheduleRepository.getWeeklySchedule(accessToken, semester.semesterCode)
+                val availableWeeks = scheduleResponse.data.weeklySchedules.filter { 
+                    it.scheduleItems.isNotEmpty() 
+                }
                 
                 _uiState.value = _uiState.value.copy(
                     isLoadingSchedule = false,
-                    weeklySchedules = sampleSchedules,
-                    selectedWeek = sampleSchedules.firstOrNull(),
-                    currentWeekDisplay = sampleSchedules.firstOrNull()?.let { createWeekDisplay(it) }
+                    weeklySchedules = availableWeeks,
+                    selectedWeek = availableWeeks.firstOrNull(),
+                    currentWeekDisplay = availableWeeks.firstOrNull()?.let { createWeekDisplay(it) }
                 )
                 
             } catch (e: Exception) {
@@ -173,108 +166,6 @@ class WeeklyScheduleViewModel : ViewModel() {
         }
     }
     
-    private fun createSampleSchedules(semesterCode: Int): List<WeeklySchedule> {
-        // Create sample schedules based on the API structure for different semesters
-        return listOf(
-            WeeklySchedule(
-                semesterWeek = 1,
-                absoluteWeek = 1233,
-                weekInfo = "Tuần 1 [từ ngày 14/08/2023 đến ngày 20/08/2023]",
-                startDate = "14/08/2023",
-                endDate = "20/08/2023",
-                scheduleItems = listOf(
-                    ScheduleItem(
-                        dayOfWeek = 2, // Monday
-                        startPeriod = 1,
-                        numberOfPeriods = 4,
-                        subjectCode = "BAS1227",
-                        subjectName = "Vật lý 3 và thí nghiệm",
-                        credits = "4",
-                        groupCode = "02",
-                        teacherCode = "TG136",
-                        teacherName = "Mã Thuý Quang",
-                        classCode = "D22CQCN01-N",
-                        roomCode = "2A16-2A16",
-                        campusCode = "MN",
-                        studyDate = "2023-08-14T00:00:00"
-                    ),
-                    ScheduleItem(
-                        dayOfWeek = 2, // Monday
-                        startPeriod = 7,
-                        numberOfPeriods = 4,
-                        subjectCode = "ELE1330",
-                        subjectName = "Xử lý tín hiệu số",
-                        credits = "2",
-                        groupCode = "02",
-                        teacherCode = "0221049",
-                        teacherName = "Nguyễn Lương Nhật",
-                        classCode = "D22CQCN01-N",
-                        roomCode = "2A16-2A16",
-                        campusCode = "MN",
-                        studyDate = "2023-08-14T00:00:00"
-                    ),
-                    ScheduleItem(
-                        dayOfWeek = 5, // Friday
-                        startPeriod = 1,
-                        numberOfPeriods = 4,
-                        subjectCode = "INT1339",
-                        subjectName = "Ngôn ngữ lập trình C++",
-                        credits = "3",
-                        groupCode = "02",
-                        teacherCode = "GV/N-20238",
-                        teacherName = "Phan Nghĩa Hiệp",
-                        classCode = "D22CQCN01-N",
-                        roomCode = "2B33-2B33",
-                        campusCode = "MN",
-                        studyDate = "2023-08-17T00:00:00"
-                    ),
-                    ScheduleItem(
-                        dayOfWeek = 5, // Friday
-                        startPeriod = 7,
-                        numberOfPeriods = 4,
-                        subjectCode = "INT1358",
-                        subjectName = "Toán rời rạc 1",
-                        credits = "3",
-                        groupCode = "02",
-                        teacherCode = "0211021",
-                        teacherName = "Huỳnh Trọng Thưa",
-                        classCode = "D22CQCN01-N",
-                        roomCode = "2B25-2B25",
-                        campusCode = "MN",
-                        studyDate = "2023-08-17T00:00:00"
-                    )
-                ),
-                conflictingScheduleIds = emptyList()
-            ),
-            WeeklySchedule(
-                semesterWeek = 2,
-                absoluteWeek = 1234,
-                weekInfo = "Tuần 2 [từ ngày 21/08/2023 đến ngày 27/08/2023]",
-                startDate = "21/08/2023",
-                endDate = "27/08/2023",
-                scheduleItems = listOf(
-                    // Similar schedule items for week 2
-                    ScheduleItem(
-                        dayOfWeek = 2,
-                        startPeriod = 1,
-                        numberOfPeriods = 4,
-                        subjectCode = "BAS1227",
-                        subjectName = "Vật lý 3 và thí nghiệm",
-                        credits = "4",
-                        groupCode = "02",
-                        teacherCode = "TG136",
-                        teacherName = "Mã Thuý Quang",
-                        classCode = "D22CQCN01-N",
-                        roomCode = "2A16-2A16",
-                        campusCode = "MN",
-                        studyDate = "2023-08-21T00:00:00"
-                    )
-                ),
-                conflictingScheduleIds = emptyList()
-            )
-        )
-    }
-    
     fun getCurrentWeek(): WeeklySchedule? {
         val currentDate = Date()
         return _uiState.value.weeklySchedules.find { week ->
@@ -305,5 +196,10 @@ class WeeklyScheduleViewModel : ViewModel() {
                 selectWeek(firstWeek)  
             }
         }
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        scheduleRepository.close()
     }
 }
