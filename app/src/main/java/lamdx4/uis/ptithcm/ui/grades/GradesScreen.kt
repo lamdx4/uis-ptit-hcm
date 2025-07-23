@@ -4,17 +4,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import lamdx4.uis.ptithcm.data.model.SemesterGrade
 import lamdx4.uis.ptithcm.data.model.SubjectGrade
 import lamdx4.uis.ptithcm.ui.AppViewModel
 
@@ -27,10 +23,10 @@ fun GradesScreen(
 ) {
     val appState by appViewModel.uiState.collectAsState()
     val gradesState by gradesViewModel.uiState.collectAsState()
-    
+
     // Dialog state for subject details
     var selectedSubject by remember { mutableStateOf<SubjectGrade?>(null) }
-    
+
     // Load grades when screen is first shown
     LaunchedEffect(appState.accessToken) {
         appState.accessToken?.let { token ->
@@ -40,14 +36,14 @@ fun GradesScreen(
 
     Scaffold(
         modifier = modifier,
-        topBar = { 
+        topBar = {
             TopAppBar(
                 title = { Text("Kết quả học tập") },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary
                 )
-            ) 
+            )
         }
     ) { padding ->
         when {
@@ -63,7 +59,7 @@ fun GradesScreen(
                     }
                 }
             }
-            
+
             gradesState.error != null -> {
                 Box(
                     modifier = Modifier.fillMaxSize().padding(padding),
@@ -85,7 +81,7 @@ fun GradesScreen(
                     }
                 }
             }
-            
+
             else -> {
                 LazyColumn(
                     modifier = Modifier
@@ -100,7 +96,7 @@ fun GradesScreen(
                             OverallGradeSummaryCard(gradesState.semesters)
                         }
                     }
-                    
+
                     // Semester selector
                     if (gradesState.semesters.isNotEmpty()) {
                         item {
@@ -111,14 +107,14 @@ fun GradesScreen(
                             )
                         }
                     }
-                    
+
                     // Statistics summary for selected semester
                     gradesState.selectedSemester?.let { semester ->
                         item {
                             SemesterStatisticsCard(semester)
                         }
                     }
-                    
+
                     // Subject grades
                     items(gradesState.selectedSubjects) { subject ->
                         SubjectGradeCard(
@@ -130,7 +126,7 @@ fun GradesScreen(
             }
         }
     }
-    
+
     // Show subject detail dialog
     selectedSubject?.let { subject ->
         SubjectDetailDialog(
