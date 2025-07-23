@@ -28,6 +28,9 @@ fun GradesScreen(
     val appState by appViewModel.uiState.collectAsState()
     val gradesState by gradesViewModel.uiState.collectAsState()
     
+    // Dialog state for subject details
+    var selectedSubject by remember { mutableStateOf<SubjectGrade?>(null) }
+    
     // Load grades when screen is first shown
     LaunchedEffect(appState.accessToken) {
         appState.accessToken?.let { token ->
@@ -75,7 +78,7 @@ fun GradesScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = gradesState.error,
+                            text = gradesState.error ?: "Unknown error",
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyLarge
                         )
@@ -111,10 +114,21 @@ fun GradesScreen(
                     
                     // Subject grades
                     items(gradesState.selectedSubjects) { subject ->
-                        SubjectGradeCard(subject)
+                        SubjectGradeCard(
+                            subject = subject,
+                            onClick = { selectedSubject = subject }
+                        )
                     }
                 }
             }
         }
+    }
+    
+    // Show subject detail dialog
+    selectedSubject?.let { subject ->
+        SubjectDetailDialog(
+            subject = subject,
+            onDismiss = { selectedSubject = null }
+        )
     }
 }

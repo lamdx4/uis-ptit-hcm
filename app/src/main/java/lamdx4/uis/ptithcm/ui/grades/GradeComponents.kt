@@ -1,6 +1,7 @@
 package lamdx4.uis.ptithcm.ui.grades
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -60,7 +61,7 @@ fun SemesterSelector(
         }
     }
 }
-
+    
 @Composable
 fun SemesterStatisticsCard(semester: SemesterGrade) {
     Card(
@@ -149,9 +150,14 @@ fun StatisticItem(
 }
 
 @Composable
-fun SubjectGradeCard(subject: SubjectGrade) {
+fun SubjectGradeCard(
+    subject: SubjectGrade,
+    onClick: () -> Unit = {}
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = when (subject.result) {
                 1 -> MaterialTheme.colorScheme.surfaceVariant // Passed
