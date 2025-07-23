@@ -24,7 +24,7 @@ class ScheduleRepository {
         }
         install(Logging) {
             logger = Logger.SIMPLE
-            level = LogLevel.BODY
+            level = LogLevel.INFO // Giảm từ BODY để không spam quá nhiều log
         }
     }
 

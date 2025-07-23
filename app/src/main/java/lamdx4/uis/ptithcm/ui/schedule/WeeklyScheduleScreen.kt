@@ -37,35 +37,6 @@ fun WeeklyScheduleScreen(
 
     Scaffold(
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.CalendarToday,
-                            contentDescription = null
-                        )
-                        Text("Thời khóa biểu tuần")
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController?.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Quay lại"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-        }
     ) { padding ->
         when {
             scheduleState.isLoadingSemesters -> {
@@ -81,6 +52,23 @@ fun WeeklyScheduleScreen(
                     ) {
                         CircularProgressIndicator()
                         Text("Đang tải danh sách học kỳ...")
+                    }
+                }
+            }
+            
+            scheduleState.isLoadingSchedule -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        CircularProgressIndicator()
+                        Text("Đang tải thời khóa biểu...")
                     }
                 }
             }
@@ -111,7 +99,7 @@ fun WeeklyScheduleScreen(
                 }
             }
             
-            scheduleState.weeklySchedules.isEmpty() -> {
+            scheduleState.semesters.isEmpty() -> {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -129,7 +117,7 @@ fun WeeklyScheduleScreen(
                             modifier = Modifier.size(64.dp)
                         )
                         Text(
-                            text = "Không có thời khóa biểu",
+                            text = "Không có học kỳ nào có thời khóa biểu",
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

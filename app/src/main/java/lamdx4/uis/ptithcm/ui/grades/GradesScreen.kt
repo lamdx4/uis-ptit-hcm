@@ -35,16 +35,7 @@ fun GradesScreen(
     }
 
     Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { Text("Kết quả học tập") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-        }
+        modifier = modifier
     ) { padding ->
         when {
             gradesState.isLoading -> {

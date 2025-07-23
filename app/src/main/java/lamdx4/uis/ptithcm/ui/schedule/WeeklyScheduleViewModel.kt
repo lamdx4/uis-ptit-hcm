@@ -76,7 +76,7 @@ class WeeklyScheduleViewModel : ViewModel() {
 
     private fun loadScheduleForSemester(accessToken: String, semester: Semester) {
         viewModelScope.launch {
-            // Không cần set loading lại vì đã set ở selectSemester
+            _uiState.value = _uiState.value.copy(isLoadingSchedule = true, error = null)
             
             try {
                 val scheduleResponse = scheduleRepository.getWeeklySchedule(accessToken, semester.semesterCode)
@@ -92,12 +92,17 @@ class WeeklyScheduleViewModel : ViewModel() {
                     weeklySchedules = availableWeeks,
                     selectedWeek = selectedWeek,
                     currentWeek = currentWeek, // Track tuần hiện tại
-                    currentWeekDisplay = selectedWeek?.let { createWeekDisplay(it) }
+                    currentWeekDisplay = selectedWeek?.let { createWeekDisplay(it) },
+                    error = null // Clear error on success
                 )
                 
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoadingSchedule = false,
+                    weeklySchedules = emptyList(), // Clear old data on error
+                    selectedWeek = null,
+                    currentWeek = null,
+                    currentWeekDisplay = null,
                     error = "Lỗi khi tải thời khóa biểu: ${e.message}"
                 )
             }
