@@ -11,7 +11,7 @@ import lamdx4.uis.ptithcm.ui.more.prerequisites.PrerequisitesScreen
 import lamdx4.uis.ptithcm.ui.more.invoices.InvoicesScreen
 import lamdx4.uis.ptithcm.ui.more.updateinfo.UpdateInfoScreen
 import lamdx4.uis.ptithcm.ui.more.feedback.FeedbackScreen
-import lamdx4.uis.ptithcm.ui.more.synccalendar.SyncCalendarScreen
+import lamdx4.uis.ptithcm.ui.sync.CalendarSyncScreen
 
 fun NavGraphBuilder.moreNavGraph(
     navController: NavHostController,
@@ -52,6 +52,8 @@ fun NavGraphBuilder.moreNavGraph(
     }
     
     composable("sync_calendar") {
-        SyncCalendarScreen(navController = navController)
+        CalendarSyncScreen(
+            onNavigateBack = { navController.popBackStack() }
+        )
     }
 }

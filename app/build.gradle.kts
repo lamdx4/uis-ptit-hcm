@@ -89,6 +89,12 @@ dependencies {
     implementation(libs.play.services.auth)
     implementation(libs.google.api.client.android)
     implementation(libs.google.api.services.calendar)
+    
+    // Modern Google authentication
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.coil)
