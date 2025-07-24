@@ -30,7 +30,7 @@ data class AcademicResultData(
     val ds_du_lieu: List<SubjectResult>? = null,
     
     // Danh sách thời khóa biểu trong ngày
-    val ds_tkb_trong_ngay: List<String>? = null,
+    val ds_tkb_trong_ngay: List<ScheduleToday>? = null,
     
     // Số lượng thông báo chưa đọc
     val sl_thong_bao_chua_doc: Int? = null
@@ -100,7 +100,7 @@ data class SubjectResult(
         diem_trung_binh2!! >= 4.0 -> "D"
         else -> "F"
     }
-    val ket_qua: String? get() = if (diem_trung_binh2 != null && diem_trung_binh2!! >= 4.0) "Đạt" else "Không đạt"
+    val ket_qua: String? get() = if (diem_trung_binh2 != null && diem_trung_binh2 >= 4.0) "Đạt" else "Không đạt"
 }
 
 @Serializable
@@ -116,3 +116,39 @@ data class GradeStatistics(
     val ty_le_D: Double = 0.0,
     val ty_le_F: Double = 0.0
 )
+
+@Serializable
+data class ScheduleToday(
+    val id_to_hoc: String? = null,
+    val tong_so_sv: Int? = null,
+    val so_sv_co_mat: Int? = null,
+    val thu: Int? = null,
+    val tietbd: Int? = null,
+    val gio_bd: String? = null,
+    val gio_kt: String? = null,
+    val ma_mon_hoc: String? = null,
+    val ten_mon_hoc: String? = null,
+    val ten_mon_hoc_eg: String? = null,
+    val ma_phong: String? = null
+) {
+    // Helper properties để hiển thị UI
+    val ten_thu: String get() = when (thu) {
+        2 -> "Thứ 2"
+        3 -> "Thứ 3"
+        4 -> "Thứ 4"
+        5 -> "Thứ 5"
+        6 -> "Thứ 6"
+        7 -> "Thứ 7"
+        1 -> "Chủ nhật"
+        else -> "Không xác định"
+    }
+    
+    val thoi_gian: String get() {
+        val start = gio_bd?.takeIf { it.isNotBlank() } ?: "07:00"
+        val end = gio_kt?.takeIf { it.isNotBlank() && it != "00:00" } ?: "Unknown"
+        return if (end != "Unknown") "$start - $end" else "Tiết $tietbd"
+    }
+    
+    val phong_hoc: String get() = ma_phong ?: "Chưa xác định"
+    val ten_mon: String get() = ten_mon_hoc ?: "Chưa có tên môn"
+}

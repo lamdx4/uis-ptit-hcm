@@ -4,9 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import lamdx4.uis.ptithcm.data.repository.StudentRepository
+import lamdx4.uis.ptithcm.data.repository.StudentInfoRepository
 import lamdx4.uis.ptithcm.data.model.AcademicResultData
-import lamdx4.uis.ptithcm.data.model.GradeStatistics
 import lamdx4.uis.ptithcm.data.model.SemesterInfo
 
 data class StatisticsUiState(
@@ -19,7 +18,7 @@ data class StatisticsUiState(
 )
 
 class StatisticsViewModel(
-    private val studentRepository: StudentRepository = StudentRepository()
+    private val studentInfoRepository: StudentInfoRepository = StudentInfoRepository()
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(StatisticsUiState())
@@ -30,7 +29,7 @@ class StatisticsViewModel(
             _uiState.value = _uiState.value.copy(loadingSemesters = true)
             
             try {
-                val response = studentRepository.getAvailableSemesters(accessToken)
+                val response = studentInfoRepository.getAvailableSemesters(accessToken)
                 
                 if (response.result && response.data?.ds_hoc_ky != null) {
                     val semesters = response.data.ds_hoc_ky.sortedByDescending { it.hoc_ky }
@@ -59,7 +58,7 @@ class StatisticsViewModel(
             _uiState.value = _uiState.value.copy(loading = true, error = null)
             
             try {
-                val response = studentRepository.getAcademicResult(accessToken, hocKy)
+                val response = studentInfoRepository.getAcademicResult(accessToken, hocKy)
                 
                 if (response.result) {
                     _uiState.value = _uiState.value.copy(

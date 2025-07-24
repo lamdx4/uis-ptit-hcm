@@ -11,14 +11,12 @@ import lamdx4.uis.ptithcm.data.model.StudentDetailResponse
 import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
 import lamdx4.uis.ptithcm.data.model.AcademicResultResponse
 import lamdx4.uis.ptithcm.data.model.AcademicResultRequest
-import lamdx4.uis.ptithcm.data.model.GradeStatistics
 import lamdx4.uis.ptithcm.data.model.SemesterListResponse
 import lamdx4.uis.ptithcm.data.model.SemesterListRequest
 import lamdx4.uis.ptithcm.data.model.SemesterFilter
 import lamdx4.uis.ptithcm.data.model.SemesterAdditional
 import lamdx4.uis.ptithcm.data.model.SemesterPaging
 import lamdx4.uis.ptithcm.data.model.SemesterOrdering
-import lamdx4.uis.ptithcm.data.model.GradeResponse
 import io.ktor.client.call.body
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -31,7 +29,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class StudentRepository @Inject constructor() {
+class StudentInfoRepository @Inject constructor() {
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json(Json {
@@ -44,7 +42,7 @@ class StudentRepository @Inject constructor() {
         }
     }
 
-    suspend fun getStudentInfo(accessToken: String, maSV: String): StudentInfoResponse {
+    private suspend fun getStudentInfo(accessToken: String, maSV: String): StudentInfoResponse {
         return client.post("http://uis.ptithcm.edu.vn/api/sms/w-locthongtinimagesinhvien?MaSV=$maSV") {
             header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
@@ -53,7 +51,7 @@ class StudentRepository @Inject constructor() {
         }.body()
     }
 
-    suspend fun getStudentDetail(accessToken: String): StudentDetailResponse {
+    private suspend fun getStudentDetail(accessToken: String): StudentDetailResponse {
         if (accessToken.isBlank()) {
             throw Exception("Access token không hợp lệ hoặc đăng nhập thất bại")
         }
@@ -161,27 +159,4 @@ class StudentRepository @Inject constructor() {
         }
     }
 
-    // Phương thức tiện ích để lấy thống kê học tập cho học kỳ hiện tại
-    suspend fun getCurrentSemesterStats(accessToken: String): GradeStatistics? {
-        return try {
-            // Lấy danh sách học kỳ trước
-            val semesterList = getAvailableSemesters(accessToken)
-            val latestSemester = semesterList.data?.ds_hoc_ky?.maxByOrNull { it.hoc_ky }?.hoc_ky ?: 20242
-            
-            // Lấy kết quả học tập cho học kỳ mới nhất
-            val result = getAcademicResult(accessToken, latestSemester)
-            result.data?.thong_ke_diem
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    suspend fun getAllGrades(accessToken: String): GradeResponse {
-        return client.post("https://uis.ptithcm.edu.vn/api/srm/w-locdsdiemsinhvien") {
-            header(HttpHeaders.Authorization, "Bearer $accessToken")
-            header(HttpHeaders.Accept, "application/json, text/plain, */*")
-            header(HttpHeaders.ContentType, ContentType.Text.Plain)
-            setBody("")
-        }.body()
-    }
 }
