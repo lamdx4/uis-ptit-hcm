@@ -12,7 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.ui.theme.PTITColors
 
 data class Subject(
@@ -33,6 +35,7 @@ data class SemesterGroup(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CurriculumScreen(
+    appViewModel: AppViewModel = hiltViewModel(),
     navController: NavController? = null,
     modifier: Modifier = Modifier
 ) {
@@ -91,6 +94,14 @@ fun CurriculumScreen(
     }
 
     val totalCredits = curriculum.sumOf { it.totalCredits }
+    val userState by appViewModel.uiState.collectAsState()
+    val accessToken = userState.accessToken
+
+    LaunchedEffect(accessToken) {
+        if (accessToken != null) {
+
+        }
+    }
 
     Scaffold(
         topBar = {
