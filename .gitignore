@@ -39,3 +39,6 @@ Thumbs.db
 
 # Google Services (if you have any)
 google-services.json
+
+# Google OAuth credentials
+google-oauth-config.properties
