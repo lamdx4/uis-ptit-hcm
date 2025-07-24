@@ -60,7 +60,7 @@ fun decodeBase64ToBitmap(base64String: String): android.graphics.Bitmap? {
 
 @Composable
 fun ProfileScreen(
-    appViewModel: AppViewModel = viewModel(),
+    appViewModel: AppViewModel = hiltViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel(),
     statisticsViewModel: StatisticsViewModel = viewModel(),
     modifier: Modifier = Modifier

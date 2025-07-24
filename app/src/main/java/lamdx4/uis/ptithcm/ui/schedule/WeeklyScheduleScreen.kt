@@ -23,7 +23,7 @@ import lamdx4.uis.ptithcm.data.model.Semester
 fun WeeklyScheduleScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController? = null,
-    appViewModel: AppViewModel = viewModel(),
+    appViewModel: AppViewModel = hiltViewModel(),
     weeklyScheduleViewModel: WeeklyScheduleViewModel = hiltViewModel()
 ) {
     val appState by appViewModel.uiState.collectAsState()

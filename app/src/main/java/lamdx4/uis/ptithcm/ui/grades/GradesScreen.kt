@@ -19,7 +19,7 @@ import lamdx4.uis.ptithcm.ui.AppViewModel
 @Composable
 fun GradesScreen(
     modifier: Modifier = Modifier,
-    appViewModel: AppViewModel = viewModel(),
+    appViewModel: AppViewModel = hiltViewModel(),
     gradesViewModel: GradesViewModel = hiltViewModel()
 ) {
     val appState by appViewModel.uiState.collectAsState()

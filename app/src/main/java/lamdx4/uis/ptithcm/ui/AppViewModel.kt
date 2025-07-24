@@ -7,6 +7,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.data.local.LoginPrefs
 import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
+import lamdx4.uis.ptithcm.data.repository.GradeRepository
+import lamdx4.uis.ptithcm.data.repository.ScheduleRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 data class AppUserState(
     val accessToken: String? = null,
@@ -17,7 +21,12 @@ data class AppUserState(
     val profile: CompleteStudentInfo? = null
 )
 
-class AppViewModel(app: Application) : AndroidViewModel(app) {
+@HiltViewModel
+class AppViewModel @Inject constructor(
+    app: Application,
+    private val gradeRepository: GradeRepository,
+    private val scheduleRepository: ScheduleRepository
+) : AndroidViewModel(app) {
     private val loginPrefs = LoginPrefs(app)
 
     private val _uiState = MutableStateFlow(AppUserState())
@@ -51,14 +60,30 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         rememberMe: Boolean
     ) {
         viewModelScope.launch {
+            // Clear profile and cache if logging in with a different account
+            val currentMaSV = _uiState.value.maSV
+            if (currentMaSV != null && currentMaSV != maSV) {
+                _uiState.value = _uiState.value.copy(profile = null)
+                // Clear repository caches to prevent showing data from previous account
+                gradeRepository.clearCache()
+                scheduleRepository.clearCache()
+            }
             loginPrefs.saveLoginInfo(accessToken, maSV, username, password, rememberMe)
         }
     }
 
     fun clearLoginInfo() {
         viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(profile = null)
+            // Clear all repository caches when logging out
+            gradeRepository.clearCache()
+            scheduleRepository.clearCache()
             loginPrefs.clearLoginInfo()
         }
+    }
+
+    fun clearProfile() {
+        _uiState.value = _uiState.value.copy(profile = null)
     }
 
     fun setProfile(profile: CompleteStudentInfo) {

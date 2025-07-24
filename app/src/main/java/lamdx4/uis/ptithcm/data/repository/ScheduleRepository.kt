@@ -27,6 +27,16 @@ class ScheduleRepository @Inject constructor() {
     
     // Cache duration: 5 minutes
     private val CACHE_DURATION = 5 * 60 * 1000L
+
+    /**
+     * Clear all cached data - useful when switching accounts
+     */
+    fun clearCache() {
+        cachedSemesters = null
+        cachedSchedules.clear()
+        lastSemestersFetch = 0L
+        scheduleLastFetch.clear()
+    }
     
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
@@ -191,14 +201,6 @@ class ScheduleRepository @Inject constructor() {
                     false
                 }
             }
-    }
-    
-    // 🧹 Cache management methods
-    fun clearCache() {
-        cachedSemesters = null
-        cachedSchedules.clear()
-        lastSemestersFetch = 0
-        scheduleLastFetch.clear()
     }
     
     fun clearScheduleCache(semesterCode: Int? = null) {

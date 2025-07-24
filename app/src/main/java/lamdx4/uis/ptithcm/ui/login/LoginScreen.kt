@@ -54,10 +54,18 @@ fun LoginScreen(
 
     // Populate from rememberMe if available
     LaunchedEffect(userState.rememberMe) {
-        if (userState.rememberMe) {
+        if (userState.rememberMe && username.isEmpty() && password.isEmpty()) {
             username = userState.username.orEmpty()
             password = userState.password.orEmpty()
             rememberMe = true
+        }
+    }
+
+    // Clear profile when username changes (different account)
+    LaunchedEffect(username) {
+        val currentMaSV = userState.maSV
+        if (currentMaSV != null && currentMaSV != username && username.isNotEmpty()) {
+            appViewModel.clearProfile()
         }
     }
 

@@ -27,6 +27,16 @@ class GradeRepository @Inject constructor() {
     
     // Cache duration: 10 minutes (grades change less frequently)  
     private val CACHE_DURATION = 10 * 60 * 1000L
+
+    /**
+     * Clear all cached data - useful when switching accounts
+     */
+    fun clearCache() {
+        cachedGrades = null
+        cachedStatistics = null
+        lastGradesFetch = 0L
+        lastStatsFetch = 0L
+    }
     
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
@@ -138,14 +148,6 @@ class GradeRepository @Inject constructor() {
         return statistics
     }
     
-    // 🧹 Cache management methods
-    fun clearCache() {
-        cachedGrades = null
-        cachedStatistics = null
-        lastGradesFetch = 0
-        lastStatsFetch = 0
-    }
-
     fun close() {
         client.close()
     }
