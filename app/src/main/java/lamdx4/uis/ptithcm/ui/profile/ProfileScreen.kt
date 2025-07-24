@@ -41,6 +41,7 @@ import lamdx4.uis.ptithcm.ui.statistics.StatisticsUiState
 import lamdx4.uis.ptithcm.ui.components.GradeChart
 import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
 import lamdx4.uis.ptithcm.ui.theme.PTITColors
+import lamdx4.uis.ptithcm.ui.theme.PTITTypography
 import kotlin.text.*
 
 // Utility function để chuyển đổi base64 thành bitmap
@@ -240,8 +241,7 @@ private fun ProfileHeaderCard(profile: CompleteStudentInfo) {
                     ) {
                         Text(
                             text = profile.ten_day_du,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
+                            style = PTITTypography.screenTitle,
                             color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
@@ -363,8 +363,7 @@ private fun StudentIdChip(studentId: String) {
             )
             Text(
                 text = studentId,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
+                style = PTITTypography.badgeText,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         }
@@ -393,8 +392,7 @@ private fun StatusChip(status: String) {
             )
             Text(
                 text = status,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Medium,
+                style = PTITTypography.badgeText,
                 color = if (isActive) PTITColors.onSuccessContainer else PTITColors.onWarningContainer
             )
         }
@@ -512,8 +510,7 @@ private fun QuickStatCard(
             ) {
                 Text(
                     text = displayValue,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    style = PTITTypography.numericDisplay,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -521,7 +518,7 @@ private fun QuickStatCard(
                 )
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = PTITTypography.caption,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
@@ -582,15 +579,14 @@ private fun QuickStatCard(
                     }
                     Text(
                         text = label,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        style = PTITTypography.sectionTitle
                     )
                 }
             },
             text = {
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = PTITTypography.bodyContent,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
@@ -835,16 +831,14 @@ private fun CompactInfoCard(
                 )
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Medium
+                    style = PTITTypography.caption,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
             Text(
                 text = value.ifBlank { "Chưa cập nhật" },
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
+                style = PTITTypography.bodyContent,
                 color = if (value.isBlank())
                     MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 else
@@ -904,8 +898,7 @@ private fun ImprovedStatisticsSection(
 
                 Text(
                     text = "Thống kê học tập",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                    style = PTITTypography.sectionTitle,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -950,13 +943,12 @@ private fun ImprovedStatisticsSection(
                                     ) {
                                         Text(
                                             text = semester.ten_hoc_ky,
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            fontWeight = FontWeight.Medium
+                                            style = PTITTypography.listItem
                                         )
                                         if (!semester.nam_hoc.isNullOrEmpty()) {
                                             Text(
                                                 text = semester.nam_hoc,
-                                                style = MaterialTheme.typography.bodyMedium,
+                                                style = PTITTypography.subtitle,
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                                             )
                                         }
@@ -1009,8 +1001,7 @@ private fun ImprovedStatisticsSection(
                             )
                             Text(
                                 text = "Biểu đồ điểm số các môn học",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
+                                style = PTITTypography.sectionTitle,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -1046,8 +1037,7 @@ private fun ImprovedStatisticsSection(
                                             R.string.tb,
                                             String.format("%.2f", dtb)
                                         ),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.Bold,
+                                        style = PTITTypography.numericDisplay,
                                         color = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                                     )
@@ -1120,13 +1110,12 @@ private fun ErrorState(error: String) {
                 )
                 Text(
                     text = "Có lỗi xảy ra",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    style = PTITTypography.sectionTitle,
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
                 Text(
                     text = error,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = PTITTypography.errorText,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                     textAlign = TextAlign.Center
                 )
@@ -1155,7 +1144,7 @@ private fun EmptyState() {
             )
             Text(
                 text = "Không có thông tin sinh viên",
-                style = MaterialTheme.typography.titleMedium,
+                style = PTITTypography.sectionTitle,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -1189,8 +1178,7 @@ private fun ChartLoadingState() {
                 )
                 Text(
                     text = "Đang tải biểu đồ...",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium,
+                    style = PTITTypography.bodyContent,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -1281,13 +1269,12 @@ private fun ChartEmptyState() {
                 ) {
                     Text(
                         text = "Không có dữ liệu",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
+                        style = PTITTypography.sectionTitle,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "Chọn học kỳ để xem biểu đồ điểm",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = PTITTypography.bodyContent,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
                     )
@@ -1346,7 +1333,7 @@ private fun TodayScheduleSection(statisticsState: StatisticsUiState) {
                     )
                     Text(
                         text = "Không có lịch học hôm nay",
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = PTITTypography.bodyContent,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }

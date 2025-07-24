@@ -6,11 +6,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+
 /**
  * PTIT App Typography System - Thống nhất font system
  * 
- * Sử dụng Material 3 Typography Scale với custom font sizes
- * phù hợp cho app giáo dục, đảm bảo khả năng đọc tốt
+ * 📏 SIZE HIERARCHY (nhỏ → lớn):
+ * labelSmall < bodySmall < bodyMedium < titleSmall < titleMedium < titleLarge < headlineSmall
+ * 
  */
 val Typography = Typography(
     // 🏷️ Display - Dành cho headers chính, logo
