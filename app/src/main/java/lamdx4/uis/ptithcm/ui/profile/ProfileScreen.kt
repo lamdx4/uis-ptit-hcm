@@ -414,7 +414,8 @@ private fun QuickStatsSection(
             QuickStatCard(
                 icon = Icons.Default.School,
                 label = "Khoa",
-                value = profile.khoa.take(15) + if (profile.khoa.length > 15) "..." else "",
+                value = profile.khoa,
+                displayValue = profile.khoa.take(15) + if (profile.khoa.length > 15) "..." else "",
                 color = MaterialTheme.colorScheme.primary
             )
         }
@@ -424,6 +425,7 @@ private fun QuickStatsSection(
                 icon = Icons.Default.Class,
                 label = "Lớp",
                 value = profile.lop,
+                displayValue = profile.lop,
                 color = MaterialTheme.colorScheme.tertiary
             )
         }
@@ -432,18 +434,21 @@ private fun QuickStatsSection(
             QuickStatCard(
                 icon = Icons.Default.Engineering,
                 label = "Ngành",
-                value = profile.nganh.take(12) + if (profile.nganh.length > 12) "..." else "",
+                value = profile.nganh,
+                displayValue = profile.nganh.take(12) + if (profile.nganh.length > 12) "..." else "",
                 color = MaterialTheme.colorScheme.secondary
             )
         }
 
         item {
+            val dtbValue = statisticsState.academicResult?.diem_trung_binh?.let {
+                String.format("%.2f", it)
+            } ?: "--"
             QuickStatCard(
                 icon = Icons.Default.Grade,
                 label = "ĐTB",
-                value = statisticsState.academicResult?.diem_trung_binh?.let {
-                    String.format("%.2f", it)
-                } ?: "--",
+                value = dtbValue,
+                displayValue = dtbValue,
                 color = PTITColors.success
             )
         }
@@ -455,12 +460,21 @@ private fun QuickStatCard(
     icon: ImageVector,
     label: String,
     value: String,
+    displayValue: String = value,
     color: Color
 ) {
+    var showDialog by remember { mutableStateOf(false) }
+    
     Card(
         modifier = Modifier
             .width(140.dp)
-            .height(100.dp),
+            .height(110.dp) // Fixed height for consistency
+            .clickable { 
+                // Only show dialog if text is truncated
+                if (displayValue != value) {
+                    showDialog = true 
+                }
+            },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -472,7 +486,7 @@ private fun QuickStatCard(
                 .fillMaxSize()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceEvenly
+            verticalArrangement = Arrangement.SpaceEvenly // Back to SpaceEvenly for consistent layout
         ) {
             Surface(
                 modifier = Modifier.size(36.dp),
@@ -493,23 +507,101 @@ private fun QuickStatCard(
             }
 
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
-                    text = value,
+                    text = displayValue,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center
                 )
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
                 )
             }
         }
+        
+        // Show tap indicator if text is truncated
+        if (displayValue != value) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                contentAlignment = Alignment.BottomEnd
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = color.copy(alpha = 0.2f),
+                    modifier = Modifier.size(16.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Info,
+                        contentDescription = "Tap for details",
+                        modifier = Modifier
+                            .size(12.dp)
+                            .padding(2.dp),
+                        tint = color
+                    )
+                }
+            }
+        }
+    }
+    
+    // Detail dialog
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
+                        modifier = Modifier.size(32.dp),
+                        shape = CircleShape,
+                        color = color.copy(alpha = 0.15f)
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                icon,
+                                contentDescription = label,
+                                modifier = Modifier.size(16.dp),
+                                tint = color
+                            )
+                        }
+                    }
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            text = {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showDialog = false }
+                ) {
+                    Text("Đóng")
+                }
+            }
+        )
     }
 }
 

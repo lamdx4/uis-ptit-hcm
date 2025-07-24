@@ -1,21 +1,25 @@
 package lamdx4.uis.ptithcm.ui.nav
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import lamdx4.uis.ptithcm.ui.theme.PTITColors
@@ -94,151 +98,93 @@ private fun ModernBottomNavigationBar(
     currentRoute: String?,
     onNavigate: (String) -> Unit
 ) {
-    Card(
+    // Ultra-compact design with minimal height
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
-        shape = RoundedCornerShape(20.dp)
+            .height(56.dp), // Standard Material 3 bottom bar height
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 3.dp,
+        tonalElevation = 3.dp
     ) {
-        Box {
-            // Background gradient
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.03f),
-                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.03f)
-                            )
-                        )
-                    )
-            )
-
-            NavigationBar(
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                tonalElevation = 0.dp
-            ) {
-                MainNavDest.items.forEach { item ->
-                    val isSelected = currentRoute == item.route
-
-                    NavigationBarItem(
-                        icon = {
-                            ModernNavIcon(
-                                item = item,
-                                isSelected = isSelected
-                            )
-                        },
-                        label = {
-                            ModernNavLabel(
-                                text = item.label,
-                                isSelected = isSelected
-                            )
-                        },
-                        selected = isSelected,
-                        onClick = { onNavigate(item.route) },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color.Transparent, // We handle color in ModernNavIcon
-                            unselectedIconColor = Color.Transparent, // We handle color in ModernNavIcon
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            indicatorColor = Color.Transparent // We use custom indicator
-                        )
-                    )
-                }
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            MainNavDest.items.forEach { item ->
+                val isSelected = currentRoute == item.route
+                
+                CompactNavItem(
+                    item = item,
+                    isSelected = isSelected,
+                    onClick = { onNavigate(item.route) }
+                )
             }
         }
     }
 }
 
 @Composable
-private fun ModernNavIcon(
+private fun CompactNavItem(
     item: MainNavDest,
-    isSelected: Boolean
+    isSelected: Boolean,
+    onClick: () -> Unit
 ) {
-    Box(
-        contentAlignment = Alignment.Center
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(80.dp) // Fixed width instead of weight
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(vertical = 6.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        // Background indicator
-        AnimatedVisibility(
-            visible = isSelected,
-            enter = scaleIn() + fadeIn(),
-            exit = scaleOut() + fadeOut()
-        ) {
-            Surface(
-                modifier = Modifier.size(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-            ) {}
-        }
-
-        // Icon with animation
-        AnimatedContent(
-            targetState = isSelected,
-            transitionSpec = {
-                scaleIn(initialScale = 0.8f) + fadeIn() togetherWith
-                        scaleOut(targetScale = 0.8f) + fadeOut()
-            },
-            label = "icon_animation"
-        ) { selected ->
-            Icon(
-                imageVector = if (selected) item.selectedIcon else item.icon,
-                contentDescription = item.label,
-                modifier = Modifier.size(24.dp),
-                tint = if (selected)
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        // Active indicator dot
-        AnimatedVisibility(
-            visible = isSelected,
-            enter = scaleIn() + fadeIn(),
-            exit = scaleOut() + fadeOut()
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(4.dp)
-                    .offset(y = 20.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(2.dp)
-                    )
-            )
-        }
-    }
-}
-
-@Composable
-private fun ModernNavLabel(
-    text: String,
-    isSelected: Boolean
-) {
-    AnimatedContent(
-        targetState = isSelected,
-        transitionSpec = {
-            slideInVertically(initialOffsetY = { it / 4 }) + fadeIn() togetherWith
-                    slideOutVertically(targetOffsetY = { -it / 4 }) + fadeOut()
-        },
-        label = "label_animation"
-    ) { selected ->
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-            color = if (selected)
+        // Minimal icon with simple color transition
+        Icon(
+            imageVector = if (isSelected) item.selectedIcon else item.icon,
+            contentDescription = item.label,
+            modifier = Modifier.size(22.dp), // Slightly larger for better touch target
+            tint = if (isSelected) {
                 MaterialTheme.colorScheme.primary
-            else
-                MaterialTheme.colorScheme.onSurfaceVariant
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            }
+        )
+        
+        Spacer(modifier = Modifier.height(2.dp))
+        
+        // Minimal text label
+        Text(
+            text = item.label,
+            style = MaterialTheme.typography.labelSmall,
+            fontSize = 9.sp, // Very small text
+            fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
+            color = if (isSelected) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            },
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        
+        // Simple bottom indicator line
+        Box(
+            modifier = Modifier
+                .width(16.dp)
+                .height(2.dp)
+                .background(
+                    color = if (isSelected) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        Color.Transparent
+                    },
+                    shape = RoundedCornerShape(1.dp)
+                )
         )
     }
 }
@@ -377,16 +323,18 @@ fun EnhancedBottomNavigationBar(
                                 }
                             }
                         ) {
-                            ModernNavIcon(
+                            CompactNavItem(
                                 item = item,
-                                isSelected = isSelected
+                                isSelected = isSelected,
+                                onClick = {}
                             )
                         }
                     },
                     label = {
-                        ModernNavLabel(
+                        Text(
                             text = item.label,
-                            isSelected = isSelected
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
                     selected = isSelected,
