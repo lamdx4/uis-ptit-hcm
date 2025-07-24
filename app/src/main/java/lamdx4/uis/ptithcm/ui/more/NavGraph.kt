@@ -22,6 +22,10 @@ fun NavGraphBuilder.moreNavGraph(
         MoreScreen(navController = navController)
     }
     
+    composable("detailed_info") {
+        DetailedInfoScreen(navController = navController)
+    }
+    
     // Additional More feature screens
     composable("notifications") {
         NotificationsScreen(navController = navController)

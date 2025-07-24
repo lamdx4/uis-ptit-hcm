@@ -181,11 +181,6 @@ private fun ImprovedProfileContent(
             NotificationsSection(statisticsState)
         }
 
-        // Tabbed Information Section
-        item {
-            TabbedInformationSection(profile)
-        }
-
         // Statistics Section với improved layout
         item {
             ImprovedStatisticsSection(
@@ -193,6 +188,11 @@ private fun ImprovedProfileContent(
                 statisticsViewModel = statisticsViewModel,
                 accessToken = accessToken
             )
+        }
+        
+        // Bottom spacer để tránh bị navigation bar che
+        item {
+            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 }

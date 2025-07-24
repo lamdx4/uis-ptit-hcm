@@ -35,6 +35,7 @@ Thumbs.db
 # Keystore files
 *.jks
 *.keystore
+.idea
 
 # Google Services (if you have any)
 google-services.json

@@ -19,22 +19,30 @@ fun MoreScreen(
     navController: NavController? = null,
     modifier: Modifier = Modifier
 ) {
-    Scaffold(
-        topBar = { 
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Thêm", 
-                        fontWeight = FontWeight.Bold
-                    ) 
-                }
-            ) 
+    Column(
+        modifier = modifier.fillMaxSize()
+    ) {
+        // Top bar
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 4.dp
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                Text(
+                    "Thêm", 
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
-    ) { padding ->
+        
+        // Content
         LazyColumn(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -50,6 +58,31 @@ fun MoreScreen(
             }
             
             // Chức năng chính được chuyển từ navigation bar
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    ListItem(
+                        headlineContent = { Text("Thông tin chi tiết") },
+                        supportingContent = { Text("Xem đầy đủ thông tin cá nhân và học tập") },
+                        leadingContent = { 
+                            Icon(
+                                Icons.Default.Person, 
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            ) 
+                        },
+                        trailingContent = { 
+                            Icon(Icons.Default.ChevronRight, contentDescription = null) 
+                        },
+                        modifier = Modifier.clickable { 
+                            navController?.navigate("detailed_info") 
+                        }
+                    )
+                }
+            }
+            
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -154,9 +187,9 @@ fun MoreScreen(
                 }
             }
             
-            // Bottom spacer
+            // Bottom spacer để tránh bị navigation bar che
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(80.dp)) // Extra space for bottom navigation
             }
         }
     }
