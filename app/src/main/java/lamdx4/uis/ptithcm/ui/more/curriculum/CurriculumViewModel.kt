@@ -1,6 +1,5 @@
 package lamdx4.uis.ptithcm.ui.more.curriculum
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
