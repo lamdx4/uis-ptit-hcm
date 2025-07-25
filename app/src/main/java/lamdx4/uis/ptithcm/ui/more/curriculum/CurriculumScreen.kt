@@ -1,218 +1,174 @@
 package lamdx4.uis.ptithcm.ui.more.curriculum
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import lamdx4.uis.ptithcm.data.model.Course
+import lamdx4.uis.ptithcm.data.model.SemesterProgram
+import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.ui.theme.PTITColors
-
-data class Subject(
-    val code: String,
-    val name: String,
-    val credits: Int,
-    val semester: Int,
-    val isRequired: Boolean = true,
-    val prerequisites: List<String> = emptyList()
-)
-
-data class SemesterGroup(
-    val semester: Int,
-    val subjects: List<Subject>,
-    val totalCredits: Int
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CurriculumScreen(
+    appViewModel: AppViewModel = hiltViewModel(),
+    curriculumViewModel: CurriculumViewModel = hiltViewModel(),
     navController: NavController? = null,
     modifier: Modifier = Modifier
 ) {
-    // Sample curriculum data
-    val curriculum = remember {
-        listOf(
-            SemesterGroup(
-                semester = 1,
-                subjects = listOf(
-                    Subject("TONH1001", "Toán cao cấp 1", 3, 1),
-                    Subject("VLYH1001", "Vật lý đại cương 1", 3, 1),
-                    Subject("CNTT1001", "Tin học đại cương", 3, 1),
-                    Subject("GDQP1001", "Giáo dục quốc phòng 1", 2, 1),
-                    Subject("ANVA1001", "Tiếng Anh 1", 3, 1),
-                    Subject("DDLL1001", "Pháp luật đại cương", 2, 1)
-                ),
-                totalCredits = 16
-            ),
-            SemesterGroup(
-                semester = 2,
-                subjects = listOf(
-                    Subject("TONH1002", "Toán cao cấp 2", 3, 2, prerequisites = listOf("TONH1001")),
-                    Subject("VLYH1002", "Vật lý đại cương 2", 3, 2, prerequisites = listOf("VLYH1001")),
-                    Subject("CNTT1002", "Lập trình căn bản", 3, 2, prerequisites = listOf("CNTT1001")),
-                    Subject("GDQP1002", "Giáo dục quốc phòng 2", 2, 2, prerequisites = listOf("GDQP1001")),
-                    Subject("ANVA1002", "Tiếng Anh 2", 3, 2, prerequisites = listOf("ANVA1001")),
-                    Subject("DDLL1002", "Triết học Mác-Lênin", 3, 2)
-                ),
-                totalCredits = 17
-            ),
-            SemesterGroup(
-                semester = 3,
-                subjects = listOf(
-                    Subject("TONH2001", "Toán rời rạc", 3, 3),
-                    Subject("CNTT2001", "Cấu trúc dữ liệu và giải thuật", 3, 3, prerequisites = listOf("CNTT1002")),
-                    Subject("CNTT2002", "Lập trình hướng đối tượng", 3, 3, prerequisites = listOf("CNTT1002")),
-                    Subject("ANVA2001", "Tiếng Anh 3", 3, 3, prerequisites = listOf("ANVA1002")),
-                    Subject("DDLL2001", "Kinh tế chính trị Mác-Lênin", 2, 3),
-                    Subject("CNTT2003", "Kiến trúc máy tính", 3, 3)
-                ),
-                totalCredits = 17
-            ),
-            SemesterGroup(
-                semester = 4,
-                subjects = listOf(
-                    Subject("CNTT2004", "Cơ sở dữ liệu", 3, 4),
-                    Subject("CNTT2005", "Mạng máy tính", 3, 4),
-                    Subject("CNTT2006", "Hệ điều hành", 3, 4),
-                    Subject("CNTT2007", "Công nghệ phần mềm", 3, 4, prerequisites = listOf("CNTT2001")),
-                    Subject("DDLL2002", "Chủ nghĩa xã hội khoa học", 2, 4),
-                    Subject("CNTT2008", "Phân tích thiết kế thuật toán", 3, 4, prerequisites = listOf("CNTT2001"))
-                ),
-                totalCredits = 17
-            )
-        )
-    }
+    val userState by appViewModel.uiState.collectAsState()
+    val accessToken = userState.accessToken
 
-    val totalCredits = curriculum.sumOf { it.totalCredits }
+    val curriculumTypes by curriculumViewModel.curriculumTypeState.collectAsState()
+    val curriculumResponse by curriculumViewModel.curriculumState.collectAsState()
+
+    var selectedTypeIndex by remember { mutableIntStateOf(0) }
+    var expanded by remember { mutableStateOf(false) } // Dropdown state
+
+    LaunchedEffect(accessToken) {
+        if (accessToken != null) {
+            curriculumViewModel.loadCurriculumTypes(accessToken)
+            curriculumViewModel.loadCurriculums(accessToken, programType = 1)
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
-                    Text(
-                        "Chương trình đào tạo",
-                        fontWeight = FontWeight.Bold
-                    ) 
-                },
+                title = { Text("Chương trình đào tạo", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController?.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
         }
     ) { padding ->
-        LazyColumn(
+        if (accessToken == null) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Không tìm thấy Access Token.")
+            }
+            return@Scaffold
+        }
+
+        val curriculumData = curriculumResponse?.data
+        if (curriculumData == null) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+            return@Scaffold
+        }
+
+        Column(
             modifier = Modifier
                 .padding(padding)
-                .fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .fillMaxSize()
         ) {
-            // Summary card
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            // --- Dropdown chọn loại curriculum ---
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { expanded = true },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.MenuBook,
-                                contentDescription = null,
-                                modifier = Modifier.size(32.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            Column {
-                                Text(
-                                    text = "Ngành Công nghệ thông tin",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Text(
-                                    text = "Bậc đại học - 4 năm",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    Text(
+                        curriculumTypes.getOrNull(selectedTypeIndex)?.description
+                            ?: "Chọn loại CTĐT"
+                    )
+                }
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    curriculumTypes.forEachIndexed { index, type ->
+                        DropdownMenuItem(
+                            text = { Text(type.description) },
+                            onClick = {
+                                expanded = false
+                                selectedTypeIndex = index
+                                curriculumViewModel.loadCurriculums(
+                                    accessToken,
+                                    programType = type.value
                                 )
                             }
-                        }
-                        
-                        HorizontalDivider(color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.3f))
-                        
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = "$totalCredits",
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Text(
-                                    text = "Tổng tín chỉ",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                                )
-                            }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = "${curriculum.size}",
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Text(
-                                    text = "Học kỳ",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                                )
-                            }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(
-                                    text = "${curriculum.sumOf { it.subjects.size }}",
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Text(
-                                    text = "Môn học",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                                )
-                            }
-                        }
+                        )
                     }
                 }
             }
 
-            items(curriculum) { semesterGroup ->
-                SemesterCard(semesterGroup = semesterGroup)
+            // --- Nội dung curriculum ---
+            val semesterPrograms: List<SemesterProgram> = curriculumData.semesterPrograms
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                contentPadding = PaddingValues(
+                    top = 16.dp,
+                    bottom = padding.calculateBottomPadding() + 16.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(semesterPrograms) { semester ->
+                    SemesterCard(semester = semester)
+                }
+                item {
+                    Spacer(modifier = Modifier.height(30.dp))
+                }
             }
         }
     }
 }
 
 @Composable
-private fun SemesterCard(semesterGroup: SemesterGroup) {
+private fun SemesterCard(semester: SemesterProgram) {
+    val totalCredits = semester.courses.sumOf { it.credit.toIntOrNull() ?: 0 }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -222,48 +178,26 @@ private fun SemesterCard(semesterGroup: SemesterGroup) {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Semester header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Surface(
-                        modifier = Modifier.size(32.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        color = PTITColors.redDefault.copy(alpha = 0.1f)
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "${semesterGroup.semester}",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = PTITColors.redDefault
-                            )
-                        }
-                    }
-                    
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Học kỳ ${semesterGroup.semester}",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        text = semester.semesterName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
                     )
                 }
-                
+
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = PTITColors.redDefault.copy(alpha = 0.1f)
                 ) {
                     Text(
-                        text = "${semesterGroup.totalCredits} TC",
+                        text = "$totalCredits TC",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         color = PTITColors.redDefault,
@@ -271,13 +205,10 @@ private fun SemesterCard(semesterGroup: SemesterGroup) {
                     )
                 }
             }
-            
-            // Subjects list
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                semesterGroup.subjects.forEach { subject ->
-                    SubjectRow(subject = subject)
+
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                semester.courses.forEach { course ->
+                    SubjectRow(course)
                 }
             }
         }
@@ -285,9 +216,14 @@ private fun SemesterCard(semesterGroup: SemesterGroup) {
 }
 
 @Composable
-private fun SubjectRow(subject: Subject) {
+private fun SubjectRow(course: Course) {
+    var expanded by remember { mutableStateOf(false) } // Trạng thái mở rộng
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clickable { expanded = !expanded }, // Toggle khi nhấn
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         ),
@@ -297,73 +233,66 @@ private fun SubjectRow(subject: Subject) {
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
+            // --- Hàng thông tin cơ bản ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = subject.name,
+                        text = course.courseName,
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = subject.code,
+                        text = course.courseCode,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (!subject.isRequired) {
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = PTITColors.warning.copy(alpha = 0.1f)
-                        ) {
-                            Text(
-                                text = "Tự chọn",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = PTITColors.warning,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                            )
-                        }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val isLearned = course.completedCourse == "x"
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = if (isLearned) PTITColors.success.copy(alpha = 0.1f) else PTITColors.warning.copy(
+                            alpha = 0.1f
+                        )
+                    ) {
+                        Text(
+                            text = if (isLearned) "Đã học" else "Chưa học",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isLearned) PTITColors.success else PTITColors.warning,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
                     }
-                    
                     Text(
-                        text = "${subject.credits} TC",
+                        text = "${course.credit} TC",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
-            
-            if (subject.prerequisites.isNotEmpty()) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        Icons.Default.AccountTree,
-                        contentDescription = null,
-                        modifier = Modifier.size(12.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+
+            // --- Phần mở rộng ---
+            if (expanded) {
+                Spacer(Modifier.height(8.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        text = "Tổng tiết: ${course.totalHours.takeIf { it.isNotBlank() } ?: "0"}",
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
                     )
                     Text(
-                        text = "Tiên quyết: ${subject.prerequisites.joinToString(", ")}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "Lý thuyết: ${course.theoryHours.takeIf { it.isNotBlank() } ?: "0"}",
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                    )
+                    Text(
+                        text = "Thực hành: ${course.practiceHours.takeIf { it.isNotBlank() } ?: "0"}",
+                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
                     )
                 }
             }
+
         }
     }
 }
