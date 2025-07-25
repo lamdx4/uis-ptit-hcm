@@ -1,8 +1,32 @@
 package lamdx4.uis.ptithcm.ui.sync
 
+/*
+ * KIẾN TRÚC ĐỒNG BỘ GOOGLE CALENDAR - HƯỚNG DẪN TRIỂN KHAI
+ * 
+ * NGUYÊN TẮC DRY (Don't Repeat Yourself):
+ * - ✅ Đã sử dụng ScheduleRepository.getSemesters() thay vì duplicate logic
+ * - ✅ Tái sử dụng getCurrentSemester() từ ScheduleRepository
+ * - ✅ Loại bỏ code trùng lặp trong việc load semesters
+ * 
+ * LUỒNG CHÍNH XÁC:
+ * 1. Load semesters từ ScheduleRepository (sử dụng UIS PTIT access token)
+ * 2. User chọn semester cần đồng bộ  
+ * 3. Xác thực Google để lấy accessToken (KHÔNG phải idToken)
+ * 4. Sử dụng accessToken để gọi Google Calendar API
+ * 
+ * VẤN ĐỀ HIỆN TẠI:
+ * - Credential Manager API chỉ cung cấp idToken, không phải accessToken
+ * - idToken chỉ dùng để xác thực danh tính, KHÔNG thể gọi Calendar API
+ * - Cần accessToken với scope 'https://www.googleapis.com/auth/calendar'
+ * 
+ * GIẢI PHÁP:
+ * - Sử dụng GoogleSignInClient hoặc OAuth 2.0 flow để lấy accessToken
+ * - Hoặc trao đổi idToken lấy accessToken qua Google OAuth endpoint
+ * - Cấu hình scope Calendar trong OAuth consent screen (đã làm)
+ */
+
 import android.app.Application
-import android.app.Activity
-import androidx.activity.result.ActivityResult
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,10 +46,13 @@ import javax.inject.Inject
 class CalendarSyncViewModel @Inject constructor(
     app: Application,
     private val calendarSyncRepository: CalendarSyncRepository,
-    private val scheduleRepository: ScheduleRepository
+    private val scheduleRepository: ScheduleRepository,
+    private val loginPrefs: LoginPrefs
 ) : AndroidViewModel(app) {
 
-    private val loginPrefs = LoginPrefs(app)
+    companion object {
+        private const val TAG = "CalendarSyncViewModel"
+    }
 
     private val _uiState = MutableStateFlow(CalendarSyncUiState())
     val uiState: StateFlow<CalendarSyncUiState> = _uiState.asStateFlow()
@@ -37,22 +64,11 @@ class CalendarSyncViewModel @Inject constructor(
     val selectedSemester: StateFlow<Semester?> = _selectedSemester.asStateFlow()
 
     init {
-        checkCalendarPermission()
+        loadSemesters()
     }
 
     /**
-     * Kiểm tra quyền truy cập Google Calendar
-     */
-    private fun checkCalendarPermission() {
-        val hasPermission = calendarSyncRepository.hasCalendarPermission()
-        _uiState.value = _uiState.value.copy(
-            hasCalendarPermission = hasPermission,
-            isLoading = false
-        )
-    }
-
-    /**
-     * Lấy danh sách học kỳ
+     * Lấy danh sách học kỳ sử dụng ScheduleRepository (DRY principle)
      */
     fun loadSemesters() {
         viewModelScope.launch {
@@ -68,6 +84,7 @@ class CalendarSyncViewModel @Inject constructor(
                     return@launch
                 }
 
+                Log.d(TAG, "Loading semesters using ScheduleRepository...")
                 val semesterResponse = scheduleRepository.getSemesters(accessToken)
                 _semesters.value = semesterResponse.data.semesters
                 
@@ -207,37 +224,30 @@ class CalendarSyncViewModel @Inject constructor(
     }
 
     /**
-     * Lấy Google Sign-In Options
+     * Xử lý kết quả xác thực Google thành công - cần accessToken cho Calendar API
+     * 
+     * LƯU Ý: Hiện tại đang nhận idToken từ Credential Manager API
+     * Cần chuyển đổi sang accessToken để gọi được Google Calendar API
      */
+    fun onGoogleAuthSuccess(accessToken: String) {
+        Log.d(TAG, "Google authentication successful, storing accessToken for Calendar API")
+        calendarSyncRepository.setAuthToken(accessToken)
+        _uiState.value = _uiState.value.copy(
+            isLoading = false,
+            hasCalendarPermission = true,
+            error = null
+        )
+        // Semesters đã được load trong init, không cần load lại
+    }
+
     /**
-     * Xử lý đăng nhập Google
+     * Xử lý lỗi xác thực Google
      */
-    fun signInWithGoogle() {
-        viewModelScope.launch {
-            try {
-                _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-                
-                val success = calendarSyncRepository.authenticateWithGoogle()
-                if (success) {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        hasCalendarPermission = true,
-                        error = null
-                    )
-                    loadSemesters()
-                } else {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = "Đăng nhập Google thất bại"
-                    )
-                }
-            } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = "Lỗi xác thực: ${e.message}"
-                )
-            }
-        }
+    fun onGoogleAuthError(error: String) {
+        _uiState.value = _uiState.value.copy(
+            isLoading = false,
+            error = "Đăng nhập Google thất bại: $error"
+        )
     }
 
     /**
@@ -253,7 +263,7 @@ class CalendarSyncViewModel @Inject constructor(
 }
 
 data class CalendarSyncUiState(
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false, // Semesters load first, no initial loading needed
     val hasCalendarPermission: Boolean = false,
     val isLoadingSemesters: Boolean = false,
     val isSyncing: Boolean = false,

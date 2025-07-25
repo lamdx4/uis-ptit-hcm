@@ -2,11 +2,6 @@ package lamdx4.uis.ptithcm.data.repository
 
 import android.content.Context
 import android.util.Log
-import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.exceptions.GetCredentialException
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -22,44 +17,16 @@ class CalendarSyncRepository @Inject constructor(
     companion object {
         private const val TAG = "CalendarSyncRepository"
         private const val CALENDAR_NAME = "UIS PTIT HCM - Thời khóa biểu"
-        private const val GOOGLE_CLIENT_ID = "your-oauth-client-id.googleusercontent.com" // TODO: Add your OAuth client ID
     }
 
-    private val credentialManager = CredentialManager.create(context)
     private var currentIdToken: String? = null
 
     /**
-     * Xác thực với Google bằng Credential Manager API mới
+     * Lưu ID token sau khi xác thực thành công
      */
-    suspend fun authenticateWithGoogle(): Boolean = withContext(Dispatchers.IO) {
-        try {
-            val googleIdOption = GetGoogleIdOption.Builder()
-                .setFilterByAuthorizedAccounts(false)
-                .setServerClientId(GOOGLE_CLIENT_ID)
-                .setAutoSelectEnabled(true)
-                .build()
-
-            val request = GetCredentialRequest.Builder()
-                .addCredentialOption(googleIdOption)
-                .build()
-
-            val result = credentialManager.getCredential(
-                request = request,
-                context = context,
-            )
-
-            val credential = GoogleIdTokenCredential.createFrom(result.credential.data)
-            currentIdToken = credential.idToken
-            
-            Log.i(TAG, "Google authentication successful for user: ${credential.displayName}")
-            true
-        } catch (e: GetCredentialException) {
-            Log.e(TAG, "Google authentication failed", e)
-            false
-        } catch (e: Exception) {
-            Log.e(TAG, "Unexpected error during authentication", e)
-            false
-        }
+    fun setAuthToken(idToken: String) {
+        currentIdToken = idToken
+        Log.i(TAG, "Google ID token saved successfully")
     }
 
     /**
@@ -99,7 +66,7 @@ class CalendarSyncRepository @Inject constructor(
     /**
      * Xóa tất cả events trong calendar của một học kỳ cụ thể
      */
-    suspend fun clearSemesterEvents(semesterCode: Int): Boolean = withContext(Dispatchers.IO) {
+    private suspend fun clearSemesterEvents(semesterCode: Int): Boolean = withContext(Dispatchers.IO) {
         try {
             // Simulate clearing events
             delay(500)
@@ -168,14 +135,9 @@ class CalendarSyncRepository @Inject constructor(
     /**
      * Đăng xuất và xóa thông tin xác thực
      */
-    suspend fun signOut() = withContext(Dispatchers.IO) {
-        try {
-            // Clear credential data
-            currentIdToken = null
-            Log.i(TAG, "User signed out successfully")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error during sign out", e)
-        }
+    fun signOut() {
+        currentIdToken = null
+        Log.i(TAG, "User signed out successfully")
     }
 
     /**
