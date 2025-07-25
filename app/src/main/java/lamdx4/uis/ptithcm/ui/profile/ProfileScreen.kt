@@ -1429,7 +1429,7 @@ private fun NotificationsSection(statisticsState: StatisticsUiState) {
                     imageVector = Icons.Default.Notifications,
                     contentDescription = null,
                     tint = if (unreadCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(24.dp)
                 )
 
                 if (unreadCount > 0) {
