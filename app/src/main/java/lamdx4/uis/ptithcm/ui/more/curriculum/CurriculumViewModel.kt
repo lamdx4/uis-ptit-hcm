@@ -1,12 +1,13 @@
 package lamdx4.uis.ptithcm.ui.more.curriculum
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import lamdx4.uis.ptithcm.data.model.EducationProgramData
-import lamdx4.uis.ptithcm.data.model.EducationProgramType
+import lamdx4.uis.ptithcm.data.model.CurriculumResponse
+import lamdx4.uis.ptithcm.data.model.CurriculumTypeResponse
 import lamdx4.uis.ptithcm.data.repository.CurriculumRepository
 import javax.inject.Inject
 
@@ -14,13 +15,29 @@ import javax.inject.Inject
 class CurriculumViewModel @Inject constructor(
     private val curriculumRepository: CurriculumRepository
 ) : ViewModel() {
-    private val _curriculumTypeState = MutableStateFlow<List<EducationProgramType>>(emptyList())
-    private val _curriculumState = MutableStateFlow(EducationProgramData)
+    private val _curriculumTypeState = MutableStateFlow<List<CurriculumTypeResponse>>(emptyList())
+    val curriculumTypeState = _curriculumTypeState // public để UI collect
 
-    suspend fun loadCurriculumTypes(accessToken: String) {
+    private val _curriculumState = MutableStateFlow<CurriculumResponse?>(null)
+    val curriculumState = _curriculumState // public để UI collect
+
+    fun loadCurriculumTypes(accessToken: String) {
         viewModelScope.launch {
-            _curriculumTypeState.value = curriculumRepository.getEducationProgramTypes(accessToken)
-            println("loadCurriculumTypes: ${_curriculumTypeState.value}")
+            try {
+                _curriculumTypeState.value = curriculumRepository.getCurriculumTypes(accessToken)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun  loadCurriculums(accessToken: String, programType: Int) {
+        viewModelScope.launch {
+            try {
+                _curriculumState.value = curriculumRepository.getCurriculum(accessToken, programType)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

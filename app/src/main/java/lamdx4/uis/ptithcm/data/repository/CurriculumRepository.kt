@@ -15,8 +15,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import lamdx4.uis.ptithcm.data.model.EducationProgramResponse
-import lamdx4.uis.ptithcm.data.model.EducationProgramType
+import lamdx4.uis.ptithcm.data.model.CurriculumResponse
+import lamdx4.uis.ptithcm.data.model.CurriculumTypeResponse
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,7 +35,7 @@ class CurriculumRepository @Inject constructor() {
         }
     }
 
-    suspend fun getEducationPrograms(accessToken: String, programType: Int): EducationProgramResponse {
+    suspend fun getCurriculum(accessToken: String, programType: Int): CurriculumResponse {
         return this.client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdsctdtsinhvien") {
             header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
@@ -43,7 +43,7 @@ class CurriculumRepository @Inject constructor() {
             setBody("""
                 {
                   "filter": {
-                    "loai_chuong_trinh_dao_tao": ${programType},
+                    "loai_chuong_trinh_dao_tao": $programType
                   },
                   "additional": {
                     "paging": {
@@ -59,13 +59,13 @@ class CurriculumRepository @Inject constructor() {
                   }
                 }
             """.trimIndent())
-        }.body<EducationProgramResponse>()
+        }.body<CurriculumResponse>()
     }
 
-    suspend fun getEducationProgramTypes(accessToken: String): List<EducationProgramType> {
+    suspend fun getCurriculumTypes(accessToken: String): List<CurriculumTypeResponse> {
         return this.client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdschuongtrinhdaotao") {
             header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
-        }.body<List<EducationProgramType>>()
+        }.body<List<CurriculumTypeResponse>>()
     }
 }

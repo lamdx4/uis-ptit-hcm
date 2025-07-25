@@ -2,32 +2,33 @@ package lamdx4.uis.ptithcm.data.model
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 @Serializable
-data class EducationProgramResponse(
-    val data: EducationProgramData,
+data class CurriculumResponse(
+    val data: CurriculumData,
     val result: Boolean,
     val code: Int
 )
 
 @Serializable
-data class EducationProgramData(
+data class CurriculumData(
     @SerialName("total_items") val totalItems: Int,
     @SerialName("total_pages") val totalPages: Int,
     @SerialName("is_xem_tai_lieu") val isViewDocument: Boolean,
     @SerialName("is_show_nhomtc") val isShowCreditGroup: Boolean,
     @SerialName("is_view_sodo") val isViewDiagram: Boolean,
-    @SerialName("tong_sotc_ctdt") val totalCreditsProgram: Int,
-    @SerialName("tong_sotctl") val totalCredits: Int,
+    @SerialName("tong_sotc_ctdt") val totalCreditsProgram: Double,
+    @SerialName("tong_sotctl") val totalCredits: Double,
     @SerialName("message_tong_tiet") val totalPeriodsMessage: String,
     @SerialName("is_show_tiettp") val isShowTrainingPeriods: Boolean,
-    @SerialName("so_tc_phai_dat") val requiredCredits: Int,
+    @SerialName("so_tc_phai_dat") val requiredCredits: Double,
     @SerialName("url_hoc_lieu_chi_tiet") val detailMaterialUrl: String,
     @SerialName("bearer_token") val bearerToken: String,
     @SerialName("ds_nganh_sinh_vien") val studentMajors: List<StudentMajor>,
-    @SerialName("ds_chuyen_nganh_sv") val studentSpecializations: List<String>,
+    @SerialName("ds_chuyen_nganh_sv") val studentSpecializations: List<JsonElement>,
     @SerialName("ds_CTDT_hocky") val semesterPrograms: List<SemesterProgram>,
-    @SerialName("ds_CTDT_hocky_n2") val semesterProgramsN2: List<String>,
+    @SerialName("ds_CTDT_hocky_n2") val semesterProgramsN2: List<JsonElement>,
     @SerialName("ds_field_an") val hiddenFields: List<HiddenField>,
     @SerialName("ds_ctdt_tchuan") val standardPrograms: List<String>
 )
