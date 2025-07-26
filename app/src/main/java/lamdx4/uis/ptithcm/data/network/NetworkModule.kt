@@ -1,5 +1,6 @@
 package lamdx4.uis.ptithcm.data.network
 
+import com.google.android.gms.auth.api.Auth
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -39,7 +40,7 @@ object NetworkModule {
                 agent = "UIS PTIT HCM Android/1.0"
             }
             install(HttpSend){
-                
+
             }
             install(HttpRequestRetry) {
                 retryOnServerErrors(maxRetries = 2)
