@@ -1,11 +1,8 @@
 package lamdx4.uis.ptithcm.data.repository
 
 import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import lamdx4.uis.ptithcm.data.model.StudentInfoResponse
 import lamdx4.uis.ptithcm.data.model.StudentDetailResponse
 import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
@@ -18,11 +15,6 @@ import lamdx4.uis.ptithcm.data.model.SemesterAdditional
 import lamdx4.uis.ptithcm.data.model.SemesterPaging
 import lamdx4.uis.ptithcm.data.model.SemesterOrdering
 import io.ktor.client.call.body
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.plugins.logging.SIMPLE
-import kotlinx.serialization.json.Json
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
@@ -31,23 +23,17 @@ import javax.inject.Singleton
 @Singleton
 class StudentInfoRepository @Inject constructor(private val client: HttpClient) {
 
-
-    private suspend fun getStudentInfo(accessToken: String, maSV: String): StudentInfoResponse {
+    private suspend fun getStudentInfo( maSV: String): StudentInfoResponse {
         return client.post("http://uis.ptithcm.edu.vn/api/sms/w-locthongtinimagesinhvien?MaSV=$maSV") {
-            header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Text.Plain)
             setBody("")
         }.body()
     }
 
-    private suspend fun getStudentDetail(accessToken: String): StudentDetailResponse {
-        if (accessToken.isBlank()) {
-            throw Exception("Access token không hợp lệ hoặc đăng nhập thất bại")
-        }
+    private suspend fun getStudentDetail(): StudentDetailResponse {
 
         val response = client.post("http://uis.ptithcm.edu.vn/api/dkmh/w-locsinhvieninfo") {
-            header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Text.Plain)
             setBody("")
@@ -60,16 +46,15 @@ class StudentInfoRepository @Inject constructor(private val client: HttpClient) 
         return response
     }
 
-    suspend fun getAcademicResult(accessToken: String, hocKy: Int): AcademicResultResponse {
+    suspend fun getAcademicResult(hocKy: Int): AcademicResultResponse {
         return client.post("http://uis.ptithcm.edu.vn/api/dkmh/w-inketquahoctap") {
-            header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
             setBody(AcademicResultRequest(hoc_ky = hocKy))
         }.body()
     }
 
-    suspend fun getAvailableSemesters(accessToken: String): SemesterListResponse {
+    suspend fun getAvailableSemesters(): SemesterListResponse {
         val requestBody = SemesterListRequest(
             filter = SemesterFilter(),
             additional = SemesterAdditional(
@@ -79,21 +64,17 @@ class StudentInfoRepository @Inject constructor(private val client: HttpClient) 
         )
 
         return client.post("http://uis.ptithcm.edu.vn/api/dkmh/w-locdshockyketquahoctap") {
-            header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
             setBody(requestBody)
         }.body()
     }
 
-    suspend fun getCompleteStudentInfo(accessToken: String, maSV: String): CompleteStudentInfo {
-        if (accessToken.isBlank()) {
-            throw Exception("Access token không hợp lệ hoặc đăng nhập thất bại")
-        }
+    suspend fun getCompleteStudentInfo( maSV: String): CompleteStudentInfo {
 
         return coroutineScope {
-            val imageInfoDeferred = async { getStudentInfo(accessToken, maSV) }
-            val detailInfoDeferred = async { getStudentDetail(accessToken) }
+            val imageInfoDeferred = async { getStudentInfo( maSV) }
+            val detailInfoDeferred = async { getStudentDetail() }
 
             val imageInfo = imageInfoDeferred.await()
             val detailInfo = detailInfoDeferred.await()

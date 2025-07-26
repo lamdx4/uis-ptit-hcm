@@ -20,20 +20,20 @@ class CurriculumViewModel @Inject constructor(
     private val _curriculumState = MutableStateFlow<CurriculumResponse?>(null)
     val curriculumState = _curriculumState // public để UI collect
 
-    fun loadCurriculumTypes(accessToken: String) {
+    fun loadCurriculumTypes() {
         viewModelScope.launch {
             try {
-                _curriculumTypeState.value = curriculumRepository.getCurriculumTypes(accessToken)
+                _curriculumTypeState.value = curriculumRepository.getCurriculumTypes()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
 
-    fun  loadCurriculums(accessToken: String, programType: Int) {
+    fun  loadCurriculums(programType: Int) {
         viewModelScope.launch {
             try {
-                _curriculumState.value = curriculumRepository.getCurriculum(accessToken, programType)
+                _curriculumState.value = curriculumRepository.getCurriculum( programType)
             } catch (e: Exception) {
                 e.printStackTrace()
             }

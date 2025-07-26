@@ -43,7 +43,7 @@ class ScheduleRepository @Inject constructor(private val client: HttpClient) {
      * Lấy danh sách học kỳ có thời khóa biểu (với caching)
      * API: w-locdshockytkbuser
      */
-    suspend fun getSemesters(accessToken: String): SemesterResponse {
+    suspend fun getSemesters(): SemesterResponse {
         val currentTime = System.currentTimeMillis()
 
         // 🎯 Check cache first
@@ -55,7 +55,6 @@ class ScheduleRepository @Inject constructor(private val client: HttpClient) {
 
         // 📡 Fetch from API if not cached or expired
         val response = client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdshockytkbuser") {
-            header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
             header(HttpHeaders.Cookie, "ASP.NET_SessionId=hpygoowhw0jposd3gosqw1xn")
@@ -94,7 +93,7 @@ class ScheduleRepository @Inject constructor(private val client: HttpClient) {
      * Lấy thời khóa biểu tuần theo học kỳ (với caching)
      * API: w-locdstkbtuanusertheohocky
      */
-    suspend fun getWeeklySchedule(accessToken: String, semesterCode: Int): ScheduleResponse {
+    suspend fun getWeeklySchedule(semesterCode: Int): ScheduleResponse {
         val cacheKey = semesterCode.toString()
         val currentTime = System.currentTimeMillis()
 
@@ -109,10 +108,8 @@ class ScheduleRepository @Inject constructor(private val client: HttpClient) {
         // 📡 Fetch from API if not cached or expired
         val response =
             client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdstkbtuanusertheohocky") {
-                header(HttpHeaders.Authorization, "Bearer $accessToken")
                 header(HttpHeaders.Accept, "application/json, text/plain, */*")
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
-                header(HttpHeaders.Cookie, "ASP.NET_SessionId=hpygoowhw0jposd3gosqw1xn")
 
                 setBody(
                     """
@@ -148,8 +145,8 @@ class ScheduleRepository @Inject constructor(private val client: HttpClient) {
     /**
      * Lấy danh sách các tuần có lịch học (bao gồm cả tuần rỗng)
      */
-    suspend fun getAvailableWeeks(accessToken: String, semesterCode: Int): List<WeeklySchedule> {
-        val scheduleResponse = getWeeklySchedule(accessToken, semesterCode)
+    suspend fun getAvailableWeeks(semesterCode: Int): List<WeeklySchedule> {
+        val scheduleResponse = getWeeklySchedule(semesterCode)
         // Hiển thị tất cả tuần, kể cả tuần không có môn học
         return scheduleResponse.data.weeklySchedules
     }
@@ -158,8 +155,8 @@ class ScheduleRepository @Inject constructor(private val client: HttpClient) {
      * Lấy học kỳ hiện tại dựa trên ngày
      * Sử dụng hoc_ky_theo_ngay_hien_tai từ API
      */
-    suspend fun getCurrentSemester(accessToken: String): Semester? {
-        val semesterResponse = getSemesters(accessToken)
+    suspend fun getCurrentSemester(): Semester? {
+        val semesterResponse = getSemesters()
         val currentSemesterCode = semesterResponse.data.currentSemesterByDate
 
         return if (currentSemesterCode > 0) {
@@ -173,8 +170,8 @@ class ScheduleRepository @Inject constructor(private val client: HttpClient) {
     /**
      * Lấy tuần hiện tại dựa trên ngày hiện tại và ngày bắt đầu học kỳ
      */
-    suspend fun getCurrentWeek(accessToken: String, semesterCode: Int): WeeklySchedule? {
-        val scheduleResponse = getWeeklySchedule(accessToken, semesterCode)
+    suspend fun getCurrentWeek(semesterCode: Int): WeeklySchedule? {
+        val scheduleResponse = getWeeklySchedule(semesterCode)
         val currentDate = System.currentTimeMillis()
         val dateFormat = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
 

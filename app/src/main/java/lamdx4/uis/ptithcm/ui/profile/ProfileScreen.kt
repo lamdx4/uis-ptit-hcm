@@ -61,14 +61,13 @@ fun decodeBase64ToBitmap(base64String: String): android.graphics.Bitmap? {
 
 @Composable
 fun ProfileScreen(
-    appViewModel: AppViewModel = hiltViewModel(),
+    appViewModel: AppViewModel,
     profileViewModel: ProfileViewModel = hiltViewModel(),
     statisticsViewModel: StatisticsViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
     val userState by appViewModel.uiState.collectAsState()
     val statisticsState by statisticsViewModel.uiState.collectAsState()
-    val accessToken = userState.accessToken
     val maSV = userState.maSV
     val profile = userState.profile
     var loading by remember { mutableStateOf(false) }
@@ -76,13 +75,13 @@ fun ProfileScreen(
     val coroutineScope = rememberCoroutineScope()
 
     // Load profile info if not loaded
-    LaunchedEffect(maSV, accessToken) {
-        if (profile == null && !loading && !maSV.isNullOrEmpty() && !accessToken.isNullOrEmpty()) {
+    LaunchedEffect(maSV) {
+        if (profile == null && !loading && !maSV.isNullOrEmpty()) {
             loading = true
             error = null
             coroutineScope.launch {
                 try {
-                    val result = profileViewModel.loadProfile(accessToken, maSV)
+                    val result = profileViewModel.loadProfile(maSV)
                     result?.let { appViewModel.setProfile(it) }
                 } catch (e: Exception) {
                     error = "Không thể tải thông tin: ${e.message}"
@@ -94,15 +93,15 @@ fun ProfileScreen(
     }
 
     // Load statistics when profile is available
-    LaunchedEffect(accessToken, profile) {
-        if (!accessToken.isNullOrEmpty() && profile != null) {
-            statisticsViewModel.loadAvailableSemesters(accessToken)
+    LaunchedEffect(profile) {
+        if (profile != null) {
+            statisticsViewModel.loadAvailableSemesters()
         }
     }
 
     // Auto-load default semester data after semesters are loaded
-    LaunchedEffect(statisticsState.availableSemesters, accessToken) {
-        if (!accessToken.isNullOrEmpty() &&
+    LaunchedEffect(statisticsState.availableSemesters) {
+        if (
             statisticsState.availableSemesters.isNotEmpty() &&
             statisticsState.academicResult == null &&
             !statisticsState.loading
@@ -112,7 +111,7 @@ fun ProfileScreen(
             val defaultSemester = statisticsState.availableSemesters.maxByOrNull { it.hoc_ky }
             defaultSemester?.let { semester ->
                 coroutineScope.launch {
-                    statisticsViewModel.loadAcademicResult(accessToken, semester.hoc_ky)
+                    statisticsViewModel.loadAcademicResult(semester.hoc_ky)
                 }
             }
         }
@@ -142,7 +141,6 @@ fun ProfileScreen(
                     profile = profile,
                     statisticsState = statisticsState,
                     statisticsViewModel = statisticsViewModel,
-                    accessToken = accessToken
                 )
             }
 
@@ -157,7 +155,6 @@ private fun ImprovedProfileContent(
     profile: CompleteStudentInfo,
     statisticsState: StatisticsUiState,
     statisticsViewModel: StatisticsViewModel,
-    accessToken: String?
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -189,7 +186,6 @@ private fun ImprovedProfileContent(
             ImprovedStatisticsSection(
                 statisticsState = statisticsState,
                 statisticsViewModel = statisticsViewModel,
-                accessToken = accessToken
             )
         }
     }
@@ -840,8 +836,7 @@ private fun CompactInfoCard(
 @Composable
 private fun ImprovedStatisticsSection(
     statisticsState: StatisticsUiState,
-    statisticsViewModel: StatisticsViewModel ,
-    accessToken: String?
+    statisticsViewModel: StatisticsViewModel,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
@@ -944,13 +939,11 @@ private fun ImprovedStatisticsSection(
                                     onClick = {
                                         expanded = false
                                         statisticsViewModel.setSemester(semester.hoc_ky)
-                                        if (!accessToken.isNullOrEmpty()) {
-                                            coroutineScope.launch {
-                                                statisticsViewModel.loadAcademicResult(
-                                                    accessToken,
-                                                    semester.hoc_ky
-                                                )
-                                            }
+
+                                        coroutineScope.launch {
+                                            statisticsViewModel.loadAcademicResult(
+                                                semester.hoc_ky
+                                            )
                                         }
                                     }
                                 )
@@ -1004,6 +997,7 @@ private fun ImprovedStatisticsSection(
                         )
                     }
                 }
+
                 else -> {
                     ChartEmptyState()
                 }

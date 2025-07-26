@@ -1,29 +1,5 @@
 package lamdx4.uis.ptithcm.ui.more.sync
 
-/*
- * KIẾN TRÚC ĐỒNG BỘ GOOGLE CALENDAR - HƯỚNG DẪN TRIỂN KHAI
- * 
- * NGUYÊN TẮC DRY (Don't Repeat Yourself):
- * - ✅ Đã sử dụng ScheduleRepository.getSemesters() thay vì duplicate logic
- * - ✅ Tái sử dụng getCurrentSemester() từ ScheduleRepository
- * - ✅ Loại bỏ code trùng lặp trong việc load semesters
- * 
- * LUỒNG CHÍNH XÁC:
- * 1. Load semesters từ ScheduleRepository (sử dụng UIS PTIT access token)
- * 2. User chọn semester cần đồng bộ  
- * 3. Xác thực Google để lấy accessToken (KHÔNG phải idToken)
- * 4. Sử dụng accessToken để gọi Google Calendar API
- * 
- * VẤN ĐỀ HIỆN TẠI:
- * - Credential Manager API chỉ cung cấp idToken, không phải accessToken
- * - idToken chỉ dùng để xác thực danh tính, KHÔNG thể gọi Calendar API
- * - Cần accessToken với scope 'https://www.googleapis.com/auth/calendar'
- * 
- * GIẢI PHÁP:
- * - Sử dụng GoogleSignInClient hoặc OAuth 2.0 flow để lấy accessToken
- * - Hoặc trao đổi idToken lấy accessToken qua Google OAuth endpoint
- * - Cấu hình scope Calendar trong OAuth consent screen (đã làm)
- */
 
 import android.app.Application
 import android.util.Log
@@ -74,22 +50,13 @@ class CalendarSyncViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(isLoadingSemesters = true, error = null)
-                
-                // Lấy access token từ LoginPrefs
-                val accessToken = getAccessToken() ?: run {
-                    _uiState.value = _uiState.value.copy(
-                        isLoadingSemesters = false,
-                        error = "Vui lòng đăng nhập lại để lấy thông tin học kỳ"
-                    )
-                    return@launch
-                }
 
                 Log.d(TAG, "Loading semesters using ScheduleRepository...")
-                val semesterResponse = scheduleRepository.getSemesters(accessToken)
+                val semesterResponse = scheduleRepository.getSemesters()
                 _semesters.value = semesterResponse.data.semesters
-                
+
                 // Chọn học kỳ hiện tại làm mặc định
-                val currentSemester = scheduleRepository.getCurrentSemester(accessToken)
+                val currentSemester = scheduleRepository.getCurrentSemester()
                 _selectedSemester.value = currentSemester
                 
                 _uiState.value = _uiState.value.copy(isLoadingSemesters = false)
@@ -154,17 +121,7 @@ class CalendarSyncViewModel @Inject constructor(
                     syncProgress = "Đang tải thời khóa biểu học kỳ ${semester.semesterName}..."
                 )
 
-                // Lấy thời khóa biểu
-                val accessToken = getAccessToken() ?: run {
-                    _uiState.value = _uiState.value.copy(
-                        isSyncing = false,
-                        error = "Phiên đăng nhập hết hạn"
-                    )
-                    return@launch
-                }
-
                 val scheduleResponse = scheduleRepository.getWeeklySchedule(
-                    accessToken, 
                     semester.semesterCode
                 )
 
@@ -253,13 +210,6 @@ class CalendarSyncViewModel @Inject constructor(
     /**
      * Lấy access token từ LoginPrefs
      */
-    private suspend fun getAccessToken(): String? {
-        return try {
-            loginPrefs.accessToken.first()
-        } catch (e: Exception) {
-            null
-        }
-    }
 }
 
 data class CalendarSyncUiState(

@@ -34,7 +34,6 @@ fun DetailedInfoScreen(
 ) {
     // Lấy thông tin student từ AppViewModel
     val userState by appViewModel.uiState.collectAsState()
-    val accessToken = userState.accessToken
     val maSV = userState.maSV
     val profile = userState.profile
     var isLoading by remember { mutableStateOf(false) }
@@ -42,12 +41,12 @@ fun DetailedInfoScreen(
     val coroutineScope = rememberCoroutineScope()
 
     // Load profile info if not loaded
-    LaunchedEffect(maSV, accessToken) {
-        if (profile == null && !isLoading && !maSV.isNullOrEmpty() && !accessToken.isNullOrEmpty()) {
+    LaunchedEffect(maSV) {
+        if (profile == null && !isLoading && !maSV.isNullOrEmpty()) {
             isLoading = true
             errorMessage = null
             try {
-                val result = profileViewModel.loadProfile(accessToken, maSV)
+                val result = profileViewModel.loadProfile(maSV)
                 result?.let { appViewModel.setProfile(it) }
             } catch (e: Exception) {
                 errorMessage = "Không thể tải thông tin: ${e.message}"

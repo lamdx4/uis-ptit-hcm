@@ -11,7 +11,6 @@ import lamdx4.uis.ptithcm.ui.AppViewModel
 fun NavGraphBuilder.scheduleNavGraph(
     navController: NavHostController,
     innerPadding: PaddingValues,
-    appViewModel: AppViewModel
 ) {
     
     composable("schedule") {

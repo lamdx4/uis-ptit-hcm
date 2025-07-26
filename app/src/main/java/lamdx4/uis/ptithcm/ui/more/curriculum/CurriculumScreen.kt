@@ -59,7 +59,6 @@ fun CurriculumScreen(
     modifier: Modifier = Modifier
 ) {
     val userState by appViewModel.uiState.collectAsState()
-    val accessToken = userState.accessToken
 
     val curriculumTypes by curriculumViewModel.curriculumTypeState.collectAsState()
     val curriculumResponse by curriculumViewModel.curriculumState.collectAsState()
@@ -67,11 +66,9 @@ fun CurriculumScreen(
     var selectedTypeIndex by remember { mutableIntStateOf(0) }
     var expanded by remember { mutableStateOf(false) } // Dropdown state
 
-    LaunchedEffect(accessToken) {
-        if (accessToken != null) {
-            curriculumViewModel.loadCurriculumTypes(accessToken)
-            curriculumViewModel.loadCurriculums(accessToken, programType = 1)
-        }
+    LaunchedEffect(Unit) {
+            curriculumViewModel.loadCurriculumTypes()
+            curriculumViewModel.loadCurriculums(programType = 1)
     }
 
     Scaffold(
@@ -86,12 +83,6 @@ fun CurriculumScreen(
             )
         }
     ) { padding ->
-        if (accessToken == null) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Không tìm thấy Access Token.")
-            }
-            return@Scaffold
-        }
 
         val curriculumData = curriculumResponse?.data
         if (curriculumData == null) {
@@ -132,7 +123,6 @@ fun CurriculumScreen(
                                 expanded = false
                                 selectedTypeIndex = index
                                 curriculumViewModel.loadCurriculums(
-                                    accessToken,
                                     programType = type.value
                                 )
                             }

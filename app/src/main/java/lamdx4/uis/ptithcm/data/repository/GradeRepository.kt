@@ -41,7 +41,7 @@ class GradeRepository @Inject constructor(private val client: HttpClient) {
     /**
      * Lấy tất cả điểm của sinh viên qua các học kỳ (với caching)
      */
-    suspend fun getAllGrades(accessToken: String): GradeResponse {
+    suspend fun getAllGrades(): GradeResponse {
         val currentTime = System.currentTimeMillis()
 
         // 🎯 Check cache first
@@ -53,11 +53,9 @@ class GradeRepository @Inject constructor(private val client: HttpClient) {
 
         // 📡 Fetch from API if not cached or expired
         val response = client.post("http://uis.ptithcm.edu.vn/api/srm/w-locdsdiemsinhvien") {
-            header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Text.Plain)
             // Add Cookie if needed based on the curl example
-            header(HttpHeaders.Cookie, "ASP.NET_SessionId=hpygoowhw0jposd3gosqw1xn")
             setBody("")
         }.body<GradeResponse>()
 
@@ -72,10 +70,9 @@ class GradeRepository @Inject constructor(private val client: HttpClient) {
      * Lấy điểm theo học kỳ cụ thể
      */
     suspend fun getGradesBySemester(
-        accessToken: String,
         semesterCode: String
     ): List<SubjectGrade>? {
-        val allGrades = getAllGrades(accessToken)
+        val allGrades = getAllGrades()
         return allGrades.data.semesterGrades
             .find { it.semesterCode == semesterCode }
             ?.subjectGrades
@@ -84,15 +81,15 @@ class GradeRepository @Inject constructor(private val client: HttpClient) {
     /**
      * Lấy danh sách học kỳ có điểm
      */
-    suspend fun getAvailableSemesters(accessToken: String): List<SemesterGrade> {
-        val allGrades = getAllGrades(accessToken)
+    suspend fun getAvailableSemesters(): List<SemesterGrade> {
+        val allGrades = getAllGrades()
         return allGrades.data.semesterGrades
     }
 
     /**
      * Lấy thống kê điểm tổng quát (với caching)
      */
-    suspend fun getGradeStatistics(accessToken: String): GradeStatistics {
+    suspend fun getGradeStatistics(): GradeStatistics {
         val currentTime = System.currentTimeMillis()
 
         // 🎯 Check cache first
@@ -103,7 +100,7 @@ class GradeRepository @Inject constructor(private val client: HttpClient) {
         }
 
         // 📊 Calculate from grades data (uses cached grades if available)
-        val allGrades = getAllGrades(accessToken)
+        val allGrades = getAllGrades()
         val semesters = allGrades.data.semesterGrades
 
         // Tính toán thống kê theo loại điểm A, B, C, D, F

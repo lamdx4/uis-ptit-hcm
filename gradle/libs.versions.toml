@@ -1,34 +1,34 @@
 [versions]
 agp = "8.11.1"
-coil = "2.4.0"
+coil = "2.7.0"
 datastorePreferences = "1.1.7"
-googleApiClientAndroid = "1.35.0"
+googleApiClientAndroid = "2.8.0"
 googleApiServicesCalendar = "v3-rev318-1.18.0-rc"
-hiltAndroid = "2.56.2"
-hiltAndroidCompiler = "2.56.2"
-kotlin = "2.0.0"
+hiltAndroid = "2.57"
+hiltAndroidCompiler = "2.57"
+kotlin = "2.2.0"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-kotlinxCoroutinesAndroid = "1.8.1"
-kotlinxSerializationJson = "1.7.3"
-ktorClientAndroid = "2.3.2"
-ktorClientCio = "2.3.4"
-ktorClientContentNegotiation = "2.3.2"
-ktorClientCore = "2.3.4"
-ktorClientLogging = "2.3.4"
-ktorSerializationKotlinxJson = "2.3.2"
+kotlinxCoroutinesAndroid = "1.10.2"
+kotlinxSerializationJson = "1.9.0"
+ktorClientAndroid = "3.2.2"
+ktorClientCio = "3.2.2"
+ktorClientContentNegotiation = "3.2.2"
+ktorClientCore = "3.2.2"
+ktorClientLogging = "3.2.2"
+ktorSerializationKotlinxJson = "3.2.2"
 lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
 composeBom = "2025.07.00"
 navigationRuntimeAndroid = "2.9.2"
 navigationComposeAndroid = "2.9.2"
-playServicesAuth = "21.3.0"
-uiautomator = "2.2.0"
-benchmarkMacroJunit4 = "1.2.4"
-baselineprofile = "1.2.4"
-profileinstaller = "1.3.1"
+playServicesAuth = "21.4.0"
+uiautomator = "2.3.0"
+benchmarkMacroJunit4 = "1.3.4"
+baselineprofile = "1.3.4"
+profileinstaller = "1.4.1"
 googleid = "1.1.1"
 
 [libraries]
@@ -71,7 +71,6 @@ androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profi
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
 
 [plugins]
-ksp = { id = "com.google.devtools.ksp", version = "2.0.0-1.0.21" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

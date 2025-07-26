@@ -12,7 +12,7 @@ class ProfileViewModel @Inject constructor(
 ) : ViewModel() {
 
     // Thêm hàm này để dùng cho flow mới: trả về profile, không update uiState
-    suspend fun loadProfile(accessToken: String, maSV: String): CompleteStudentInfo? {
-        return studentInfoRepository.getCompleteStudentInfo(accessToken, maSV)
+    suspend fun loadProfile(maSV: String): CompleteStudentInfo? {
+        return studentInfoRepository.getCompleteStudentInfo( maSV)
     }
 }

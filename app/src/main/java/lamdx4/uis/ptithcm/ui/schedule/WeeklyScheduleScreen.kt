@@ -30,10 +30,8 @@ fun WeeklyScheduleScreen(
     val scheduleState by weeklyScheduleViewModel.uiState.collectAsState()
 
     // Load semesters when screen is first shown
-    LaunchedEffect(appState.accessToken) {
-        appState.accessToken?.let { token ->
-            weeklyScheduleViewModel.loadSemesters(token)
-        }
+    LaunchedEffect(Unit) {
+            weeklyScheduleViewModel.loadSemesters()
     }
 
     Scaffold(
@@ -139,9 +137,7 @@ fun WeeklyScheduleScreen(
                         semesters = scheduleState.semesters,
                         selectedSemester = scheduleState.selectedSemester,
                         onSemesterSelected = { semester ->
-                            appState.accessToken?.let { token ->
-                                weeklyScheduleViewModel.selectSemester(semester, token)
-                            }
+                                weeklyScheduleViewModel.selectSemester(semester )
                         }
                     )
                     

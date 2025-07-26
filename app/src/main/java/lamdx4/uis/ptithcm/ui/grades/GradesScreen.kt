@@ -29,10 +29,8 @@ fun GradesScreen(
     var selectedSubject by remember { mutableStateOf<SubjectGrade?>(null) }
 
     // Load grades when screen is first shown
-    LaunchedEffect(appState.accessToken) {
-        appState.accessToken?.let { token ->
-            gradesViewModel.loadGrades(token)
-        }
+    LaunchedEffect(Unit) {
+            gradesViewModel.loadGrades()
     }
 
     Scaffold(

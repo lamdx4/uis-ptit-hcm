@@ -33,7 +33,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.data.repository.AuthRepository
-import lamdx4.uis.ptithcm.ui.theme.PTITColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -108,11 +107,11 @@ fun LoginScreen(
                 rememberMe = rememberMe,
                 loading = loading,
                 error = error,
-                onUsernameChange = { 
+                onUsernameChange = {
                     username = it
                     error = null // Clear error when user types
                 },
-                onPasswordChange = { 
+                onPasswordChange = {
                     password = it
                     error = null // Clear error when user types
                 },
@@ -121,28 +120,30 @@ fun LoginScreen(
                 onLoginClick = {
                     // Clear error and validate inputs
                     error = null
-                    
+
                     if (username.trim().isEmpty()) {
                         error = "Vui lòng nhập tên đăng nhập"
                         return@LoginFormCard
                     }
-                    
+
                     if (password.trim().isEmpty()) {
                         error = "Vui lòng nhập mật khẩu"
                         return@LoginFormCard
                     }
-                    
+
                     loading = true
                     coroutineScope.launch {
                         // Use the current input values, not cached ones
                         val currentUsername = username.trim()
                         val currentPassword = password.trim()
-                        
+
                         val result = authRepository.login(currentUsername, currentPassword)
                         if (result.isSuccess) {
-                            val accessToken = result.getOrNull() ?: ""
+                            val accessToken = result.getOrNull()?.accessToken ?: ""
+                            val refreshToken = result.getOrNull()?.refreshToken ?: ""
                             appViewModel.saveLoginInfo(
                                 accessToken = accessToken,
+                                refreshToken = refreshToken,
                                 maSV = currentUsername,
                                 username = currentUsername,
                                 password = currentPassword,
@@ -151,7 +152,8 @@ fun LoginScreen(
                             loading = false
                             onLoginSuccess()
                         } else {
-                            error = result.exceptionOrNull()?.message ?: "Sai tài khoản hoặc mật khẩu"
+                            error =
+                                result.exceptionOrNull()?.message ?: "Sai tài khoản hoặc mật khẩu"
                             loading = false
                         }
                     }
