@@ -21,20 +21,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class CurriculumRepository @Inject constructor() {
-    private val client = HttpClient(CIO) {
-        install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-            })
-        }
-        install(Logging) {
-            logger = Logger.SIMPLE
-            level = LogLevel.INFO // Giảm từ BODY để không spam quá nhiều log
-        }
-    }
-
+class CurriculumRepository @Inject constructor(
+    private val client : HttpClient
+){
     suspend fun getCurriculum(accessToken: String, programType: Int): CurriculumResponse {
         return this.client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdsctdtsinhvien") {
             header(HttpHeaders.Authorization, "Bearer $accessToken")

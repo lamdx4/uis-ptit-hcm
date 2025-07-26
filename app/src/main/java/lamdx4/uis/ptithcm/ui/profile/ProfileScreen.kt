@@ -63,7 +63,7 @@ fun decodeBase64ToBitmap(base64String: String): android.graphics.Bitmap? {
 fun ProfileScreen(
     appViewModel: AppViewModel = hiltViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel(),
-    statisticsViewModel: StatisticsViewModel = viewModel(),
+    statisticsViewModel: StatisticsViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
     val userState by appViewModel.uiState.collectAsState()
@@ -840,7 +840,7 @@ private fun CompactInfoCard(
 @Composable
 private fun ImprovedStatisticsSection(
     statisticsState: StatisticsUiState,
-    statisticsViewModel: StatisticsViewModel,
+    statisticsViewModel: StatisticsViewModel ,
     accessToken: String?
 ) {
     var expanded by remember { mutableStateOf(false) }

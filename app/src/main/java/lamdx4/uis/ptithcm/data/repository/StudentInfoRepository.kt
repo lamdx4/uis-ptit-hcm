@@ -29,18 +29,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class StudentInfoRepository @Inject constructor() {
-    private val client = HttpClient(CIO) {
-        install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true // <-- dòng này rất quan trọng!
-            })
-        }
-        install(Logging) {
-            logger = Logger.SIMPLE // hoặc Logger.DEFAULT
-            level = LogLevel.INFO // Giảm từ BODY để tránh spam log
-        }
-    }
+class StudentInfoRepository @Inject constructor(private val client: HttpClient) {
+
 
     private suspend fun getStudentInfo(accessToken: String, maSV: String): StudentInfoResponse {
         return client.post("http://uis.ptithcm.edu.vn/api/sms/w-locthongtinimagesinhvien?MaSV=$maSV") {
@@ -87,7 +77,7 @@ class StudentInfoRepository @Inject constructor() {
                 ordering = listOf(SemesterOrdering(name = "hoc_ky", order_type = 1))
             )
         )
-        
+
         return client.post("http://uis.ptithcm.edu.vn/api/dkmh/w-locdshockyketquahoctap") {
             header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.Accept, "application/json, text/plain, */*")

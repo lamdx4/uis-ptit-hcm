@@ -17,14 +17,14 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ScheduleRepository @Inject constructor() {
-    
+class ScheduleRepository @Inject constructor(private val client: HttpClient) {
+
     // 🎯 Cache data to avoid reloading
     private var cachedSemesters: SemesterResponse? = null
     private val cachedSchedules = mutableMapOf<String, ScheduleResponse>()
     private var lastSemestersFetch: Long = 0
     private val scheduleLastFetch = mutableMapOf<String, Long>()
-    
+
     // Cache duration: 5 minutes
     private val CACHE_DURATION = 5 * 60 * 1000L
 
@@ -37,19 +37,7 @@ class ScheduleRepository @Inject constructor() {
         lastSemestersFetch = 0L
         scheduleLastFetch.clear()
     }
-    
-    private val client = HttpClient(CIO) {
-        install(ContentNegotiation) {
-            json(Json {
-                ignoreUnknownKeys = true
-                isLenient = true
-            })
-        }
-        install(Logging) {
-            logger = Logger.SIMPLE
-            level = LogLevel.INFO // Giảm từ BODY để không spam quá nhiều log
-        }
-    }
+
 
     /**
      * Lấy danh sách học kỳ có thời khóa biểu (với caching)
@@ -57,22 +45,23 @@ class ScheduleRepository @Inject constructor() {
      */
     suspend fun getSemesters(accessToken: String): SemesterResponse {
         val currentTime = System.currentTimeMillis()
-        
+
         // 🎯 Check cache first
         cachedSemesters?.let { cached ->
             if (currentTime - lastSemestersFetch < CACHE_DURATION) {
                 return cached
             }
         }
-        
+
         // 📡 Fetch from API if not cached or expired
         val response = client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdshockytkbuser") {
             header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
             header(HttpHeaders.Cookie, "ASP.NET_SessionId=hpygoowhw0jposd3gosqw1xn")
-            
-            setBody("""
+
+            setBody(
+                """
                 {
                     "filter": {
                         "is_tieng_anh": null
@@ -90,13 +79,14 @@ class ScheduleRepository @Inject constructor() {
                         ]
                     }
                 }
-            """.trimIndent())
+            """.trimIndent()
+            )
         }.body<SemesterResponse>()
-        
+
         // 💾 Cache the response
         cachedSemesters = response
         lastSemestersFetch = currentTime
-        
+
         return response
     }
 
@@ -107,7 +97,7 @@ class ScheduleRepository @Inject constructor() {
     suspend fun getWeeklySchedule(accessToken: String, semesterCode: Int): ScheduleResponse {
         val cacheKey = semesterCode.toString()
         val currentTime = System.currentTimeMillis()
-        
+
         // 🎯 Check cache first
         cachedSchedules[cacheKey]?.let { cached ->
             val lastFetch = scheduleLastFetch[cacheKey] ?: 0
@@ -115,15 +105,17 @@ class ScheduleRepository @Inject constructor() {
                 return cached
             }
         }
-        
+
         // 📡 Fetch from API if not cached or expired
-        val response = client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdstkbtuanusertheohocky") {
-            header(HttpHeaders.Authorization, "Bearer $accessToken")
-            header(HttpHeaders.Accept, "application/json, text/plain, */*")
-            header(HttpHeaders.ContentType, ContentType.Application.Json)
-            header(HttpHeaders.Cookie, "ASP.NET_SessionId=hpygoowhw0jposd3gosqw1xn")
-            
-            setBody("""
+        val response =
+            client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdstkbtuanusertheohocky") {
+                header(HttpHeaders.Authorization, "Bearer $accessToken")
+                header(HttpHeaders.Accept, "application/json, text/plain, */*")
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                header(HttpHeaders.Cookie, "ASP.NET_SessionId=hpygoowhw0jposd3gosqw1xn")
+
+                setBody(
+                    """
                 {
                     "filter": {
                         "hoc_ky": $semesterCode,
@@ -142,13 +134,14 @@ class ScheduleRepository @Inject constructor() {
                         ]
                     }
                 }
-            """.trimIndent())
-        }.body<ScheduleResponse>()
-        
+            """.trimIndent()
+                )
+            }.body<ScheduleResponse>()
+
         // 💾 Cache the response
         cachedSchedules[cacheKey] = response
         scheduleLastFetch[cacheKey] = currentTime
-        
+
         return response
     }
 
@@ -168,7 +161,7 @@ class ScheduleRepository @Inject constructor() {
     suspend fun getCurrentSemester(accessToken: String): Semester? {
         val semesterResponse = getSemesters(accessToken)
         val currentSemesterCode = semesterResponse.data.currentSemesterByDate
-        
+
         return if (currentSemesterCode > 0) {
             semesterResponse.data.semesters.find { it.semesterCode == currentSemesterCode }
         } else {
@@ -184,14 +177,14 @@ class ScheduleRepository @Inject constructor() {
         val scheduleResponse = getWeeklySchedule(accessToken, semesterCode)
         val currentDate = System.currentTimeMillis()
         val dateFormat = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
-        
+
         // Tìm tuần hiện tại dựa trên ngày (bao gồm cả tuần không có lịch học)
         return scheduleResponse.data.weeklySchedules
             .find { week ->
                 try {
                     val startDate = week.startDate?.let { dateFormat.parse(it) }
                     val endDate = week.endDate?.let { dateFormat.parse(it) }
-                    
+
                     if (startDate != null && endDate != null) {
                         currentDate >= startDate.time && currentDate <= endDate.time
                     } else {
@@ -202,7 +195,7 @@ class ScheduleRepository @Inject constructor() {
                 }
             }
     }
-    
+
     fun clearScheduleCache(semesterCode: Int? = null) {
         if (semesterCode != null) {
             val key = semesterCode.toString()

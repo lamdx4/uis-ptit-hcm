@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.data.repository.AuthRepository
@@ -37,7 +38,7 @@ import lamdx4.uis.ptithcm.ui.theme.PTITColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    appViewModel: AppViewModel,
+    appViewModel: AppViewModel = hiltViewModel(),
     innerPadding: PaddingValues = PaddingValues(),
     onLoginSuccess: () -> Unit
 ) {

@@ -11,7 +11,7 @@ import lamdx4.uis.ptithcm.ui.more.prerequisites.PrerequisitesScreen
 import lamdx4.uis.ptithcm.ui.more.invoices.InvoicesScreen
 import lamdx4.uis.ptithcm.ui.more.updateinfo.UpdateInfoScreen
 import lamdx4.uis.ptithcm.ui.more.feedback.FeedbackScreen
-import lamdx4.uis.ptithcm.ui.sync.CalendarSyncScreen
+import lamdx4.uis.ptithcm.ui.more.sync.CalendarSyncScreen
 
 fun NavGraphBuilder.moreNavGraph(
     navController: NavHostController,

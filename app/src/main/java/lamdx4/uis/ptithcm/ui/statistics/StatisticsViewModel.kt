@@ -2,11 +2,13 @@ package lamdx4.uis.ptithcm.ui.statistics
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.data.repository.StudentInfoRepository
 import lamdx4.uis.ptithcm.data.model.AcademicResultData
 import lamdx4.uis.ptithcm.data.model.SemesterInfo
+import javax.inject.Inject
 
 data class StatisticsUiState(
     val academicResult: AcademicResultData? = null,
@@ -17,8 +19,9 @@ data class StatisticsUiState(
     val selectedSemester: Int = 20242 // Học kỳ hiện tại mặc định
 )
 
-class StatisticsViewModel(
-    private val studentInfoRepository: StudentInfoRepository = StudentInfoRepository()
+@HiltViewModel
+class StatisticsViewModel @Inject constructor(
+    private val studentInfoRepository: StudentInfoRepository
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(StatisticsUiState())

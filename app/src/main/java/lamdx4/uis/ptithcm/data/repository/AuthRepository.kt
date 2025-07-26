@@ -11,7 +11,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import javax.inject.Singleton
 
+@Singleton
 class AuthRepository {
     // Singleton
     private val client = HttpClient(CIO) {

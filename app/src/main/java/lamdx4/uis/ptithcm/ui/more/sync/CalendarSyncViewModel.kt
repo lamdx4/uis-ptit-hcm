@@ -1,4 +1,4 @@
-package lamdx4.uis.ptithcm.ui.sync
+package lamdx4.uis.ptithcm.ui.more.sync
 
 /*
  * KIẾN TRÚC ĐỒNG BỘ GOOGLE CALENDAR - HƯỚNG DẪN TRIỂN KHAI
