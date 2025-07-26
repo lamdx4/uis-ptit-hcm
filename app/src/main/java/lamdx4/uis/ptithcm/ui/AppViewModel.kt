@@ -1,6 +1,7 @@
 package lamdx4.uis.ptithcm.ui
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
@@ -13,7 +14,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 data class AppUserState(
-    val accessToken: String? = null,
     val maSV: String? = null,
     val username: String? = null,
     val password: String? = null,
@@ -25,9 +25,9 @@ data class AppUserState(
 class AppViewModel @Inject constructor(
     app: Application,
     private val gradeRepository: GradeRepository,
-    private val scheduleRepository: ScheduleRepository
+    private val scheduleRepository: ScheduleRepository,
+    private val loginPrefs: LoginPrefs
 ) : AndroidViewModel(app) {
-    private val loginPrefs = LoginPrefs(app)
 
     private val _uiState = MutableStateFlow(AppUserState())
     val uiState: StateFlow<AppUserState> = _uiState
@@ -35,14 +35,12 @@ class AppViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             combine(
-                loginPrefs.accessToken,
                 loginPrefs.maSV,
                 loginPrefs.username,
                 loginPrefs.password,
                 loginPrefs.rememberMe
-            ) { accessToken, maSV, username, password, rememberMe ->
+            ) { maSV, username, password, rememberMe ->
                 AppUserState(
-                    accessToken = accessToken,
                     maSV = maSV,
                     username = username,
                     password = password,
@@ -54,6 +52,7 @@ class AppViewModel @Inject constructor(
 
     fun saveLoginInfo(
         accessToken: String,
+        refreshToken: String,
         maSV: String,
         username: String,
         password: String,
@@ -68,7 +67,16 @@ class AppViewModel @Inject constructor(
                 gradeRepository.clearCache()
                 scheduleRepository.clearCache()
             }
-            loginPrefs.saveLoginInfo(accessToken, maSV, username, password, rememberMe)
+            loginPrefs.saveLoginInfo(
+                accessToken,
+                refreshToken,
+                maSV,
+                username,
+                password,
+                rememberMe
+            )
+            val testUsername = loginPrefs.username.firstOrNull()
+            Log.d("AppViewModel", "Username after save: $testUsername")
         }
     }
 

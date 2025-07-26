@@ -29,17 +29,17 @@ class GradesViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(GradesUiState())
     val uiState: StateFlow<GradesUiState> = _uiState.asStateFlow()
 
-    fun loadGrades(accessToken: String) {
+    fun loadGrades() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             
             try {
                 // Lấy tất cả điểm
-                val response = gradeRepository.getAllGrades(accessToken)
+                val response = gradeRepository.getAllGrades()
                 
                 if (response.result) {
                     val semesters = response.data.semesterGrades
-                    val statistics = gradeRepository.getGradeStatistics(accessToken)
+                    val statistics = gradeRepository.getGradeStatistics()
                     
                     // Chọn học kỳ mới nhất làm mặc định
                     val latestSemester = semesters

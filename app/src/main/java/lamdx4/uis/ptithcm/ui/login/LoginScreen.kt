@@ -18,27 +18,23 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
+import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.data.repository.AuthRepository
-import lamdx4.uis.ptithcm.ui.theme.PTITColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    appViewModel: AppViewModel = hiltViewModel(),
+    appViewModel: AppViewModel = activityViewModel(),
     innerPadding: PaddingValues = PaddingValues(),
     onLoginSuccess: () -> Unit
 ) {
@@ -108,11 +104,11 @@ fun LoginScreen(
                 rememberMe = rememberMe,
                 loading = loading,
                 error = error,
-                onUsernameChange = { 
+                onUsernameChange = {
                     username = it
                     error = null // Clear error when user types
                 },
-                onPasswordChange = { 
+                onPasswordChange = {
                     password = it
                     error = null // Clear error when user types
                 },
@@ -121,28 +117,30 @@ fun LoginScreen(
                 onLoginClick = {
                     // Clear error and validate inputs
                     error = null
-                    
+
                     if (username.trim().isEmpty()) {
                         error = "Vui lòng nhập tên đăng nhập"
                         return@LoginFormCard
                     }
-                    
+
                     if (password.trim().isEmpty()) {
                         error = "Vui lòng nhập mật khẩu"
                         return@LoginFormCard
                     }
-                    
+
                     loading = true
                     coroutineScope.launch {
                         // Use the current input values, not cached ones
                         val currentUsername = username.trim()
                         val currentPassword = password.trim()
-                        
+
                         val result = authRepository.login(currentUsername, currentPassword)
                         if (result.isSuccess) {
-                            val accessToken = result.getOrNull() ?: ""
+                            val accessToken = result.getOrNull()?.accessToken ?: ""
+                            val refreshToken = result.getOrNull()?.refreshToken ?: ""
                             appViewModel.saveLoginInfo(
                                 accessToken = accessToken,
+                                refreshToken = refreshToken,
                                 maSV = currentUsername,
                                 username = currentUsername,
                                 password = currentPassword,
@@ -151,7 +149,8 @@ fun LoginScreen(
                             loading = false
                             onLoginSuccess()
                         } else {
-                            error = result.exceptionOrNull()?.message ?: "Sai tài khoản hoặc mật khẩu"
+                            error =
+                                result.exceptionOrNull()?.message ?: "Sai tài khoản hoặc mật khẩu"
                             loading = false
                         }
                     }

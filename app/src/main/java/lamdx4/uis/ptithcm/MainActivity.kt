@@ -7,9 +7,11 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.hilt.navigation.compose.hiltViewModel
 import lamdx4.uis.ptithcm.ui.AppNavHost
 import lamdx4.uis.ptithcm.ui.theme.PTITTheme
 import dagger.hilt.android.AndroidEntryPoint
+import lamdx4.uis.ptithcm.ui.AppViewModel
 import java.security.MessageDigest
 
 @AndroidEntryPoint
@@ -19,7 +21,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             PTITTheme {
-                AppNavHost()
+                AppNavHost(hiltViewModel<AppViewModel>())
             }
         }
     }

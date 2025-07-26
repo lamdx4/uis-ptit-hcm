@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
+import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.ui.profile.ProfileViewModel
@@ -28,13 +29,12 @@ import lamdx4.uis.ptithcm.ui.profile.ProfileViewModel
 @Composable
 fun DetailedInfoScreen(
     navController: NavController,
-    appViewModel: AppViewModel = hiltViewModel(),
+    appViewModel: AppViewModel = activityViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
     // Lấy thông tin student từ AppViewModel
     val userState by appViewModel.uiState.collectAsState()
-    val accessToken = userState.accessToken
     val maSV = userState.maSV
     val profile = userState.profile
     var isLoading by remember { mutableStateOf(false) }
@@ -42,12 +42,12 @@ fun DetailedInfoScreen(
     val coroutineScope = rememberCoroutineScope()
 
     // Load profile info if not loaded
-    LaunchedEffect(maSV, accessToken) {
-        if (profile == null && !isLoading && !maSV.isNullOrEmpty() && !accessToken.isNullOrEmpty()) {
+    LaunchedEffect(maSV) {
+        if (profile == null && !isLoading && !maSV.isNullOrEmpty()) {
             isLoading = true
             errorMessage = null
             try {
-                val result = profileViewModel.loadProfile(accessToken, maSV)
+                val result = profileViewModel.loadProfile(maSV)
                 result?.let { appViewModel.setProfile(it) }
             } catch (e: Exception) {
                 errorMessage = "Không thể tải thông tin: ${e.message}"

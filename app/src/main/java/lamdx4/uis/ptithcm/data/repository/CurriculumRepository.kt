@@ -24,9 +24,8 @@ import javax.inject.Singleton
 class CurriculumRepository @Inject constructor(
     private val client : HttpClient
 ){
-    suspend fun getCurriculum(accessToken: String, programType: Int): CurriculumResponse {
+    suspend fun getCurriculum(programType: Int): CurriculumResponse {
         return this.client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdsctdtsinhvien") {
-            header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
 
             setBody("""
@@ -51,9 +50,8 @@ class CurriculumRepository @Inject constructor(
         }.body<CurriculumResponse>()
     }
 
-    suspend fun getCurriculumTypes(accessToken: String): List<CurriculumTypeResponse> {
+    suspend fun getCurriculumTypes(): List<CurriculumTypeResponse> {
         return this.client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdschuongtrinhdaotao") {
-            header(HttpHeaders.Authorization, "Bearer $accessToken")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
         }.body<List<CurriculumTypeResponse>>()
     }

@@ -9,7 +9,6 @@ import lamdx4.uis.ptithcm.ui.AppViewModel
 fun NavGraphBuilder.feeNavGraph(
     navController: NavHostController,
     innerPadding: PaddingValues,
-    appViewModel: AppViewModel
 ) {
     composable("fee") {
         FeeScreen()

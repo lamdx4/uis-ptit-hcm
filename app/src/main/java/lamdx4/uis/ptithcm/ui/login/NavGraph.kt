@@ -9,11 +9,9 @@ import lamdx4.uis.ptithcm.ui.AppViewModel
 fun NavGraphBuilder.loginNavGraph(
     navController: NavHostController,
     innerPadding: PaddingValues = PaddingValues(),
-    appViewModel: AppViewModel
 ) {
     composable("login") {
         LoginScreen(
-            appViewModel = appViewModel,
             innerPadding = innerPadding,
             onLoginSuccess = {
                 navController.navigate("profile") {

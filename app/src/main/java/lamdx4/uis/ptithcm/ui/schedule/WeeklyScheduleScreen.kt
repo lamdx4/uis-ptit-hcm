@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.data.model.Semester
 
@@ -23,17 +24,15 @@ import lamdx4.uis.ptithcm.data.model.Semester
 fun WeeklyScheduleScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController? = null,
-    appViewModel: AppViewModel = hiltViewModel(),
+    appViewModel: AppViewModel = activityViewModel(),
     weeklyScheduleViewModel: WeeklyScheduleViewModel = hiltViewModel()
 ) {
     val appState by appViewModel.uiState.collectAsState()
     val scheduleState by weeklyScheduleViewModel.uiState.collectAsState()
 
     // Load semesters when screen is first shown
-    LaunchedEffect(appState.accessToken) {
-        appState.accessToken?.let { token ->
-            weeklyScheduleViewModel.loadSemesters(token)
-        }
+    LaunchedEffect(Unit) {
+            weeklyScheduleViewModel.loadSemesters()
     }
 
     Scaffold(
@@ -139,9 +138,7 @@ fun WeeklyScheduleScreen(
                         semesters = scheduleState.semesters,
                         selectedSemester = scheduleState.selectedSemester,
                         onSemesterSelected = { semester ->
-                            appState.accessToken?.let { token ->
-                                weeklyScheduleViewModel.selectSemester(semester, token)
-                            }
+                                weeklyScheduleViewModel.selectSemester(semester )
                         }
                     )
                     

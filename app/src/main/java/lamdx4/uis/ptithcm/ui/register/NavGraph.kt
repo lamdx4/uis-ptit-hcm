@@ -9,7 +9,6 @@ import lamdx4.uis.ptithcm.ui.AppViewModel
 fun NavGraphBuilder.registerNavGraph(
     navController: NavHostController,
     innerPadding: PaddingValues,
-    appViewModel: AppViewModel
 ) {
     composable("register") {
         RegisterScreen()

@@ -27,12 +27,12 @@ class StatisticsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(StatisticsUiState())
     val uiState: StateFlow<StatisticsUiState> = _uiState
     
-    fun loadAvailableSemesters(accessToken: String) {
+    fun loadAvailableSemesters() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(loadingSemesters = true)
             
             try {
-                val response = studentInfoRepository.getAvailableSemesters(accessToken)
+                val response = studentInfoRepository.getAvailableSemesters()
                 
                 if (response.result && response.data?.ds_hoc_ky != null) {
                     val semesters = response.data.ds_hoc_ky.sortedByDescending { it.hoc_ky }
@@ -56,12 +56,12 @@ class StatisticsViewModel @Inject constructor(
         }
     }
     
-    fun loadAcademicResult(accessToken: String, hocKy: Int) {
+    fun loadAcademicResult( hocKy: Int) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(loading = true, error = null)
             
             try {
-                val response = studentInfoRepository.getAcademicResult(accessToken, hocKy)
+                val response = studentInfoRepository.getAcademicResult( hocKy)
                 
                 if (response.result) {
                     _uiState.value = _uiState.value.copy(

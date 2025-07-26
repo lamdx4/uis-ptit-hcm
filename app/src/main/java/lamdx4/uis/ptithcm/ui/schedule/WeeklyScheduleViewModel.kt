@@ -39,16 +39,16 @@ class WeeklyScheduleViewModel @Inject constructor(
 
     private val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
-    fun loadSemesters(accessToken: String) {
+    fun loadSemesters() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingSemesters = true, error = null)
             
             try {
-                val semesterResponse = scheduleRepository.getSemesters(accessToken)
+                val semesterResponse = scheduleRepository.getSemesters()
                 val semesters = semesterResponse.data.semesters
                 
                 // Lấy học kỳ hiện tại hoặc mặc định học kỳ đầu tiên
-                val currentSemester = scheduleRepository.getCurrentSemester(accessToken) 
+                val currentSemester = scheduleRepository.getCurrentSemester()
                     ?: semesters.firstOrNull()
                 
                 _uiState.value = _uiState.value.copy(
@@ -58,7 +58,7 @@ class WeeklyScheduleViewModel @Inject constructor(
                 )
                 
                 // Auto-load schedule for default semester
-                currentSemester?.let { loadScheduleForSemester(accessToken, it) }
+                currentSemester?.let { loadScheduleForSemester(it) }
                 
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -69,26 +69,26 @@ class WeeklyScheduleViewModel @Inject constructor(
         }
     }
 
-    fun selectSemester(semester: Semester, accessToken: String) {
+    fun selectSemester(semester: Semester) {
         _uiState.value = _uiState.value.copy(
             selectedSemester = semester,
             isLoadingSchedule = true,
             error = null
         )
-        loadScheduleForSemester(accessToken, semester)
+        loadScheduleForSemester(semester)
     }
 
-    private fun loadScheduleForSemester(accessToken: String, semester: Semester) {
+    private fun loadScheduleForSemester(semester: Semester) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingSchedule = true, error = null)
             
             try {
-                val scheduleResponse = scheduleRepository.getWeeklySchedule(accessToken, semester.semesterCode)
+                val scheduleResponse = scheduleRepository.getWeeklySchedule( semester.semesterCode)
                 // Hiển thị tất cả tuần, kể cả tuần không có lịch học
                 val availableWeeks = scheduleResponse.data.weeklySchedules
                 
                 // Tìm tuần hiện tại hoặc tuần đầu tiên nếu không có tuần hiện tại
-                val currentWeek = scheduleRepository.getCurrentWeek(accessToken, semester.semesterCode)
+                val currentWeek = scheduleRepository.getCurrentWeek( semester.semesterCode)
                 val selectedWeek = currentWeek ?: availableWeeks.firstOrNull()
                 
                 _uiState.value = _uiState.value.copy(

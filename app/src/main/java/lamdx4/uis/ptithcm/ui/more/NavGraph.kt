@@ -16,7 +16,6 @@ import lamdx4.uis.ptithcm.ui.more.sync.CalendarSyncScreen
 fun NavGraphBuilder.moreNavGraph(
     navController: NavHostController,
     innerPadding: PaddingValues,
-    appViewModel: AppViewModel
 ) {
     composable("more") {
         MoreScreen(navController = navController)
