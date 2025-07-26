@@ -15,7 +15,6 @@ fun NavGraphBuilder.profileNavGraph(
 ) {
     composable("profile") {
         ProfileScreen(
-            appViewModel = hiltViewModel(),
             modifier = Modifier.padding(innerPadding)
         )
     }

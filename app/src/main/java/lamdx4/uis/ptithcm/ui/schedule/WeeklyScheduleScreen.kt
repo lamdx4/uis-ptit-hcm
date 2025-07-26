@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.data.model.Semester
 
@@ -23,7 +24,7 @@ import lamdx4.uis.ptithcm.data.model.Semester
 fun WeeklyScheduleScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController? = null,
-    appViewModel: AppViewModel = hiltViewModel(),
+    appViewModel: AppViewModel = activityViewModel(),
     weeklyScheduleViewModel: WeeklyScheduleViewModel = hiltViewModel()
 ) {
     val appState by appViewModel.uiState.collectAsState()

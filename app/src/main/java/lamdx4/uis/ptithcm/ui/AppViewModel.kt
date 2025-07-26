@@ -1,6 +1,7 @@
 package lamdx4.uis.ptithcm.ui
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
@@ -74,6 +75,8 @@ class AppViewModel @Inject constructor(
                 password,
                 rememberMe
             )
+            val testUsername = loginPrefs.username.firstOrNull()
+            Log.d("AppViewModel", "Username after save: $testUsername")
         }
     }
 

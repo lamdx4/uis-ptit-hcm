@@ -35,6 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.R
+import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.ui.statistics.StatisticsViewModel
 import lamdx4.uis.ptithcm.ui.statistics.StatisticsUiState
@@ -61,7 +62,7 @@ fun decodeBase64ToBitmap(base64String: String): android.graphics.Bitmap? {
 
 @Composable
 fun ProfileScreen(
-    appViewModel: AppViewModel,
+    appViewModel: AppViewModel = activityViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel(),
     statisticsViewModel: StatisticsViewModel = hiltViewModel(),
     modifier: Modifier = Modifier

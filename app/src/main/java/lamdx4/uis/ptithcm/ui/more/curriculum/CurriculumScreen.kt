@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.data.model.Course
 import lamdx4.uis.ptithcm.data.model.SemesterProgram
 import lamdx4.uis.ptithcm.ui.AppViewModel
@@ -53,7 +54,7 @@ import lamdx4.uis.ptithcm.ui.theme.PTITColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CurriculumScreen(
-    appViewModel: AppViewModel = hiltViewModel(),
+    appViewModel: AppViewModel = activityViewModel(),
     curriculumViewModel: CurriculumViewModel = hiltViewModel(),
     navController: NavController? = null,
     modifier: Modifier = Modifier

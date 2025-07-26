@@ -65,11 +65,11 @@ object NetworkModule {
                     // Load token before request (must be suspend)
                     loadTokens {
                         val token = loginPrefs.getAccessToken()
-                        val refreshToken = loginPrefs.getAccessToken()
+                        val refreshToken = loginPrefs.getRefreshToken()
                         BearerTokens(token ?: "", refreshToken ?: "")
                     }
                     refreshTokens {
-                        val currentRefreshToken = loginPrefs.getAccessToken()
+                        val currentRefreshToken = loginPrefs.getRefreshToken()
                         if (currentRefreshToken.isNullOrBlank()) return@refreshTokens null
 
                         val response = client.post("http://uis.ptithcm.edu.vn/api/auth/login") {

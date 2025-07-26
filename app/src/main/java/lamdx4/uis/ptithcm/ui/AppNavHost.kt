@@ -3,6 +3,7 @@ package lamdx4.uis.ptithcm.ui
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
 import lamdx4.uis.ptithcm.ui.login.loginNavGraph
@@ -17,7 +18,7 @@ import lamdx4.uis.ptithcm.ui.more.moreNavGraph
 
 @Composable
 fun AppNavHost(
-    appViewModel: AppViewModel = viewModel()
+    appViewModel: AppViewModel
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()

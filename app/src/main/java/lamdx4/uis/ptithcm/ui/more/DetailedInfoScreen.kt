@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
+import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.ui.profile.ProfileViewModel
@@ -28,7 +29,7 @@ import lamdx4.uis.ptithcm.ui.profile.ProfileViewModel
 @Composable
 fun DetailedInfoScreen(
     navController: NavController,
-    appViewModel: AppViewModel = hiltViewModel(),
+    appViewModel: AppViewModel = activityViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
