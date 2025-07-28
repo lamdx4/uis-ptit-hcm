@@ -3,8 +3,6 @@ package lamdx4.uis.ptithcm.ui
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
 import lamdx4.uis.ptithcm.ui.login.loginNavGraph
 import lamdx4.uis.ptithcm.ui.nav.MainNavBarScaffold
@@ -12,7 +10,7 @@ import lamdx4.uis.ptithcm.ui.profile.profileNavGraph
 import lamdx4.uis.ptithcm.ui.schedule.scheduleNavGraph
 import lamdx4.uis.ptithcm.ui.grades.gradesNavGraph
 import lamdx4.uis.ptithcm.ui.exam.examNavGraph
-import lamdx4.uis.ptithcm.ui.register.registerNavGraph
+import lamdx4.uis.ptithcm.ui.more.register.registerNavGraph
 import lamdx4.uis.ptithcm.ui.fee.feeNavGraph
 import lamdx4.uis.ptithcm.ui.more.moreNavGraph
 
