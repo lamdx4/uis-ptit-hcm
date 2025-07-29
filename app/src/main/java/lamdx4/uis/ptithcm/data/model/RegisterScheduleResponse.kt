@@ -129,6 +129,8 @@ data class RegisterGroup(
     val schedule: String,
     @SerialName("is_hl")
     val isHighlight: Boolean,
+    @SerialName("ten_giang_vien")
+    val teacherName: String? = "",
     @SerialName("enable")
     val isEnabled: Boolean,
     @SerialName("hauk")

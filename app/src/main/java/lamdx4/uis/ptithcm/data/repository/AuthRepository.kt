@@ -16,7 +16,7 @@ import lamdx4.uis.ptithcm.data.model.LoginResponse
 import javax.inject.Singleton
 
 @Singleton
-class AuthRep   ository {
+class AuthRepository {
     // Singleton
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
