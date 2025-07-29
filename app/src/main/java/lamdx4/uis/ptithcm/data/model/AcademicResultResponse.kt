@@ -92,14 +92,21 @@ data class SubjectResult(
     val ten_mon: String get() = ten_doi_tuong
     val so_tin_chi: Int? get() = diem_trung_binh1?.toInt()
     val diem_so: Double? get() = diem_trung_binh2
-    val diem_chu: String? get() = when {
-        diem_trung_binh2 == null || diem_trung_binh2 == 0.0 -> null
-        diem_trung_binh2!! >= 8.5 -> "A"
-        diem_trung_binh2!! >= 7.0 -> "B"
-        diem_trung_binh2!! >= 5.5 -> "C"
-        diem_trung_binh2!! >= 4.0 -> "D"
-        else -> "F"
-    }
+    val diem_chu: String?
+        get() = diem_trung_binh2?.takeIf { it != 0.0 }?.let { diem ->
+            when {
+                diem >= 9.0 -> "A+"
+                diem >= 8.5 -> "A"
+                diem >= 8.0 -> "B+"
+                diem >= 7.0 -> "B"
+                diem >= 6.5 -> "C+"
+                diem >= 5.5 -> "C"
+                diem >= 5.0 -> "D+"
+                diem >= 4.0 -> "D"
+                else -> "F"
+            }
+        }
+
     val ket_qua: String? get() = if (diem_trung_binh2 != null && diem_trung_binh2 >= 4.0) "Đạt" else "Không đạt"
 }
 
