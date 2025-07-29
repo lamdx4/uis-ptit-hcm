@@ -10,13 +10,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -47,6 +51,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.data.model.Course
+import lamdx4.uis.ptithcm.data.model.CurriculumTypeResponse
 import lamdx4.uis.ptithcm.data.model.SemesterProgram
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.ui.theme.PTITColors
@@ -54,22 +59,19 @@ import lamdx4.uis.ptithcm.ui.theme.PTITColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CurriculumScreen(
+    modifier: Modifier = Modifier,
     appViewModel: AppViewModel = activityViewModel(),
     curriculumViewModel: CurriculumViewModel = hiltViewModel(),
-    navController: NavController? = null,
-    modifier: Modifier = Modifier
+    navController: NavController? = null
 ) {
-    val userState by appViewModel.uiState.collectAsState()
-
     val curriculumTypes by curriculumViewModel.curriculumTypeState.collectAsState()
     val curriculumResponse by curriculumViewModel.curriculumState.collectAsState()
 
     var selectedTypeIndex by remember { mutableIntStateOf(0) }
-    var expanded by remember { mutableStateOf(false) } // Dropdown state
 
     LaunchedEffect(Unit) {
-            curriculumViewModel.loadCurriculumTypes()
-            curriculumViewModel.loadCurriculums(programType = 1)
+        curriculumViewModel.loadCurriculumTypes()
+        curriculumViewModel.loadCurriculums(programType = 1)
     }
 
     Scaffold(
@@ -94,47 +96,24 @@ fun CurriculumScreen(
         }
 
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // --- Dropdown chọn loại curriculum ---
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                OutlinedButton(
-                    onClick = { expanded = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        curriculumTypes.getOrNull(selectedTypeIndex)?.description
-                            ?: "Chọn loại CTĐT"
+            // Dropdown chọn loại CTĐT
+            CurriculumTypeDropdown(
+                curriculumTypes = curriculumTypes,
+                selectedTypeIndex = selectedTypeIndex,
+                onTypeSelected = { index ->
+                    selectedTypeIndex = index
+                    curriculumViewModel.loadCurriculums(
+                        programType = curriculumTypes[index].value
                     )
                 }
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
-                    curriculumTypes.forEachIndexed { index, type ->
-                        DropdownMenuItem(
-                            text = { Text(type.description) },
-                            onClick = {
-                                expanded = false
-                                selectedTypeIndex = index
-                                curriculumViewModel.loadCurriculums(
-                                    programType = type.value
-                                )
-                            }
-                        )
-                    }
-                }
-            }
+            )
 
-            // --- Nội dung curriculum ---
+            // Danh sách semester
             val semesterPrograms: List<SemesterProgram> = curriculumData.semesterPrograms
-
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -147,9 +126,6 @@ fun CurriculumScreen(
             ) {
                 items(semesterPrograms) { semester ->
                     SemesterCard(semester = semester)
-                }
-                item {
-                    Spacer(modifier = Modifier.height(30.dp))
                 }
             }
         }
@@ -284,6 +260,74 @@ private fun SubjectRow(course: Course) {
                 }
             }
 
+        }
+    }
+}
+
+@Composable
+private fun CurriculumTypeDropdown(
+    curriculumTypes: List<CurriculumTypeResponse>, // Model từ ViewModel
+    selectedTypeIndex: Int,
+    onTypeSelected: (Int) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = Modifier
+            .wrapContentSize()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        OutlinedButton(
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    curriculumTypes.getOrNull(selectedTypeIndex)?.description
+                        ?: "Chọn loại CTĐT",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                    contentDescription = null
+                )
+            }
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 300.dp) // Giới hạn chiều cao nếu quá dài
+        ) {
+            curriculumTypes.forEachIndexed { index, type ->
+                DropdownMenuItem(
+                    text = {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center // Canh giữa
+                        ) {
+                            Text(
+                                type.description,
+                                fontWeight = if (index == selectedTypeIndex) FontWeight.Bold else FontWeight.Normal,
+                                color = if (index == selectedTypeIndex)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    },
+                    onClick = {
+                        expanded = false
+                        onTypeSelected(index)
+                    }
+                )
+            }
         }
     }
 }
