@@ -2,12 +2,14 @@ package lamdx4.uis.ptithcm.ui.more.register
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,25 +18,33 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import lamdx4.uis.ptithcm.data.model.RegisterGroup
+import lamdx4.uis.ptithcm.common.activityViewModel
+import lamdx4.uis.ptithcm.data.model.CourseItem
 import lamdx4.uis.ptithcm.data.model.RegisteredSubject
 import lamdx4.uis.ptithcm.data.model.SubjectFilter
+import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.ui.theme.PTITTypography
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseRegistrationScreen(
     modifier: Modifier = Modifier,
-    registrationViewModel: CourseRegistrationViewModel = hiltViewModel()
+    registrationViewModel: CourseRegistrationViewModel = hiltViewModel(),
+    appViewModel: AppViewModel = activityViewModel<AppViewModel>()
 ) {
+    val userState by appViewModel.uiState.collectAsState()
     val registrationState by registrationViewModel.uiState.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
     val tabs = listOf("Môn mở", "Đã đăng ký")
+    val studentClass = userState.profile?.lop
 
-    // Load data when screen is first shown
-    LaunchedEffect(Unit) {
-        registrationViewModel.loadRegisteredSubjects()
+    // Khởi tạo ViewModel khi studentClass thay đổi
+    LaunchedEffect(studentClass) {
+        registrationViewModel.initRegistration(studentClass)
     }
+
+    val filters = registrationState.subjectFilters
+    val selectedFilter = registrationState.selectedFilter
 
     // Show snackbar for messages
     registrationState.error?.let { error ->
@@ -84,15 +94,7 @@ fun CourseRegistrationScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // Registration Summary Card
-            if (registrationState.registeredSubjects.isNotEmpty()) {
-                RegistrationSummaryCard(
-                    registeredSubjects = registrationState.registeredSubjects,
-                    minimumCredits = registrationState.minimumCredits
-                )
-            }
-
-            // Registration Note
+            // Registration Note (giữ lại cho cả 2 tab)
             if (registrationState.registrationNote.isNotEmpty()) {
                 Card(
                     modifier = Modifier
@@ -139,14 +141,19 @@ fun CourseRegistrationScreen(
                     selectedFilter = registrationState.selectedFilter,
                     isLoading = registrationState.isLoading,
                     isInRegistrationTime = registrationState.isInRegistrationTime,
+                    searchQuery = registrationState.searchQuery,
                     onFilterSelected = { filter ->
                         registrationViewModel.selectFilter(filter)
                     },
-                    onRegisterSubject = { subject ->
-                        registrationViewModel.registerSubject(subject)
+                    onSearchQueryChanged = { query ->
+                        registrationViewModel.updateSearchQuery(query)
+                    },
+                    onRegisterSubject = { item ->
+                        registrationViewModel.registerSubject(item.group)
                     }
                 )
-                1 -> RegisteredSubjectsContent(
+
+                1 -> RegisteredSubjectsTabContent(
                     subjects = registrationState.registeredSubjects,
                     isLoading = registrationState.isLoading,
                     onUnregisterSubject = { subject ->
@@ -161,40 +168,38 @@ fun CourseRegistrationScreen(
 @Composable
 private fun RegistrationSummaryCard(
     registeredSubjects: List<RegisteredSubject>,
-    minimumCredits: Int
 ) {
-    val totalCredits = registeredSubjects.sumOf { it.subjectGroup.creditsNumber }.toInt()
-    val totalFee = registeredSubjects.sumOf { it.estimatedFee }.toInt()
+    // Sử dụng sum creditsText (String) để lấy tổng số tín chỉ
+    val totalCredits = registeredSubjects.sumOf { it.subjectGroup.creditsText.toIntOrNull() ?: 0 }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             SummaryItem(
-                label = "Đã đăng ký",
-                value = "${registeredSubjects.size} môn",
-                color = MaterialTheme.colorScheme.primary
+                label = "Số môn",
+                value = "${registeredSubjects.size}",
+                color = Color(0xFF07100B)
+            )
+            HorizontalDivider(
+                modifier = Modifier
+                    .height(32.dp)
+                    .width(1.dp),
+                thickness = DividerDefaults.Thickness,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
             )
             SummaryItem(
                 label = "Tín chỉ",
-                value = "$totalCredits/$minimumCredits",
-                color = if (totalCredits >= minimumCredits)
-                    Color(0xFF4CAF50) else Color(0xFFFF9800)
-            )
-            SummaryItem(
-                label = "Học phí",
-                value = "${totalFee / 1000}K",
-                color = MaterialTheme.colorScheme.tertiary
+                value = "$totalCredits",
+                color = Color(0xFF07100B)
             )
         }
     }
@@ -208,17 +213,17 @@ private fun SummaryItem(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         Text(
             text = value,
-            style = PTITTypography.numericDisplay,
+            style = PTITTypography.numericDisplay.copy(fontSize = PTITTypography.bodyContent.fontSize),
             color = color
         )
         Text(
             text = label,
-            style = PTITTypography.caption,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
+            style = PTITTypography.caption.copy(fontWeight = FontWeight.Normal),
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
         )
     }
 }
@@ -276,13 +281,15 @@ private fun SubjectFilterDropdown(
 
 @Composable
 private fun AvailableSubjectsContent(
-    subjects: List<RegisterGroup>,
+    subjects: List<CourseItem>,
     filters: List<SubjectFilter>,
     selectedFilter: SubjectFilter?,
     isLoading: Boolean,
     isInRegistrationTime: Boolean,
+    searchQuery: String,
     onFilterSelected: (SubjectFilter) -> Unit,
-    onRegisterSubject: (RegisterGroup) -> Unit
+    onSearchQueryChanged: (String) -> Unit,
+    onRegisterSubject: (CourseItem) -> Unit
 ) {
     Column {
         // Filter dropdown
@@ -292,6 +299,25 @@ private fun AvailableSubjectsContent(
                 selectedFilter = selectedFilter,
                 onFilterSelected = onFilterSelected,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+        // Search input for filter 10, 4, 3
+        if (selectedFilter?.value == 10 || selectedFilter?.value == 4 || selectedFilter?.value == 3) {
+            val label = when (selectedFilter?.value) {
+                10 -> "Tìm kiếm mã hoặc tên môn học"
+                4 -> "Lọc theo lớp (ds_lop)"
+                3 -> "Lọc theo khoa (ds_khoa)"
+                else -> "Tìm kiếm"
+            }
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = onSearchQueryChanged,
+                label = { Text(label, style = PTITTypography.caption) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                singleLine = true,
+                textStyle = PTITTypography.bodyContent
             )
         }
 
@@ -344,6 +370,7 @@ private fun AvailableSubjectsContent(
                     }
                 }
             }
+
             subjects.isEmpty() -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -367,16 +394,17 @@ private fun AvailableSubjectsContent(
                     }
                 }
             }
+
             else -> {
                 LazyColumn(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    items(subjects) { subject ->
+                    items(subjects) { item ->
                         AvailableSubjectCard(
-                            subject = subject,
+                            item = item,
                             canRegister = isInRegistrationTime,
-                            onRegister = { onRegisterSubject(subject) }
+                            onRegister = { onRegisterSubject(item) }
                         )
                     }
                 }
@@ -387,17 +415,19 @@ private fun AvailableSubjectsContent(
 
 @Composable
 private fun AvailableSubjectCard(
-    subject: RegisterGroup,
+    item: CourseItem,
     canRegister: Boolean,
     onRegister: () -> Unit
 ) {
+    val group = item.group
+    val subject = item.subject
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = when {
-                !subject.isEnabled -> MaterialTheme.colorScheme.surfaceVariant
-                subject.remaining <= 0 -> MaterialTheme.colorScheme.errorContainer
-                subject.isRegistered -> MaterialTheme.colorScheme.primaryContainer
+                !group.isEnabled -> MaterialTheme.colorScheme.surfaceVariant
+                group.remaining <= 0 -> MaterialTheme.colorScheme.errorContainer
+                group.isRegistered -> MaterialTheme.colorScheme.primaryContainer
                 else -> MaterialTheme.colorScheme.surface
             }
         )
@@ -414,13 +444,13 @@ private fun AvailableSubjectCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = subject.subjectName,
+                        text = subject?.name ?: group.subjectName,
                         style = PTITTypography.cardTitle,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = "${subject.subjectCode} • Nhóm ${subject.groupName}",
+                        text = "${group.subjectCode} • Nhóm ${group.groupName}",
                         style = PTITTypography.caption,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -428,7 +458,7 @@ private fun AvailableSubjectCard(
 
                 // Register button
                 when {
-                    subject.isRegistered -> {
+                    group.isRegistered -> {
                         Badge(
                             containerColor = Color(0xFF4CAF50).copy(alpha = 0.2f)
                         ) {
@@ -439,7 +469,8 @@ private fun AvailableSubjectCard(
                             )
                         }
                     }
-                    !subject.isEnabled -> {
+
+                    !group.isEnabled -> {
                         Badge(
                             containerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                         ) {
@@ -449,7 +480,8 @@ private fun AvailableSubjectCard(
                             )
                         }
                     }
-                    subject.remaining <= 0 -> {
+
+                    group.remaining <= 0 -> {
                         Badge(
                             containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
                         ) {
@@ -460,6 +492,7 @@ private fun AvailableSubjectCard(
                             )
                         }
                     }
+
                     !canRegister -> {
                         Badge(
                             containerColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
@@ -470,6 +503,7 @@ private fun AvailableSubjectCard(
                             )
                         }
                     }
+
                     else -> {
                         IconButton(
                             onClick = onRegister,
@@ -492,27 +526,38 @@ private fun AvailableSubjectCard(
             ) {
                 SubjectDetailChip(
                     label = "TC",
-                    value = subject.credit
+                    value = group.credit
                 )
-                SubjectDetailChip(
+                    SubjectDetailChip(
                     label = "Lớp",
-                    value = subject.className
+                    value = group.className
                 )
                 SubjectDetailChip(
                     label = "Còn lại",
-                    value = "${subject.remaining}/${subject.capacity}",
+                    value = "${group.remaining}/${group.capacity}",
                     color = when {
-                        subject.remaining <= 0 -> Color(0xFFF44336)
-                        subject.remaining <= 5 -> Color(0xFFFF9800)
+                        group.remaining <= 0 -> Color(0xFFF44336)
+                        group.remaining <= 5 -> Color(0xFFFF9800)
                         else -> MaterialTheme.colorScheme.onSurface
                     }
                 )
             }
-
-            // Schedule info
-            if (subject.schedule.isNotEmpty()) {
+            if (!group.teacherName.isNullOrBlank())
                 Text(
-                    text = "Lịch: ${subject.schedule}",
+                    text = "Tên GV: ${group.teacherName}",
+                    style = PTITTypography.caption,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .background(
+                            MaterialTheme.colorScheme.surfaceVariant,
+                            RoundedCornerShape(4.dp)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            // Schedule info
+            if (group.schedule.isNotEmpty()) {
+                Text(
+                    text = "Lịch: ${group.schedule}",
                     style = PTITTypography.caption,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
@@ -528,7 +573,7 @@ private fun AvailableSubjectCard(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                if (subject.isOverload) {
+                if (group.isOverload) {
                     Badge(
                         containerColor = Color(0xFFFF9800).copy(alpha = 0.2f)
                     ) {
@@ -539,7 +584,7 @@ private fun AvailableSubjectCard(
                         )
                     }
                 }
-                if (subject.isRepeat) {
+                if (group.isRepeat) {
                     Badge(
                         containerColor = Color(0xFF2196F3).copy(alpha = 0.2f)
                     ) {
@@ -550,7 +595,7 @@ private fun AvailableSubjectCard(
                         )
                     }
                 }
-                if (subject.isCurriculumSubject) {
+                if (group.isCurriculumSubject) {
                     Badge(
                         containerColor = Color(0xFF4CAF50).copy(alpha = 0.2f)
                     ) {
@@ -566,64 +611,75 @@ private fun AvailableSubjectCard(
     }
 }
 
+
 @Composable
-private fun RegisteredSubjectsContent(
+private fun RegisteredSubjectsTabContent(
     subjects: List<RegisteredSubject>,
     isLoading: Boolean,
     onUnregisterSubject: (RegisteredSubject) -> Unit
 ) {
-    when {
-        isLoading -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+    Column(modifier = Modifier.fillMaxSize()) {
+        if (subjects.isNotEmpty()) {
+            RegistrationSummaryCard(
+                registeredSubjects = subjects,
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
-                    Text(
-                        "Đang tải môn đã đăng ký...",
-                        style = PTITTypography.bodyContent,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        CircularProgressIndicator()
+                        Text(
+                            "Đang tải môn đã đăng ký...",
+                            style = PTITTypography.bodyContent,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
-        }
-        subjects.isEmpty() -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+
+            subjects.isEmpty() -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        Icons.Default.BookmarkBorder,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        "Chưa đăng ký môn nào",
-                        style = PTITTypography.bodyContent,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.BookmarkBorder,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            "Chưa đăng ký môn nào",
+                            style = PTITTypography.bodyContent,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
-        }
-        else -> {
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(subjects) { subject ->
-                    RegisteredSubjectCard(
-                        subject = subject,
-                        onUnregister = { onUnregisterSubject(subject) }
-                    )
+
+            else -> {
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(subjects) { subject ->
+                        RegisteredSubjectCard(
+                            subject = subject,
+                            onUnregister = { onUnregisterSubject(subject) }
+                        )
+                    }
                 }
             }
         }
@@ -638,15 +694,14 @@ private fun RegisteredSubjectCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = when {
-                subject.isWithdrawn -> MaterialTheme.colorScheme.errorContainer
-                else -> MaterialTheme.colorScheme.primaryContainer
-            }
-        )
-    ) {
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.85f),
+
+            ),
+
+        ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             // Header row
             Row(
@@ -657,14 +712,10 @@ private fun RegisteredSubjectCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = subject.subjectGroup.subjectName,
-                        style = PTITTypography.cardTitle,
+                        style = PTITTypography.cardTitle.copy(fontSize = PTITTypography.bodyContent.fontSize),
                         maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = "${subject.subjectGroup.subjectCode} • Nhóm ${subject.subjectGroup.groupCode}",
-                        style = PTITTypography.caption,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        overflow = TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
 
@@ -672,10 +723,10 @@ private fun RegisteredSubjectCard(
                 if (subject.canDelete && !subject.isWithdrawn) {
                     IconButton(
                         onClick = onUnregister,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(28.dp)
                     ) {
                         Icon(
-                            Icons.Default.Close,
+                            Icons.Default.DeleteOutline,
                             contentDescription = "Hủy đăng ký",
                             tint = MaterialTheme.colorScheme.error
                         )
@@ -684,22 +735,29 @@ private fun RegisteredSubjectCard(
             }
 
             // Subject details
+            // Không hiển thị học phí, chỉ hiển thị số tín chỉ nếu muốn
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                SubjectDetailChip(
-                    label = "TC",
-                    value = subject.subjectGroup.creditsText
+                Text(
+                    text = "Mã môn: ${subject.subjectGroup.subjectCode} • Nhóm ${subject.subjectGroup.groupCode}",
+                    style = PTITTypography.caption,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                SubjectDetailChip(
-                    label = "Lớp",
-                    value = subject.subjectGroup.classCode
-                )
-                SubjectDetailChip(
-                    label = "Học phí",
-                    value = "${(subject.estimatedFee / 1000).toInt()}K"
-                )
+                Row() {
+                    Text(
+                        text = "TC: ",
+                        style = PTITTypography.caption,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = subject.subjectGroup.creditsText.toInt().toString(),
+                        style = PTITTypography.caption.copy(fontWeight = FontWeight.Medium),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                }
             }
 
             // Registration info
@@ -710,22 +768,23 @@ private fun RegisteredSubjectCard(
             ) {
                 Text(
                     text = "Đăng ký: ${subject.registeredAt}",
-                    style = PTITTypography.caption,
+                    style = PTITTypography.caption.copy(fontWeight = FontWeight.Light),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 // Status badge
                 Badge(
                     containerColor = when {
-                        subject.isWithdrawn -> MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
-                        else -> Color(0xFF4CAF50).copy(alpha = 0.2f)
+                        subject.isWithdrawn -> MaterialTheme.colorScheme.error.copy(alpha = 0.18f)
+                        else -> Color(0xFF4CAF50).copy(alpha = 0.18f)
                     }
                 ) {
                     Text(
                         text = if (subject.isWithdrawn) "Đã rút" else "Đã đăng ký",
-                        style = PTITTypography.badgeText,
-                        color = if (subject.isWithdrawn)
-                            MaterialTheme.colorScheme.error else Color(0xFF4CAF50)
+                        style = PTITTypography.badgeText.copy(fontWeight = FontWeight.Medium),
+                        color = if (subject.isWithdrawn) MaterialTheme.colorScheme.error else Color(
+                            0xFF388E3C
+                        )
                     )
                 }
             }

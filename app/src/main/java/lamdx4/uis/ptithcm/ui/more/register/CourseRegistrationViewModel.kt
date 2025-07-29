@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.data.model.RegisterGroup
+import lamdx4.uis.ptithcm.data.model.CourseItem
 import lamdx4.uis.ptithcm.data.model.RegisteredSubject
 import lamdx4.uis.ptithcm.data.model.SubjectFilter
 import lamdx4.uis.ptithcm.data.repository.CourseRegistrationRepository
@@ -15,8 +16,8 @@ import javax.inject.Inject
 
 data class CourseRegistrationUiState(
     val isLoading: Boolean = false,
-    val availableSubjects: List<RegisterGroup> = emptyList(),
-    val filteredSubjects: List<RegisterGroup> = emptyList(),
+    val availableSubjects: List<CourseItem> = emptyList(),
+    val filteredSubjects: List<CourseItem> = emptyList(),
     val registeredSubjects: List<RegisteredSubject> = emptyList(),
     val subjectFilters: List<SubjectFilter> = emptyList(),
     val selectedFilter: SubjectFilter? = null,
@@ -24,7 +25,9 @@ data class CourseRegistrationUiState(
     val error: String? = null,
     val successMessage: String? = null,
     val isInRegistrationTime: Boolean = false,
-    val registrationNote: String = ""
+    val registrationNote: String = "",
+    val searchQuery: String = ""
+    ,val studentClass: String? = null
 )
 
 @HiltViewModel
@@ -35,13 +38,15 @@ class CourseRegistrationViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(CourseRegistrationUiState())
     val uiState: StateFlow<CourseRegistrationUiState> = _uiState.asStateFlow()
 
-    init {
+
+    fun initRegistration(studentClass: String?) {
+        _uiState.value = _uiState.value.copy(studentClass = studentClass)
         loadFilters()
         loadAvailableSubjects()
         loadRegisteredSubjects()
     }
 
-    private fun loadFilters() {
+    fun loadFilters() {
         viewModelScope.launch {
             repository.getAllFilter().fold(
                 onSuccess = { filters ->
@@ -68,8 +73,14 @@ class CourseRegistrationViewModel @Inject constructor(
             repository.getAllSubjects().fold(
                 onSuccess = { response ->
                     if (response.result) {
+                        // Map RegisterGroup to CourseItem by matching subjectId/code
+                        val subjectMap = response.data.subjects.associateBy { it.code }
+                        val courseItems = response.data.groups.map { group ->
+                            val subject = subjectMap[group.subjectCode]
+                            CourseItem(group, subject)
+                        }
                         _uiState.value = _uiState.value.copy(
-                            availableSubjects = response.data.groups,
+                            availableSubjects = courseItems,
                             isInRegistrationTime = response.data.isInRegistrationTime,
                             registrationNote = response.data.registrationNote,
                             isLoading = false
@@ -120,49 +131,62 @@ class CourseRegistrationViewModel @Inject constructor(
     }
 
     fun selectFilter(filter: SubjectFilter) {
-        _uiState.value = _uiState.value.copy(selectedFilter = filter)
+        _uiState.value = _uiState.value.copy(selectedFilter = filter, searchQuery = "")
         applyFilter(filter)
     }
 
-    private fun applyFilter(filter: SubjectFilter) {
-        val allSubjects = _uiState.value.availableSubjects
-        val registeredSubjects = _uiState.value.registeredSubjects
+    fun updateSearchQuery(query: String) {
+        _uiState.value = _uiState.value.copy(searchQuery = query)
+        _uiState.value.selectedFilter?.let { filter ->
+            applyFilter(filter, searchQuery = query)
+        }
+    }
 
+    // searchQuery chỉ dùng cho filter 10 (tìm kiếm theo mã môn học)
+    private fun applyFilter(
+        filter: SubjectFilter,
+        searchQuery: String = _uiState.value.searchQuery
+    ) {
+        val allSubjects = _uiState.value.availableSubjects
+        val studentClass = _uiState.value.studentClass
         val filteredSubjects = when (filter.value) {
-            0 -> {
-                // "Môn học mở theo lớp sinh viên" - Tất cả môn mở
-                allSubjects
-            }
-            1 -> {
-                // "Môn sinh viên cần học lại (đã rớt)" - Môn học lại
-                allSubjects.filter { it.isRepeat }
-            }
-            2 -> {
-                // "Môn trong chương trình đào tạo kế hoạch" - Môn CTĐT
-                allSubjects.filter { it.isCurriculumSubject }
-            }
-            3 -> {
-                // "Lọc theo khoa quản lý môn học" - Theo khoa
-                allSubjects // Cần thêm logic lọc theo khoa nếu có
+            10 -> {
+                if (searchQuery.isNotBlank()) {
+                    allSubjects.filter {
+                        it.group.subjectCode.contains(searchQuery, ignoreCase = true) ||
+                        it.group.subjectName.contains(searchQuery, ignoreCase = true) ||
+                        (it.subject?.name?.contains(searchQuery, ignoreCase = true) ?: false)
+                    }
+                } else allSubjects
             }
             4 -> {
-                // "Lọc theo lớp" - Theo lớp
-                allSubjects // Cần thêm logic lọc theo lớp nếu có
+                if (searchQuery.isNotBlank()) {
+                    allSubjects.filter { item ->
+                        item.group.classList.any { lop ->
+                            lop.contains(searchQuery, ignoreCase = true)
+                        }
+                    }
+                } else allSubjects
             }
-            6 -> {
-                // "Môn chưa học trong CTĐT kế hoạch" - Môn CTĐT chưa đăng ký
-                val registeredSubjectIds = registeredSubjects.map { it.subjectGroup.subjectId }.toSet()
-                allSubjects.filter {
-                    it.isCurriculumSubject && !registeredSubjectIds.contains(it.subjectId)
-                }
+            3 -> {
+                if (searchQuery.isNotBlank()) {
+                    allSubjects.filter {
+                        it.group.facultyList.any { khoa -> khoa.contains(searchQuery, ignoreCase = true) }
+                    }
+                } else allSubjects
             }
-            10 -> {
-                // "Lọc theo môn học" - Tìm kiếm theo môn học
-                allSubjects // Có thể thêm search functionality
+            0 -> {
+                if (!studentClass.isNullOrBlank()) {
+                    allSubjects.filter { item ->
+                        item.group.classList.contains(studentClass)
+                    }
+                } else allSubjects
             }
+            2 -> allSubjects.filter { it.group.isCurriculumSubject }
+            6 -> allSubjects.filter { it.group.isCurriculumSubject && !it.group.isCurriculumRequirement }
+            1 -> allSubjects.filter { it.group.isRepeat }
             else -> allSubjects
         }
-
         _uiState.value = _uiState.value.copy(filteredSubjects = filteredSubjects)
     }
 
