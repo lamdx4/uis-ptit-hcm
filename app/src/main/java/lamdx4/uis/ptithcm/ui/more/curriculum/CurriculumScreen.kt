@@ -66,6 +66,8 @@ fun CurriculumScreen(
 ) {
     val curriculumTypes by curriculumViewModel.curriculumTypeState.collectAsState()
     val curriculumResponse by curriculumViewModel.curriculumState.collectAsState()
+    val isLoading by curriculumViewModel.isLoading.collectAsState()
+    val errorMessage by curriculumViewModel.errorMessage.collectAsState()
 
     var selectedTypeIndex by remember { mutableIntStateOf(0) }
 
@@ -87,14 +89,6 @@ fun CurriculumScreen(
         }
     ) { padding ->
 
-        val curriculumData = curriculumResponse?.data
-        if (curriculumData == null) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
-            return@Scaffold
-        }
-
         Column(
             modifier = modifier
                 .padding(padding)
@@ -113,7 +107,7 @@ fun CurriculumScreen(
             )
 
             // Danh sách semester
-            val semesterPrograms: List<SemesterProgram> = curriculumData.semesterPrograms
+            val semesterPrograms: List<SemesterProgram> = curriculumResponse?.data?.semesterPrograms.orEmpty()
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -126,6 +120,37 @@ fun CurriculumScreen(
             ) {
                 items(semesterPrograms) { semester ->
                     SemesterCard(semester = semester)
+                }
+            }
+
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            errorMessage?.let { error ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(8.dp),
+                        shadowElevation = 4.dp
+                    ) {
+                        Text(
+                            text = error,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(12.dp),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
         }

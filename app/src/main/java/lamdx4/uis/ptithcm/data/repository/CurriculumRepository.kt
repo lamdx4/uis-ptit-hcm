@@ -5,8 +5,14 @@ import io.ktor.client.call.body
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.isSuccess
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import lamdx4.uis.ptithcm.data.model.CurriculumResponse
 import lamdx4.uis.ptithcm.data.model.CurriculumTypeResponse
 import javax.inject.Inject
@@ -16,11 +22,12 @@ import javax.inject.Singleton
 class CurriculumRepository @Inject constructor(
     private val client : HttpClient
 ){
-    suspend fun getCurriculum(programType: Int): CurriculumResponse {
-        return this.client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdsctdtsinhvien") {
-            header(HttpHeaders.ContentType, ContentType.Application.Json)
-
-            setBody("""
+    suspend fun getCurriculum(programType: Int): Result<CurriculumResponse> {
+        return try {
+            val response: HttpResponse = client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdsctdtsinhvien") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+                setBody(
+                    """
                 {
                   "filter": {
                     "loai_chuong_trinh_dao_tao": $programType
@@ -38,13 +45,37 @@ class CurriculumRepository @Inject constructor(
                     ]
                   }
                 }
-            """.trimIndent())
-        }.body<CurriculumResponse>()
+                """.trimIndent()
+                )
+            }
+
+            if (response.status.isSuccess()) {
+                Result.success(response.body())
+            } else {
+                val json = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+                val errorMessage = json["message"]?.jsonPrimitive?.content ?: "Lỗi tải chương trình đào tạo"
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
-    suspend fun getCurriculumTypes(): List<CurriculumTypeResponse> {
-        return this.client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdschuongtrinhdaotao") {
-            header(HttpHeaders.ContentType, ContentType.Application.Json)
-        }.body<List<CurriculumTypeResponse>>()
+    suspend fun getCurriculumTypes(): Result<List<CurriculumTypeResponse>> {
+        return try {
+            val response: HttpResponse = client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdschuongtrinhdaotao") {
+                header(HttpHeaders.ContentType, ContentType.Application.Json)
+            }
+
+            if (response.status.isSuccess()) {
+                Result.success(response.body())
+            } else {
+                val json = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+                val errorMessage = json["message"]?.jsonPrimitive?.content ?: "Lỗi tải loại chương trình đào tạo"
+                Result.failure(Exception(errorMessage))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

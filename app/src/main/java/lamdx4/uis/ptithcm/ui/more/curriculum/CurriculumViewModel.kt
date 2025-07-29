@@ -14,28 +14,47 @@ import javax.inject.Inject
 class CurriculumViewModel @Inject constructor(
     private val curriculumRepository: CurriculumRepository
 ) : ViewModel() {
+
     private val _curriculumTypeState = MutableStateFlow<List<CurriculumTypeResponse>>(emptyList())
-    val curriculumTypeState = _curriculumTypeState // public để UI collect
+    val curriculumTypeState = _curriculumTypeState
 
     private val _curriculumState = MutableStateFlow<CurriculumResponse?>(null)
-    val curriculumState = _curriculumState // public để UI collect
+    val curriculumState = _curriculumState
+
+    private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage = _errorMessage
+
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading
 
     fun loadCurriculumTypes() {
         viewModelScope.launch {
-            try {
-                _curriculumTypeState.value = curriculumRepository.getCurriculumTypes()
-            } catch (e: Exception) {
-                e.printStackTrace()
+            _isLoading.value = true
+            _errorMessage.value = null
+
+            val result = curriculumRepository.getCurriculumTypes()
+            _isLoading.value = false
+
+            result.onSuccess { types ->
+                _curriculumTypeState.value = types
+            }.onFailure { e ->
+                _errorMessage.value = e.message ?: "Không thể tải loại chương trình đào tạo"
             }
         }
     }
 
-    fun  loadCurriculums(programType: Int) {
+    fun loadCurriculums(programType: Int) {
         viewModelScope.launch {
-            try {
-                _curriculumState.value = curriculumRepository.getCurriculum( programType)
-            } catch (e: Exception) {
-                e.printStackTrace()
+            _isLoading.value = true
+            _errorMessage.value = null
+
+            val result = curriculumRepository.getCurriculum(programType)
+            _isLoading.value = false
+
+            result.onSuccess { curriculum ->
+                _curriculumState.value = curriculum
+            }.onFailure { e ->
+                _errorMessage.value = e.message ?: "Không thể tải chương trình đào tạo"
             }
         }
     }
