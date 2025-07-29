@@ -22,7 +22,14 @@ import javax.inject.Singleton
 class CurriculumRepository @Inject constructor(
     private val client : HttpClient
 ){
-    suspend fun getCurriculum(programType: Int): Result<CurriculumResponse> {
+    private var cachedCurriculumTypes: List<CurriculumTypeResponse>? = null
+    private val cachedCurriculums = mutableMapOf<Int, CurriculumResponse>()
+
+    suspend fun getCurriculum(programType: Int, forceRefresh: Boolean = false): Result<CurriculumResponse> {
+        if (!forceRefresh && cachedCurriculums.containsKey(programType)) {
+            return Result.success(cachedCurriculums[programType]!!)
+        }
+
         return try {
             val response: HttpResponse = client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdsctdtsinhvien") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
@@ -50,6 +57,8 @@ class CurriculumRepository @Inject constructor(
             }
 
             if (response.status.isSuccess()) {
+                val curriculum = response.body<CurriculumResponse>()
+                cachedCurriculums[programType] = curriculum // Lưu cache
                 Result.success(response.body())
             } else {
                 val json = Json.parseToJsonElement(response.bodyAsText()).jsonObject
@@ -61,13 +70,19 @@ class CurriculumRepository @Inject constructor(
         }
     }
 
-    suspend fun getCurriculumTypes(): Result<List<CurriculumTypeResponse>> {
+    suspend fun getCurriculumTypes(forceRefresh: Boolean = false): Result<List<CurriculumTypeResponse>> {
+        if (!forceRefresh && !cachedCurriculumTypes.isNullOrEmpty()) {
+            return Result.success(cachedCurriculumTypes!!)
+        }
+
         return try {
             val response: HttpResponse = client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdschuongtrinhdaotao") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
             }
 
             if (response.status.isSuccess()) {
+                val types = response.body<List<CurriculumTypeResponse>>()
+                cachedCurriculumTypes = types
                 Result.success(response.body())
             } else {
                 val json = Json.parseToJsonElement(response.bodyAsText()).jsonObject
@@ -77,5 +92,10 @@ class CurriculumRepository @Inject constructor(
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    fun clearCache() {
+        cachedCurriculumTypes = null
+        cachedCurriculums.clear()
     }
 }

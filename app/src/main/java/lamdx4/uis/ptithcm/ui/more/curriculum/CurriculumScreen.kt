@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -83,6 +84,13 @@ fun CurriculumScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController?.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        curriculumViewModel.refreshCurriculum(curriculumTypes.getOrNull(selectedTypeIndex)?.value ?: 1)
+                    }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Làm mới")
                     }
                 }
             )

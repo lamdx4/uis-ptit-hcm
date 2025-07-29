@@ -27,35 +27,39 @@ class CurriculumViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading
 
-    fun loadCurriculumTypes() {
+    fun loadCurriculumTypes(forceRefresh: Boolean = false) {
         viewModelScope.launch {
             _isLoading.value = true
-            _errorMessage.value = null
-
-            val result = curriculumRepository.getCurriculumTypes()
-            _isLoading.value = false
-
+            val result = curriculumRepository.getCurriculumTypes(forceRefresh)
             result.onSuccess { types ->
                 _curriculumTypeState.value = types
+                _errorMessage.value = null
             }.onFailure { e ->
                 _errorMessage.value = e.message ?: "Không thể tải loại chương trình đào tạo"
             }
+            _isLoading.value = false
         }
     }
 
-    fun loadCurriculums(programType: Int) {
+    fun loadCurriculums(programType: Int, forceRefresh: Boolean = false) {
         viewModelScope.launch {
             _isLoading.value = true
-            _errorMessage.value = null
-
-            val result = curriculumRepository.getCurriculum(programType)
-            _isLoading.value = false
-
+            val result = curriculumRepository.getCurriculum(programType, forceRefresh)
             result.onSuccess { curriculum ->
                 _curriculumState.value = curriculum
+                _errorMessage.value = null
             }.onFailure { e ->
                 _errorMessage.value = e.message ?: "Không thể tải chương trình đào tạo"
             }
+            _isLoading.value = false
         }
+    }
+
+    fun refreshCurriculum(programType: Int) {
+        loadCurriculums(programType, forceRefresh = true)
+    }
+
+    fun refreshTypes() {
+        loadCurriculumTypes(forceRefresh = true)
     }
 }
