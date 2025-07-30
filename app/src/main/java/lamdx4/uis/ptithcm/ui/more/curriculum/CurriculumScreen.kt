@@ -78,6 +78,7 @@ fun CurriculumScreen(
     }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = { Text("Chương trình đào tạo", fontWeight = FontWeight.Bold) },
@@ -98,7 +99,7 @@ fun CurriculumScreen(
     ) { padding ->
 
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
         ) {
