@@ -13,9 +13,8 @@ import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.data.repository.CalendarSyncRepository.CalendarEventCheckResult
 import lamdx4.uis.ptithcm.data.local.LoginPrefs
 import lamdx4.uis.ptithcm.data.model.Semester
-import lamdx4.uis.ptithcm.data.repository.CalendarSyncRepository
 import lamdx4.uis.ptithcm.data.repository.ScheduleRepository
-import lamdx4.uis.ptithcm.data.repository.SyncResult
+import lamdx4.uis.ptithcm.data.repository.CalendarSyncRepository
 import javax.inject.Inject
 
 @HiltViewModel
@@ -129,7 +128,7 @@ class CalendarSyncViewModel @Inject constructor(
         val semester = _selectedSemester.value ?: return
         _duplicateEventsDialogState.value = null
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            startSemesterSync(semester)
+            startSemesterSync(semester, deleteOldEvents = true)
         }
     }
 
@@ -140,7 +139,7 @@ class CalendarSyncViewModel @Inject constructor(
         val semester = _selectedSemester.value ?: return
         _duplicateEventsDialogState.value = null
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
-            startSemesterSync(semester)
+            startSemesterSync(semester, deleteOldEvents = false)
         }
     }
 
@@ -154,7 +153,7 @@ class CalendarSyncViewModel @Inject constructor(
     /**
      * Internal: Actually perform the sync, optionally deleting existing events first
      */
-    private suspend fun startSemesterSync(semester: Semester) {
+    private suspend fun startSemesterSync(semester: Semester, deleteOldEvents: Boolean = false) {
         try {
             _uiState.value = _uiState.value.copy(
                 isSyncing = true,
@@ -179,6 +178,7 @@ class CalendarSyncViewModel @Inject constructor(
             )
 
             // Tìm hoặc tạo calendar
+
             val calendarId = calendarSyncRepository.getOrCreatePtitCalendar()
             if (calendarId == null) {
                 _uiState.value = _uiState.value.copy(
@@ -186,6 +186,12 @@ class CalendarSyncViewModel @Inject constructor(
                     error = "Không thể tạo calendar trên Google"
                 )
                 return
+            }
+
+            // Nếu chọn ghi đè thì xoá hết event cũ trước khi sync
+            if (deleteOldEvents) {
+                _uiState.value = _uiState.value.copy(syncProgress = "Đang xoá toàn bộ sự kiện cũ...")
+                calendarSyncRepository.clearAllEventsInCalendar(calendarId)
             }
 
             _uiState.value = _uiState.value.copy(
@@ -209,7 +215,8 @@ class CalendarSyncViewModel @Inject constructor(
                 semesterCode = semester.semesterCode,
                 semesterName = semester.semesterName,
                 scheduleResponse = scheduleResponse,
-                remindMinutes = _uiState.value.remindMinutes
+                remindMinutes = _uiState.value.remindMinutes,
+                forceDeleteCalendar = deleteOldEvents
             ).collect { progress ->
                 lastSuccess = progress.successCount
                 lastError = progress.errorCount

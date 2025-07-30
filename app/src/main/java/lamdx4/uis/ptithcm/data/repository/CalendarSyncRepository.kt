@@ -97,14 +97,35 @@ class CalendarSyncRepository @Inject constructor() {
             .build()
     }
 
-    suspend fun getOrCreateSemesterCalendar(semesterName: String, semesterCode: Int): String? =
+    suspend fun getOrCreateSemesterCalendar(
+        semesterName: String,
+        semesterCode: Int,
+        forceDeleteIfExists: Boolean = false
+    ): String? =
         withContext(Dispatchers.IO) {
             val calendarService = getCalendarService() ?: return@withContext null
             val calendarTitle = "$semesterName - $semesterCode"
             try {
                 val calendarList = calendarService.calendarList().list().execute().items
                 val found = calendarList.firstOrNull { it.summary == calendarTitle }
-                if (found != null) return@withContext found.id
+                if (found != null) {
+                    if (forceDeleteIfExists) {
+                        try {
+                            calendarService.calendars().delete(found.id).execute()
+                            Log.i(TAG, "Deleted old calendar $calendarTitle with id ${found.id}")
+                        } catch (ex: Exception) {
+                            Log.e(TAG, "Failed to delete old calendar $calendarTitle", ex)
+                            return@withContext null
+                        }
+                        // Sau khi xóa, tạo mới
+                        val newCalendar = GCalendar().apply { summary = calendarTitle }
+                        val created = calendarService.calendars().insert(newCalendar).execute()
+                        return@withContext created.id
+                    } else {
+                        return@withContext found.id
+                    }
+                }
+                // Không tồn tại, tạo mới
                 val newCalendar = GCalendar().apply { summary = calendarTitle }
                 val created = calendarService.calendars().insert(newCalendar).execute()
                 return@withContext created.id
@@ -165,36 +186,22 @@ class CalendarSyncRepository @Inject constructor() {
         }
     }
 
-    /**
-     * Xóa tất cả events trong calendar của một học kỳ cụ thể
-     */
-    private suspend fun clearSemesterEvents(semesterCode: Int): Boolean =
-        withContext(Dispatchers.IO) {
-            try {
-                delay(500)
-                Log.i(TAG, "Cleared events for semester $semesterCode")
-                return@withContext true
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to clear semester events", e)
-                return@withContext false
-            }
-        }
-
-    /**
-     * Đồng bộ thời khóa biểu của một học kỳ lên Google Calendar
-     */
     fun syncSemesterSchedule(
         semesterCode: Int,
         semesterName: String,
         scheduleResponse: ScheduleResponse,
-        remindMinutes: Int
+        remindMinutes: Int,
+        forceDeleteCalendar: Boolean = false
     ): Flow<SyncProgress> = flow {
         var successCount = 0
         var errorCount = 0
         val errors = mutableListOf<String>()
         try {
-            clearSemesterEvents(semesterCode)
-            val calendarId = getOrCreateSemesterCalendar(semesterName, semesterCode)
+            val calendarId = getOrCreateSemesterCalendar(
+                semesterName,
+                semesterCode,
+                forceDeleteIfExists = forceDeleteCalendar
+            )
                 ?: throw Exception("Không thể lấy calendarId")
             val calendarService = getCalendarService() ?: throw Exception("No calendar service")
             val allItems = scheduleResponse.data.weeklySchedules.flatMap { it.scheduleItems }
@@ -305,7 +312,8 @@ class CalendarSyncRepository @Inject constructor() {
 
         val startIdx = startPeriod - 1
         val endIdx = startIdx + numberOfPeriods - 1
-        val startTimeStr = periodStartTimes.getOrNull(startIdx) ?: error("startPeriod $startPeriod không hợp lệ")
+        val startTimeStr =
+            periodStartTimes.getOrNull(startIdx) ?: error("startPeriod $startPeriod không hợp lệ")
         val endTimeStr = periodEndTimes.getOrNull(endIdx) ?: error("endPeriod $endIdx không hợp lệ")
 
         val zone = ZoneId.of("Asia/Ho_Chi_Minh")
@@ -319,10 +327,9 @@ class CalendarSyncRepository @Inject constructor() {
 
         val isoFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
 
+
         return startZdt.format(isoFormatter) to endZdt.format(isoFormatter)
     }
-
-
 
     /**
      * Kiểm tra quyền truy cập Google Calendar
@@ -343,21 +350,22 @@ class CalendarSyncRepository @Inject constructor() {
      * Lấy thông tin người dùng hiện tại
      */
     fun getCurrentUserInfo(): String? {
+
         return if (currentAccessToken != null) {
             "Google User" // TODO: Parse actual user info from access token
         } else {
             null
         }
     }
-}
 
-sealed class SyncResult {
-    data class Success(val eventsCreated: Int) : SyncResult()
-    data class PartialSuccess(
-        val eventsCreated: Int,
-        val errors: Int,
-        val errorMessages: List<String>
-    ) : SyncResult()
+    sealed class SyncResult {
+        data class Success(val eventsCreated: Int) : SyncResult()
+        data class PartialSuccess(
+            val eventsCreated: Int,
+            val errors: Int,
+            val errorMessages: List<String>
+        ) : SyncResult()
 
         data class Error(val message: String) : SyncResult()
+    }
 }

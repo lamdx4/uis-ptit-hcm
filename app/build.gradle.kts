@@ -91,8 +91,8 @@ dependencies {
     implementation(libs.google.api.services.calendar)
     
     // Modern Google authentication
-    implementation("androidx.credentials:credentials:1.3.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("androidx.credentials:credentials:1.5.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
     implementation(libs.googleid)
     
     implementation(libs.androidx.datastore.preferences)

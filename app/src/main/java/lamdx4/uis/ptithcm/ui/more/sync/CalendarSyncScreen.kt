@@ -30,10 +30,14 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.CredentialManager
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.android.gms.auth.api.identity.AuthorizationRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.common.api.Scope
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.data.model.Semester
 import lamdx4.uis.ptithcm.ui.theme.PTITTypography
 
@@ -76,28 +80,11 @@ fun CalendarSyncScreen(
 
     // Dialog xác nhận khi đã tồn tại calendar học kỳ
     if (duplicateDialogState is CalendarSyncRepository.CalendarEventCheckResult.HasEvent) {
-        AlertDialog(
-            onDismissRequest = { viewModel.onUserCancelDuplicateDialog() },
-            title = { Text("Đã tồn tại lịch học kỳ này trên Google Calendar") },
-            text = {
-                Text("Bạn muốn ghi đè toàn bộ lịch học kỳ này trên Google Calendar hay chỉ thêm mới các sự kiện?")
-            },
-            confirmButton = {
-                Button(onClick = { viewModel.onUserConfirmDeleteAndSync() }) {
-                    Text("Ghi đè (xoá cũ, thêm mới)")
-                }
-            },
-            dismissButton = {
-                Row {
-                    Button(onClick = { viewModel.onUserConfirmAppendAndSync() }) {
-                        Text("Chỉ thêm mới")
-                    }
-                    Spacer(Modifier.width(8.dp))
-                    OutlinedButton(onClick = { viewModel.onUserCancelDuplicateDialog() }) {
-                        Text("Huỷ")
-                    }
-                }
-            }
+        DuplicateCalendarBottomSheet(
+            show = true,
+            onDismiss = { viewModel.onUserCancelDuplicateDialog() },
+            onOverwrite = { viewModel.onUserConfirmDeleteAndSync() },
+            onAppend = { viewModel.onUserConfirmAppendAndSync() }
         )
     }
 
@@ -116,9 +103,6 @@ fun CalendarSyncScreen(
                         Icon(Icons.Default.ArrowBack, contentDescription = "Quay lại")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
             )
         }
     ) { innerPadding ->
@@ -226,34 +210,41 @@ fun CalendarSyncScreen(
 
                 !uiState.hasCalendarPermission -> {
                     GoogleSignInSection {
-                        Log.d("CalendarSyncScreen", "Google Sign In button clicked")
-                        val requestedScopes = listOf(
-                            Scope("https://www.googleapis.com/auth/calendar")
-                        )
-                        val request = AuthorizationRequest.Builder()
-                            .setRequestedScopes(requestedScopes)
-                            .requestOfflineAccess("916844478141-ka7o7agkbpdaijeee55g5ebvti3ohlbr.apps.googleusercontent.com") // Thay bằng Web Client ID của bạn
-                            .build()
-                        Identity.getAuthorizationClient(context)
-                            .authorize(request)
-                            .addOnSuccessListener { result ->
-                                if (result.hasResolution()) {
-                                    launcher.launch(
-                                        IntentSenderRequest.Builder(result.pendingIntent!!.intentSender)
-                                            .build()
-                                    )
-                                } else {
-                                    val token = result.accessToken
-                                    if (!token.isNullOrEmpty()) {
-                                        viewModel.onGoogleAuthSuccess(token)
+                        scope.launch {
+                            Log.d("CalendarSyncScreen", "Google Sign In button clicked")
+                            val requestedScopes = listOf(
+                                Scope("https://www.googleapis.com/auth/calendar")
+                            )
+                            val credentialManager = CredentialManager.create(context)
+                            credentialManager.clearCredentialState(ClearCredentialStateRequest())
+
+                            val request = AuthorizationRequest.Builder()
+                                .setRequestedScopes(requestedScopes)
+                                .requestOfflineAccess("916844478141-ka7o7agkbpdaijeee55g5ebvti3ohlbr.apps.googleusercontent.com") // Thay bằng Web Client ID của bạn
+                                .build()
+
+                            Identity.getAuthorizationClient(context)
+                                .authorize(request)
+                                .addOnSuccessListener { result ->
+                                    if (result.hasResolution()) {
+                                        launcher.launch(
+                                            IntentSenderRequest.Builder(result.pendingIntent!!.intentSender)
+                                                .build()
+                                        )
                                     } else {
-                                        viewModel.onGoogleAuthError("Không lấy được access token từ Google")
+                                        val token = result.accessToken
+                                        if (!token.isNullOrEmpty()) {
+                                            viewModel.onGoogleAuthSuccess(token)
+                                        } else {
+                                            viewModel.onGoogleAuthError("Không lấy được access token từ Google")
+                                        }
                                     }
                                 }
-                            }
-                            .addOnFailureListener {
-                                viewModel.onGoogleAuthError(it.message ?: "Lỗi không xác định")
-                            }
+                                .addOnFailureListener {
+                                    viewModel.onGoogleAuthError(it.message ?: "Lỗi không xác định")
+                                }
+                        }
+
                     }
                 }
 
@@ -557,3 +548,71 @@ private fun SemesterCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DuplicateCalendarBottomSheet(
+    show: Boolean,
+    onDismiss: () -> Unit,
+    onOverwrite: () -> Unit,
+    onAppend: () -> Unit
+) {
+    if (!show) return
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+        ) {
+            Text(
+                "Lịch học đã tồn tại",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Text(
+                "Bạn muốn ghi đè (xoá cũ, thêm mới) toàn bộ lịch học kỳ này trên Google Calendar hay chỉ thêm mới các sự kiện?",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = {
+                        onOverwrite()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Ghi đè")
+                }
+
+                Button(
+                    onClick = {
+                        onAppend()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Chỉ thêm mới")
+                }
+
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Huỷ")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
