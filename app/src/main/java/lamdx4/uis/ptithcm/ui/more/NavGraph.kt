@@ -19,11 +19,16 @@ fun NavGraphBuilder.moreNavGraph(
     innerPadding: PaddingValues,
 ) {
     composable("more") {
-        MoreScreen(navController = navController)
+        MoreScreen(navController = navController,
+            modifier = Modifier.padding(innerPadding)
+        )
     }
 
     composable("detailed_info") {
-        DetailedInfoScreen(navController = navController)
+        DetailedInfoScreen(
+            navController = navController,
+            modifier = Modifier.padding(innerPadding)
+        )
     }
 
     // Additional More feature screens
@@ -68,7 +73,8 @@ fun NavGraphBuilder.moreNavGraph(
 
     composable("sync_calendar") {
         CalendarSyncScreen(
-            onNavigateBack = { navController.popBackStack() }
+            onNavigateBack = { navController.popBackStack() },
+            modifier = Modifier.padding(innerPadding)
         )
     }
 }

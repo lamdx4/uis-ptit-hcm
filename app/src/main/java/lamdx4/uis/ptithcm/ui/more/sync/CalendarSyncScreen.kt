@@ -39,7 +39,8 @@ import lamdx4.uis.ptithcm.ui.theme.PTITTypography
 @Composable
 fun CalendarSyncScreen(
     onNavigateBack: () -> Unit,
-    viewModel: CalendarSyncViewModel = hiltViewModel()
+    viewModel: CalendarSyncViewModel = hiltViewModel(),
+    modifier: Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val semesters by viewModel.semesters.collectAsState()
@@ -56,6 +57,7 @@ fun CalendarSyncScreen(
     // Removed problematic LaunchedEffect that may cause navigation issues
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = { 
