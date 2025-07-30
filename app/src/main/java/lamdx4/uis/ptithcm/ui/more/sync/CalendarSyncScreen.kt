@@ -37,6 +37,8 @@ import com.google.android.gms.common.api.Scope
 import lamdx4.uis.ptithcm.data.model.Semester
 import lamdx4.uis.ptithcm.ui.theme.PTITTypography
 
+import lamdx4.uis.ptithcm.data.repository.CalendarSyncRepository
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarSyncScreen(
@@ -49,6 +51,7 @@ fun CalendarSyncScreen(
     val selectedSemester by viewModel.selectedSemester.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val duplicateDialogState by viewModel.duplicateEventsDialogState.collectAsState()
 
     // Khởi tạo Credential Manager
     // Launcher cho Google Identity Services (Play Services Auth)
@@ -70,6 +73,33 @@ fun CalendarSyncScreen(
     }
 
     // Removed problematic LaunchedEffect that may cause navigation issues
+
+    // Dialog xác nhận khi đã tồn tại calendar học kỳ
+    if (duplicateDialogState is CalendarSyncRepository.CalendarEventCheckResult.HasEvent) {
+        AlertDialog(
+            onDismissRequest = { viewModel.onUserCancelDuplicateDialog() },
+            title = { Text("Đã tồn tại lịch học kỳ này trên Google Calendar") },
+            text = {
+                Text("Bạn muốn ghi đè toàn bộ lịch học kỳ này trên Google Calendar hay chỉ thêm mới các sự kiện?")
+            },
+            confirmButton = {
+                Button(onClick = { viewModel.onUserConfirmDeleteAndSync() }) {
+                    Text("Ghi đè (xoá cũ, thêm mới)")
+                }
+            },
+            dismissButton = {
+                Row {
+                    Button(onClick = { viewModel.onUserConfirmAppendAndSync() }) {
+                        Text("Chỉ thêm mới")
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    OutlinedButton(onClick = { viewModel.onUserCancelDuplicateDialog() }) {
+                        Text("Huỷ")
+                    }
+                }
+            }
+        )
+    }
 
     Scaffold(
         modifier = modifier,

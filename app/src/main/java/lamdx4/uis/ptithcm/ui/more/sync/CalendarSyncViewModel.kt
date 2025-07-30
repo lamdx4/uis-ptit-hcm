@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import lamdx4.uis.ptithcm.data.repository.CalendarSyncRepository.CalendarEventCheckResult
 import lamdx4.uis.ptithcm.data.local.LoginPrefs
 import lamdx4.uis.ptithcm.data.model.Semester
 import lamdx4.uis.ptithcm.data.repository.CalendarSyncRepository
@@ -29,6 +30,7 @@ class CalendarSyncViewModel @Inject constructor(
         private const val TAG = "CalendarSyncViewModel"
     }
 
+
     private val _uiState = MutableStateFlow(CalendarSyncUiState())
     val uiState: StateFlow<CalendarSyncUiState> = _uiState.asStateFlow()
 
@@ -37,6 +39,10 @@ class CalendarSyncViewModel @Inject constructor(
 
     private val _selectedSemester = MutableStateFlow<Semester?>(null)
     val selectedSemester: StateFlow<Semester?> = _selectedSemester.asStateFlow()
+
+    // State for duplicate event dialog
+    private val _duplicateEventsDialogState = MutableStateFlow<CalendarEventCheckResult?>(null)
+    val duplicateEventsDialogState: StateFlow<CalendarEventCheckResult?> = _duplicateEventsDialogState.asStateFlow()
 
     /**
      * Đặt số phút nhắc trước khi sự kiện bắt đầu
@@ -93,80 +99,17 @@ class CalendarSyncViewModel @Inject constructor(
 
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             try {
-                _uiState.value = _uiState.value.copy(
-                    isSyncing = true,
-                    syncProgress = "Đang khởi tạo kết nối Google Calendar...",
-                    error = null,
-                    lastSyncResult = "",
-                    syncProgressPercent = 0f
-                )
-
-                // Khởi tạo Calendar service
-                val isInitialized = calendarSyncRepository.initializeCalendarService()
-                if (!isInitialized) {
-                    _uiState.value = _uiState.value.copy(
-                        isSyncing = false,
-                        error = "Không thể kết nối Google Calendar"
-                    )
+                // Step 1: Check for existing calendar
+                _uiState.value = _uiState.value.copy(isSyncing = false, syncProgress = "", syncProgressPercent = 0f, error = null)
+                val checkResult = calendarSyncRepository.hasEventsInSemesterCalendar(semester.semesterName, semester.semesterCode)
+                if (checkResult is CalendarEventCheckResult.HasEvent) {
+                    // Show dialog to user, wait for their action
+                    _duplicateEventsDialogState.value = checkResult
                     return@launch
-                }
-
-                _uiState.value = _uiState.value.copy(
-                    syncProgress = "Đang tạo/tìm calendar UIS PTIT..."
-                )
-
-                // Tìm hoặc tạo calendar
-                val calendarId = calendarSyncRepository.getOrCreatePtitCalendar()
-                if (calendarId == null) {
-                    _uiState.value = _uiState.value.copy(
-                        isSyncing = false,
-                        error = "Không thể tạo calendar trên Google"
-                    )
-                    return@launch
-                }
-
-                _uiState.value = _uiState.value.copy(
-                    syncProgress = "Đang tải thời khóa biểu học kỳ ${semester.semesterName}..."
-                )
-
-                val scheduleResponse = scheduleRepository.getWeeklySchedule(
-                    semester.semesterCode
-                )
-
-                val totalEvents = scheduleResponse.data.weeklySchedules.sumOf { it.scheduleItems.size }
-                _uiState.value = _uiState.value.copy(
-                    syncProgress = "Đang đồng bộ $totalEvents sự kiện...",
-                    syncProgressPercent = 0f
-                )
-
-                // Đồng bộ lên Google Calendar (emit từng event)
-                var lastSuccess = 0
-                var lastError = 0
-                calendarSyncRepository.syncSemesterSchedule(
-                    semesterCode = semester.semesterCode,
-                    semesterName = semester.semesterName,
-                    scheduleResponse = scheduleResponse,
-                    remindMinutes = _uiState.value.remindMinutes
-                ).collect { progress ->
-                    lastSuccess = progress.successCount
-                    lastError = progress.errorCount
-                    val status = if (progress.isSuccess) "✅" else "❌"
-                    val eventName = progress.eventTitle ?: ""
-                    val msg = if (progress.isSuccess) {
-                        "$status Đã đồng bộ: $eventName ($lastSuccess/${progress.total})"
-                    } else {
-                        "$status Lỗi: $eventName (${progress.errorMessage ?: ""}) ($lastSuccess thành công, $lastError lỗi)"
-                    }
-                    val percent = if (progress.total > 0) (progress.index.coerceAtMost(progress.total).toFloat() / progress.total) else 0f
-                    _uiState.value = _uiState.value.copy(
-                        syncProgress = msg,
-                        syncProgressPercent = percent,
-                        lastSyncResult = if (lastSuccess + lastError == progress.total) {
-                            if (lastError == 0) "✅ Đồng bộ thành công $lastSuccess sự kiện" else "⚠️ $lastSuccess thành công, $lastError lỗi"
-                        } else "",
-                        isSyncing = lastSuccess + lastError != progress.total,
-                        error = if (!progress.isSuccess) progress.errorMessage else null
-                    )
+                } else {
+                    // No calendar, proceed to sync
+                    _duplicateEventsDialogState.value = null
+                    startSemesterSync(semester)
                 }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -176,6 +119,125 @@ class CalendarSyncViewModel @Inject constructor(
                     error = "Lỗi không mong muốn: ${e.message}"
                 )
             }
+        }
+    }
+
+    /**
+     * Call this when the user chooses to delete existing events and sync
+     */
+    fun onUserConfirmDeleteAndSync() {
+        val semester = _selectedSemester.value ?: return
+        _duplicateEventsDialogState.value = null
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            startSemesterSync(semester)
+        }
+    }
+
+    /**
+     * Call this when the user chooses to append (not delete) and sync
+     */
+    fun onUserConfirmAppendAndSync() {
+        val semester = _selectedSemester.value ?: return
+        _duplicateEventsDialogState.value = null
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            startSemesterSync(semester)
+        }
+    }
+
+    /**
+     * Call this if the user cancels the dialog
+     */
+    fun onUserCancelDuplicateDialog() {
+        _duplicateEventsDialogState.value = null
+    }
+
+    /**
+     * Internal: Actually perform the sync, optionally deleting existing events first
+     */
+    private suspend fun startSemesterSync(semester: Semester) {
+        try {
+            _uiState.value = _uiState.value.copy(
+                isSyncing = true,
+                syncProgress = "Đang khởi tạo kết nối Google Calendar...",
+                error = null,
+                lastSyncResult = "",
+                syncProgressPercent = 0f
+            )
+
+            // Khởi tạo Calendar service
+            val isInitialized = calendarSyncRepository.initializeCalendarService()
+            if (!isInitialized) {
+                _uiState.value = _uiState.value.copy(
+                    isSyncing = false,
+                    error = "Không thể kết nối Google Calendar"
+                )
+                return
+            }
+
+            _uiState.value = _uiState.value.copy(
+                syncProgress = "Đang tạo/tìm calendar UIS PTIT..."
+            )
+
+            // Tìm hoặc tạo calendar
+            val calendarId = calendarSyncRepository.getOrCreatePtitCalendar()
+            if (calendarId == null) {
+                _uiState.value = _uiState.value.copy(
+                    isSyncing = false,
+                    error = "Không thể tạo calendar trên Google"
+                )
+                return
+            }
+
+            _uiState.value = _uiState.value.copy(
+                syncProgress = "Đang tải thời khóa biểu học kỳ ${semester.semesterName}..."
+            )
+
+            val scheduleResponse = scheduleRepository.getWeeklySchedule(
+                semester.semesterCode
+            )
+
+            val totalEvents = scheduleResponse.data.weeklySchedules.sumOf { it.scheduleItems.size }
+            _uiState.value = _uiState.value.copy(
+                syncProgress = "Đang đồng bộ $totalEvents sự kiện...",
+                syncProgressPercent = 0f
+            )
+
+            // Đồng bộ lên Google Calendar (emit từng event)
+            var lastSuccess = 0
+            var lastError = 0
+            calendarSyncRepository.syncSemesterSchedule(
+                semesterCode = semester.semesterCode,
+                semesterName = semester.semesterName,
+                scheduleResponse = scheduleResponse,
+                remindMinutes = _uiState.value.remindMinutes
+            ).collect { progress ->
+                lastSuccess = progress.successCount
+                lastError = progress.errorCount
+                val status = if (progress.isSuccess) "✅" else "❌"
+                val eventName = progress.eventTitle ?: ""
+                val msg = if (progress.isSuccess) {
+                    "$status Đã đồng bộ: $eventName ($lastSuccess/${progress.total})"
+                } else {
+                    "$status Lỗi: $eventName (${progress.errorMessage ?: ""}) ($lastSuccess thành công, $lastError lỗi)"
+                }
+                val percent = if (progress.total > 0) (progress.index.coerceAtMost(progress.total).toFloat() / progress.total) else 0f
+                _uiState.value = _uiState.value.copy(
+                    syncProgress = msg,
+                    syncProgressPercent = percent,
+                    lastSyncResult = if (lastSuccess + lastError == progress.total) {
+                        if (lastError == 0) "✅ Đồng bộ thành công $lastSuccess sự kiện" else "⚠️ $lastSuccess thành công, $lastError lỗi"
+                    } else "",
+                    isSyncing = lastSuccess + lastError != progress.total,
+                    error = if (!progress.isSuccess) progress.errorMessage else null
+                )
+            }
+        } catch (e: Exception) {
+            _uiState.value = _uiState.value.copy(
+                isSyncing = false,
+                syncProgress = "",
+                syncProgressPercent = 0f,
+                error = "Lỗi không mong muốn: ${e.message}"
+            )
         }
     }
 
@@ -228,4 +290,5 @@ data class CalendarSyncUiState(
     val lastSyncResult: String = "",
     val error: String? = null,
     val remindMinutes: Int = 0 // Số phút nhắc trước khi sự kiện bắt đầu
+    // Dialog state is now in duplicateEventsDialogState
 )
