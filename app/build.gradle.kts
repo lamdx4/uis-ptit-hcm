@@ -105,4 +105,7 @@ dependencies {
     ksp(libs.hilt.android.compiler)
 
     implementation("io.ktor:ktor-client-auth:3.2.2")
+
+    implementation("androidx.core:core-splashscreen:1.0.1")
+
 }
