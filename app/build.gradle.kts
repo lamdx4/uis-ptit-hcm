@@ -107,5 +107,6 @@ dependencies {
     implementation("io.ktor:ktor-client-auth:3.2.2")
 
     implementation("androidx.core:core-splashscreen:1.0.1")
-
+    implementation("com.google.code.gson:gson:2.13.1")
+    implementation("com.google.http-client:google-http-client-gson:1.47.1")
 }
