@@ -1,10 +1,13 @@
 package lamdx4.uis.ptithcm.ui.login
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -20,16 +23,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.data.repository.AuthRepository
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,14 +97,14 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(24.dp),
+                .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             // Logo and Header Section
             LogoSection()
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(21.dp))
 
             // Login Form Card
             LoginFormCard(
@@ -157,7 +167,7 @@ fun LoginScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(21.dp))
 
             // Footer Section
             FooterSection()
@@ -217,7 +227,7 @@ private fun LogoSection() {
         // Logo Container với design mới
         Card(
             modifier = Modifier.size(140.dp),
-            shape = RoundedCornerShape(28.dp),
+            shape = RoundedCornerShape(35.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primary
             ),
@@ -309,9 +319,9 @@ private fun LoginFormCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 16.dp)
     ) {
         Column(
-            modifier = Modifier.padding(32.dp),
+            modifier = Modifier.padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Form Header
             Text(
@@ -535,9 +545,10 @@ private fun LoginFormCard(
 
 @Composable
 private fun FooterSection() {
+    val context = LocalContext.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         // Forgot Password Button
         TextButton(
@@ -553,61 +564,43 @@ private fun FooterSection() {
             )
         }
 
-        // Divider
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            HorizontalDivider(
-                modifier = Modifier.weight(1f),
-                thickness = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant
-            )
-            Text(
-                text = "hoặc",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            HorizontalDivider(
-                modifier = Modifier.weight(1f),
-                thickness = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant
-            )
-        }
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            thickness = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
 
-        // Support Button
-        OutlinedButton(
-            onClick = { /* Handle support */ },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-            ),
-            border = ButtonDefaults.outlinedButtonBorder.copy(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.outline,
-                        MaterialTheme.colorScheme.outlineVariant
-                    )
+        val annotatedText = buildAnnotatedString {
+            append("Bằng việc tiếp tục, bạn đồng ý với ")
+
+            // Gắn tag "TERMS" để xử lý click
+            pushStringAnnotation(tag = "TERMS", annotation = "https://lamdx4.github.io/uis-ptit-hcm/term")
+            withStyle(
+                style = SpanStyle(
+                    color = MaterialTheme.colorScheme.primary,
+                    textDecoration = TextDecoration.Underline
                 )
-            )
-        ) {
-            Text(
-                text = "Cần hỗ trợ?",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
-            )
+            ) {
+                append("Điều khoản sử dụng")
+            }
+            pop()
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Copyright
-        Text(
-            text = "© 2024 PTIT University",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center
+        ClickableText(
+            text = annotatedText,
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center
+            ),
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { offset ->
+                annotatedText.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
+                    .firstOrNull()?.let { annotation ->
+                        val url = annotation.item
+                        val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                        context.startActivity(intent, null)
+                    }
+            }
         )
     }
 }
