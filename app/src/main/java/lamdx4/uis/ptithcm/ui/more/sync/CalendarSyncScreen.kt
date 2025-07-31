@@ -1,6 +1,7 @@
 package lamdx4.uis.ptithcm.ui.more.sync
 
 import android.util.Log
+import androidx.activity.result.IntentSenderRequest
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -25,53 +26,83 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.exceptions.GetCredentialException
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.android.gms.auth.api.identity.AuthorizationRequest
+import com.google.android.gms.auth.api.identity.Identity
+import com.google.android.gms.common.api.Scope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.data.model.Semester
 import lamdx4.uis.ptithcm.ui.theme.PTITTypography
+
+import lamdx4.uis.ptithcm.data.repository.CalendarSyncRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarSyncScreen(
     onNavigateBack: () -> Unit,
-    viewModel: CalendarSyncViewModel = hiltViewModel()
+    viewModel: CalendarSyncViewModel = hiltViewModel(),
+    modifier: Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val semesters by viewModel.semesters.collectAsState()
     val selectedSemester by viewModel.selectedSemester.collectAsState()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val duplicateDialogState by viewModel.duplicateEventsDialogState.collectAsState()
 
     // Khởi tạo Credential Manager
-    val credentialManager = remember { 
-        Log.d("CalendarSyncScreen", "Initializing Credential Manager")
-        CredentialManager.create(context) 
+    // Launcher cho Google Identity Services (Play Services Auth)
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartIntentSenderForResult()
+    ) { result: ActivityResult ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val authorizationResult = Identity.getAuthorizationClient(context)
+                .getAuthorizationResultFromIntent(result.data)
+            val accessToken = authorizationResult.accessToken
+            if (!accessToken.isNullOrEmpty()) {
+                viewModel.onGoogleAuthSuccess(accessToken)
+            } else {
+                viewModel.onGoogleAuthError("Không lấy được access token từ Google")
+            }
+        } else {
+            viewModel.onGoogleAuthError("Đăng nhập Google bị huỷ hoặc lỗi")
+        }
     }
 
     // Removed problematic LaunchedEffect that may cause navigation issues
 
+    // Dialog xác nhận khi đã tồn tại calendar học kỳ
+    if (duplicateDialogState is CalendarSyncRepository.CalendarEventCheckResult.HasEvent) {
+        DuplicateCalendarBottomSheet(
+            show = true,
+            onDismiss = { viewModel.onUserCancelDuplicateDialog() },
+            onOverwrite = { viewModel.onUserConfirmDeleteAndSync() },
+            onAppend = { viewModel.onUserConfirmAppendAndSync() }
+        )
+    }
+
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Text(
                         "Đồng bộ Google Calendar",
                         style = PTITTypography.screenTitle
-                    ) 
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Quay lại")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
             )
         }
     ) { innerPadding ->
@@ -178,37 +209,42 @@ fun CalendarSyncScreen(
                 }
 
                 !uiState.hasCalendarPermission -> {
-                    GoogleSignInSection { 
-                        Log.d("CalendarSyncScreen", "Google Sign In button clicked")
+                    GoogleSignInSection {
                         scope.launch {
-                            try {
+                            Log.d("CalendarSyncScreen", "Google Sign In button clicked")
+                            val requestedScopes = listOf(
+                                Scope("https://www.googleapis.com/auth/calendar")
+                            )
+                            val credentialManager = CredentialManager.create(context)
+                            credentialManager.clearCredentialState(ClearCredentialStateRequest())
 
-                                // Thử trực tiếp với tất cả tài khoản (bỏ qua authorized accounts để tránh lỗi)
-                                val googleIdOption = GetGoogleIdOption.Builder()
-                                    .setFilterByAuthorizedAccounts(false)
-                                    .setServerClientId("916844478141-ka7o7agkbpdaijeee55g5ebvti3ohlbr.apps.googleusercontent.com")
-                                    .setAutoSelectEnabled(false)
-                                    .setNonce(null) // Thêm nonce null để tránh conflict
-                                    .build()
+                            val request = AuthorizationRequest.Builder()
+                                .setRequestedScopes(requestedScopes)
+                                .requestOfflineAccess("916844478141-ka7o7agkbpdaijeee55g5ebvti3ohlbr.apps.googleusercontent.com") // Thay bằng Web Client ID của bạn
+                                .build()
 
-                                val request = GetCredentialRequest.Builder()
-                                    .addCredentialOption(googleIdOption)
-                                    .build()
-                                
-                                val result = credentialManager.getCredential(
-                                    request = request,
-                                    context = context,
-                                )
-                                val credential = GoogleIdTokenCredential.createFrom(result.credential.data)
-                                viewModel.onGoogleAuthSuccess(credential.idToken)
-                                
-                            } catch (e: GetCredentialException) {
-                                viewModel.onGoogleAuthError(e.message ?: "Lỗi không xác định")
-                            } catch (e: Exception) {
-                                Log.e("CalendarSyncScreen", "Google authentication failed with general exception", e)
-                                viewModel.onGoogleAuthError("Lỗi không xác định: ${e.message}")
-                            }
+                            Identity.getAuthorizationClient(context)
+                                .authorize(request)
+                                .addOnSuccessListener { result ->
+                                    if (result.hasResolution()) {
+                                        launcher.launch(
+                                            IntentSenderRequest.Builder(result.pendingIntent!!.intentSender)
+                                                .build()
+                                        )
+                                    } else {
+                                        val token = result.accessToken
+                                        if (!token.isNullOrEmpty()) {
+                                            viewModel.onGoogleAuthSuccess(token)
+                                        } else {
+                                            viewModel.onGoogleAuthError("Không lấy được access token từ Google")
+                                        }
+                                    }
+                                }
+                                .addOnFailureListener {
+                                    viewModel.onGoogleAuthError(it.message ?: "Lỗi không xác định")
+                                }
                         }
+
                     }
                 }
 
@@ -250,6 +286,9 @@ fun CalendarSyncScreen(
                         onSemesterSelected = { viewModel.selectSemester(it) },
                         isSyncing = uiState.isSyncing,
                         syncProgress = uiState.syncProgress,
+                        syncProgressPercent = uiState.syncProgressPercent,
+                        remindMinutes = uiState.remindMinutes,
+                        onRemindMinutesChanged = { viewModel.setRemindMinutes(it) },
                         onSyncClicked = { viewModel.syncSelectedSemester() }
                     )
                 }
@@ -279,20 +318,20 @@ private fun GoogleSignInSection(
                 modifier = Modifier.size(48.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
-            
+
             Text(
                 "Cần quyền truy cập Google Calendar",
                 style = PTITTypography.sectionTitle,
                 textAlign = TextAlign.Center
             )
-            
+
             Text(
                 "Để đồng bộ thời khóa biểu, ứng dụng cần quyền truy cập vào Google Calendar của bạn",
                 style = PTITTypography.bodyContent,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            
+
             Button(
                 onClick = onSignInClick,
                 modifier = Modifier.fillMaxWidth()
@@ -312,8 +351,12 @@ private fun SemesterSelectionSection(
     onSemesterSelected: (Semester) -> Unit,
     isSyncing: Boolean,
     syncProgress: String,
+    syncProgressPercent: Float,
+    remindMinutes: Int,
+    onRemindMinutesChanged: (Int) -> Unit,
     onSyncClicked: () -> Unit
 ) {
+    val remindOptions = listOf(0, 5, 10, 15, 30, 60)
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -337,6 +380,32 @@ private fun SemesterSelectionSection(
                     isSelected = semester == selectedSemester,
                     onSelected = { onSemesterSelected(semester) }
                 )
+            }
+        }
+
+        // Tuỳ chọn nhắc nhở
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(horizontal = 4.dp)
+        ) {
+            Text("Nhắc trước:", style = PTITTypography.bodyContent)
+            var expanded by remember { mutableStateOf(false) }
+            Box {
+                OutlinedButton(onClick = { expanded = true }) {
+                    Text(if (remindMinutes == 0) "Không nhắc" else "$remindMinutes phút")
+                }
+                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    remindOptions.forEach { min ->
+                        DropdownMenuItem(
+                            text = { Text(if (min == 0) "Không nhắc" else "$min phút") },
+                            onClick = {
+                                onRemindMinutesChanged(min)
+                                expanded = false
+                            }
+                        )
+                    }
+                }
             }
         }
 
@@ -366,7 +435,11 @@ private fun SemesterSelectionSection(
                         )
                     }
                     LinearProgressIndicator(
-                        modifier = Modifier.fillMaxWidth()
+                        progress = { syncProgressPercent },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = ProgressIndicatorDefaults.linearColor,
+                        trackColor = ProgressIndicatorDefaults.linearTrackColor,
+                        strokeCap = ProgressIndicatorDefaults.LinearStrokeCap,
                     )
                 }
             }
@@ -389,7 +462,7 @@ private fun SemesterSelectionSection(
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                if (isSyncing) "Đang đồng bộ..." 
+                if (isSyncing) "Đang đồng bộ..."
                 else "Đồng bộ học kỳ ${selectedSemester?.semesterName ?: ""}"
             )
         }
@@ -407,16 +480,16 @@ private fun SemesterCard(
             .fillMaxWidth()
             .clickable { onSelected() },
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) 
-                MaterialTheme.colorScheme.primaryContainer 
-            else 
+            containerColor = if (isSelected)
+                MaterialTheme.colorScheme.primaryContainer
+            else
                 MaterialTheme.colorScheme.surface
         ),
         border = if (isSelected)
             BorderStroke(
-                2.dp, 
+                2.dp,
                 MaterialTheme.colorScheme.primary
-            ) 
+            )
         else null
     ) {
         Row(
@@ -427,12 +500,12 @@ private fun SemesterCard(
             Icon(
                 Icons.Default.CalendarToday,
                 contentDescription = null,
-                tint = if (isSelected) 
-                    MaterialTheme.colorScheme.onPrimaryContainer 
-                else 
+                tint = if (isSelected)
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                else
                     MaterialTheme.colorScheme.onSurface
             )
-            
+
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -441,18 +514,18 @@ private fun SemesterCard(
                     semester.semesterName,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = if (isSelected) 
-                        MaterialTheme.colorScheme.onPrimaryContainer 
-                    else 
+                    color = if (isSelected)
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    else
                         MaterialTheme.colorScheme.onSurface
                 )
-                
+
                 Text(
                     "Mã học kỳ: ${semester.semesterCode}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (isSelected) 
+                    color = if (isSelected)
                         MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                    else 
+                    else
                         MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -471,6 +544,75 @@ private fun SemesterCard(
                         .padding(4.dp)
                 )
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DuplicateCalendarBottomSheet(
+    show: Boolean,
+    onDismiss: () -> Unit,
+    onOverwrite: () -> Unit,
+    onAppend: () -> Unit
+) {
+    if (!show) return
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp)
+        ) {
+            Text(
+                "Lịch học đã tồn tại",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            Text(
+                "Bạn muốn ghi đè (xoá cũ, thêm mới) toàn bộ lịch học kỳ này trên Google Calendar hay chỉ thêm mới các sự kiện?",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 24.dp)
+            )
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = {
+                        onOverwrite()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Ghi đè")
+                }
+
+                Button(
+                    onClick = {
+                        onAppend()
+                        onDismiss()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Chỉ thêm mới")
+                }
+
+                OutlinedButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Huỷ")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

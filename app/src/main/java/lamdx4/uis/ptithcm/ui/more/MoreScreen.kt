@@ -17,7 +17,7 @@ import androidx.navigation.NavController
 @Composable
 fun MoreScreen(
     navController: NavController? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier
 ) {
     Column(
         modifier = modifier.fillMaxSize()
@@ -185,11 +185,6 @@ fun MoreScreen(
                         }
                     )
                 }
-            }
-            
-            // Bottom spacer để tránh bị navigation bar che
-            item {
-                Spacer(modifier = Modifier.height(80.dp)) // Extra space for bottom navigation
             }
         }
     }

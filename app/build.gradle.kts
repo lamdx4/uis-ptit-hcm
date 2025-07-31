@@ -91,8 +91,8 @@ dependencies {
     implementation(libs.google.api.services.calendar)
     
     // Modern Google authentication
-    implementation("androidx.credentials:credentials:1.3.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("androidx.credentials:credentials:1.5.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.5.0")
     implementation(libs.googleid)
     
     implementation(libs.androidx.datastore.preferences)
@@ -107,5 +107,6 @@ dependencies {
     implementation("io.ktor:ktor-client-auth:3.2.2")
 
     implementation("androidx.core:core-splashscreen:1.0.1")
-
+    implementation("com.google.code.gson:gson:2.13.1")
+    implementation("com.google.http-client:google-http-client-gson:1.47.1")
 }
