@@ -4,13 +4,16 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.*
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.data.local.LoginPrefs
 import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
 import lamdx4.uis.ptithcm.data.repository.GradeRepository
 import lamdx4.uis.ptithcm.data.repository.ScheduleRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 data class AppUserState(

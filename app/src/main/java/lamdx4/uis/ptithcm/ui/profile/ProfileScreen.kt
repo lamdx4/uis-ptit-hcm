@@ -3,8 +3,24 @@ package lamdx4.uis.ptithcm.ui.profile
 import android.annotation.SuppressLint
 import android.graphics.BitmapFactory
 import android.util.Base64
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.pager.HorizontalPager
@@ -12,10 +28,62 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.AlternateEmail
+import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Cake
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Class
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Engineering
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.EventBusy
+import androidx.compose.material.icons.filled.Grade
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonOff
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Science
+import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.filled.Wc
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import androidx.compose.runtime.*
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,48 +92,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.offset
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
-import lamdx4.uis.ptithcm.R
 import lamdx4.uis.ptithcm.common.activityViewModel
-import lamdx4.uis.ptithcm.ui.AppViewModel
-import lamdx4.uis.ptithcm.ui.statistics.StatisticsViewModel
-import lamdx4.uis.ptithcm.ui.statistics.StatisticsUiState
-import lamdx4.uis.ptithcm.ui.components.GradeChart
 import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
+import lamdx4.uis.ptithcm.ui.AppViewModel
+import lamdx4.uis.ptithcm.ui.components.GradeChart
+import lamdx4.uis.ptithcm.ui.statistics.StatisticsUiState
+import lamdx4.uis.ptithcm.ui.statistics.StatisticsViewModel
 import lamdx4.uis.ptithcm.ui.theme.PTITColors
 import lamdx4.uis.ptithcm.ui.theme.PTITTypography
-import kotlin.text.*
+import lamdx4.uis.ptithcm.util.decodeBase64ToBitmap
 
-// Utility function để chuyển đổi base64 thành bitmap
-fun decodeBase64ToBitmap(base64String: String): android.graphics.Bitmap? {
-    return try {
-        val cleanBase64 = if (base64String.startsWith("data:image")) {
-            base64String.split(",")[1]
-        } else {
-            base64String
-        }
-        val decodedBytes = Base64.decode(cleanBase64, Base64.DEFAULT)
-        BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-    } catch (e: Exception) {
-        null
-    }
-}
 
 @Composable
 fun ProfileScreen(
     appViewModel: AppViewModel = activityViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel(),
     statisticsViewModel: StatisticsViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier
+    modifier: Modifier
 ) {
     val userState by appViewModel.uiState.collectAsState()
     val statisticsState by statisticsViewModel.uiState.collectAsState()
@@ -159,7 +209,7 @@ private fun ImprovedProfileContent(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // Header Section
@@ -851,31 +901,21 @@ private fun ImprovedStatisticsSection(
         shape = RoundedCornerShape(20.dp)
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             // Header
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Surface(
-                    modifier = Modifier.size(40.dp),
-                    shape = CircleShape,
-                    color = PTITColors.info.copy(alpha = 0.1f)
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Default.Analytics,
-                            contentDescription = null,
-                            tint = PTITColors.info,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
+
+                Icon(
+                    Icons.Default.Analytics,
+                    contentDescription = null,
+                    tint = PTITColors.info,
+                    modifier = Modifier.size(20.dp)
+                )
 
                 Text(
                     text = "Thống kê học tập",
@@ -895,7 +935,7 @@ private fun ImprovedStatisticsSection(
                     } ?: statisticsState.availableSemesters.maxByOrNull { it.hoc_ky }
 
                     OutlinedTextField(
-                        value = selectedSemester?.let { "${it.ten_hoc_ky} (${it.nam_hoc ?: ""})" }
+                        value = selectedSemester?.ten_hoc_ky
                             ?: "Chọn học kỳ",
                         onValueChange = {},
                         readOnly = true,
@@ -904,9 +944,12 @@ private fun ImprovedStatisticsSection(
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                         },
                         modifier = Modifier
-                            .menuAnchor()
+                            .menuAnchor(
+                                type = MenuAnchorType.PrimaryNotEditable, // hoặc phù hợp với UI của bạn
+                                enabled = true // hoặc false nếu bạn muốn disable anchor
+                            )
                             .fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.colorScheme.primary,
                             focusedLabelColor = MaterialTheme.colorScheme.primary
@@ -1250,7 +1293,7 @@ private fun TodayScheduleSection(statisticsState: StatisticsUiState) {
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -1260,13 +1303,11 @@ private fun TodayScheduleSection(statisticsState: StatisticsUiState) {
                     imageVector = Icons.Default.Schedule,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(20.dp)
                 )
                 Text(
                     text = "Lịch học hôm nay",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
+                    style = PTITTypography.sectionTitle,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -1402,7 +1443,6 @@ private fun ScheduleItemCard(schedule: lamdx4.uis.ptithcm.data.model.ScheduleTod
 @Composable
 private fun NotificationsSection(statisticsState: StatisticsUiState) {
     val unreadCount = statisticsState.academicResult?.sl_thong_bao_chua_doc ?: 0
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -1424,7 +1464,7 @@ private fun NotificationsSection(statisticsState: StatisticsUiState) {
                     imageVector = Icons.Default.Notifications,
                     contentDescription = null,
                     tint = if (unreadCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(20.dp)
                 )
 
                 if (unreadCount > 0) {
@@ -1454,13 +1494,11 @@ private fun NotificationsSection(statisticsState: StatisticsUiState) {
             // Notification text
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
                     text = "Thông báo",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
+                    style = PTITTypography.sectionTitle,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
@@ -1469,7 +1507,7 @@ private fun NotificationsSection(statisticsState: StatisticsUiState) {
                     } else {
                         "Không có thông báo mới"
                     },
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = PTITTypography.bodyContent,
                     color = if (unreadCount > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }

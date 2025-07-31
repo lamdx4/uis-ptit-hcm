@@ -7,6 +7,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import lamdx4.uis.ptithcm.ui.more.curriculum.CurriculumScreen
+import lamdx4.uis.ptithcm.ui.more.detail.DetailedInfoScreen
 import lamdx4.uis.ptithcm.ui.more.feedback.FeedbackScreen
 import lamdx4.uis.ptithcm.ui.more.invoices.InvoicesScreen
 import lamdx4.uis.ptithcm.ui.more.notifications.NotificationsScreen

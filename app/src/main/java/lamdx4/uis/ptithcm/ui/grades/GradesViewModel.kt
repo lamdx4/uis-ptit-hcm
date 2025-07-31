@@ -2,15 +2,15 @@ package lamdx4.uis.ptithcm.ui.grades
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import lamdx4.uis.ptithcm.data.repository.GradeRepository
 import lamdx4.uis.ptithcm.data.model.GradeStatistics
 import lamdx4.uis.ptithcm.data.model.SemesterGrade
 import lamdx4.uis.ptithcm.data.model.SubjectGrade
-import dagger.hilt.android.lifecycle.HiltViewModel
+import lamdx4.uis.ptithcm.data.repository.GradeRepository
 import javax.inject.Inject
 
 data class GradesUiState(

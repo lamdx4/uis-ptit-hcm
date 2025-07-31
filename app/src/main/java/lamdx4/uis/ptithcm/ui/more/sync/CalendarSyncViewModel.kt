@@ -10,11 +10,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import lamdx4.uis.ptithcm.data.repository.CalendarSyncRepository.CalendarEventCheckResult
 import lamdx4.uis.ptithcm.data.local.LoginPrefs
 import lamdx4.uis.ptithcm.data.model.Semester
-import lamdx4.uis.ptithcm.data.repository.ScheduleRepository
 import lamdx4.uis.ptithcm.data.repository.CalendarSyncRepository
+import lamdx4.uis.ptithcm.data.repository.CalendarSyncRepository.CalendarEventCheckResult
+import lamdx4.uis.ptithcm.data.repository.ScheduleRepository
 import javax.inject.Inject
 
 @HiltViewModel

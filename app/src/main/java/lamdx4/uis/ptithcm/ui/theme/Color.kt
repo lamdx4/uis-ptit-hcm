@@ -1,7 +1,7 @@
 package lamdx4.uis.ptithcm.ui.theme
 
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
 // === PTIT RED PALETTE - Màu đỏ chủ đạo ===

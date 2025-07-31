@@ -2,19 +2,21 @@ package lamdx4.uis.ptithcm.ui.schedule
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import lamdx4.uis.ptithcm.data.model.WeeklySchedule
-import lamdx4.uis.ptithcm.data.model.WeekScheduleDisplay
 import lamdx4.uis.ptithcm.data.model.DaySchedule
 import lamdx4.uis.ptithcm.data.model.ScheduleItem
 import lamdx4.uis.ptithcm.data.model.Semester
+import lamdx4.uis.ptithcm.data.model.WeekScheduleDisplay
+import lamdx4.uis.ptithcm.data.model.WeeklySchedule
 import lamdx4.uis.ptithcm.data.repository.ScheduleRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 
 data class WeeklyScheduleUiState(

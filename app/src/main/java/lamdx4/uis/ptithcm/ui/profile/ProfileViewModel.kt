@@ -1,9 +1,9 @@
 package lamdx4.uis.ptithcm.ui.profile
 
-import lamdx4.uis.ptithcm.data.repository.StudentInfoRepository
-import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
+import lamdx4.uis.ptithcm.data.repository.StudentInfoRepository
 import javax.inject.Inject
 
 @HiltViewModel

@@ -4,20 +4,17 @@ import android.util.Log
 import com.google.api.client.http.HttpRequestInitializer
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
+import com.google.api.client.util.DateTime
 import com.google.api.services.calendar.Calendar
-import com.google.api.services.calendar.model.Event as GEvent
-import com.google.api.services.calendar.model.Events as GEvents
-import com.google.api.services.calendar.model.Calendar as GCalendar
-import com.google.api.services.calendar.model.EventReminder
 import com.google.api.services.calendar.model.Event.ExtendedProperties
 import com.google.api.services.calendar.model.EventDateTime
-import com.google.api.client.util.DateTime
+import com.google.api.services.calendar.model.EventReminder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import lamdx4.uis.ptithcm.data.model.*
+import kotlinx.coroutines.withContext
+import lamdx4.uis.ptithcm.data.model.ScheduleResponse
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
@@ -25,6 +22,9 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.google.api.services.calendar.model.Calendar as GCalendar
+import com.google.api.services.calendar.model.Event as GEvent
+import com.google.api.services.calendar.model.Events as GEvents
 
 /**
  * Repository đồng bộ Google Calendar.

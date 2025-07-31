@@ -1,16 +1,47 @@
 package lamdx4.uis.ptithcm.ui.nav
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Grade
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import lamdx4.uis.ptithcm.ui.theme.PTITColors
 
 sealed class MainNavDest(
     val route: String,
@@ -102,10 +132,9 @@ private fun ModernBottomNavigationBar(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp), // Standard Material 3 bottom bar height
-        color = MaterialTheme.colorScheme.surface,
+            .height(50.dp), // Standard Material 3 bottom bar height
         shadowElevation = 3.dp,
-        tonalElevation = 3.dp
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
     ) {
         Row(
             modifier = Modifier
@@ -116,7 +145,6 @@ private fun ModernBottomNavigationBar(
         ) {
             MainNavDest.items.forEach { item ->
                 val isSelected = currentRoute == item.route
-                
                 CompactNavItem(
                     item = item,
                     isSelected = isSelected,
@@ -154,9 +182,9 @@ private fun CompactNavItem(
                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             }
         )
-        
+
         Spacer(modifier = Modifier.height(2.dp))
-        
+
         // Minimal text label
         Text(
             text = item.label,
@@ -171,7 +199,7 @@ private fun CompactNavItem(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
-        
+
         // Simple bottom indicator line
         Box(
             modifier = Modifier
@@ -189,165 +217,3 @@ private fun CompactNavItem(
     }
 }
 
-// Alternative Floating Action Button Style Navigation (Optional)
-@Composable
-fun FloatingBottomNavigationBar(
-    currentRoute: String?,
-    onNavigate: (String) -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        Card(
-            modifier = Modifier.wrapContentWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
-            shape = RoundedCornerShape(28.dp)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                MainNavDest.items.forEach { item ->
-                    val isSelected = currentRoute == item.route
-
-                    FloatingNavItem(
-                        item = item,
-                        isSelected = isSelected,
-                        onClick = { onNavigate(item.route) }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FloatingNavItem(
-    item: MainNavDest,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Surface(
-        onClick = onClick,
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .animateContentSize(),
-        color = if (isSelected)
-            MaterialTheme.colorScheme.primary
-        else
-            Color.Transparent,
-        shape = RoundedCornerShape(20.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(
-                horizontal = if (isSelected) 16.dp else 12.dp,
-                vertical = 12.dp
-            ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(
-                imageVector = item.icon,
-                contentDescription = item.label,
-                modifier = Modifier.size(20.dp),
-                tint = if (isSelected)
-                    MaterialTheme.colorScheme.onPrimary
-                else
-                    MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            AnimatedVisibility(
-                visible = isSelected,
-                enter = expandHorizontally() + fadeIn(),
-                exit = shrinkHorizontally() + fadeOut()
-            ) {
-                Text(
-                    text = item.label,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-        }
-    }
-}
-
-// Enhanced Navigation with Badges (for notifications, etc.)
-@Composable
-fun EnhancedBottomNavigationBar(
-    currentRoute: String?,
-    onNavigate: (String) -> Unit,
-    badges: Map<String, Int> = emptyMap() // Route to badge count
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-        shape = RoundedCornerShape(24.dp)
-    ) {
-        NavigationBar(
-            modifier = Modifier.fillMaxWidth(),
-            containerColor = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            tonalElevation = 0.dp
-        ) {
-            MainNavDest.items.forEach { item ->
-                val isSelected = currentRoute == item.route
-                val badgeCount = badges[item.route] ?: 0
-
-                NavigationBarItem(
-                    icon = {
-                        BadgedBox(
-                            badge = {
-                                if (badgeCount > 0) {
-                                    Badge(
-                                        containerColor = MaterialTheme.colorScheme.error,
-                                        contentColor = MaterialTheme.colorScheme.onError
-                                    ) {
-                                        Text(
-                                            text = if (badgeCount > 99) "99+" else badgeCount.toString(),
-                                            style = MaterialTheme.typography.labelSmall
-                                        )
-                                    }
-                                }
-                            }
-                        ) {
-                            CompactNavItem(
-                                item = item,
-                                isSelected = isSelected,
-                                onClick = {}
-                            )
-                        }
-                    },
-                    label = {
-                        Text(
-                            text = item.label,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    selected = isSelected,
-                    onClick = { onNavigate(item.route) },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color.Transparent,
-                        unselectedIconColor = Color.Transparent,
-                        selectedTextColor = MaterialTheme.colorScheme.primary,
-                        unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        indicatorColor = Color.Transparent
-                    )
-                )
-            }
-        }
-    }
-}

@@ -7,8 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import lamdx4.uis.ptithcm.data.model.RegisterGroup
 import lamdx4.uis.ptithcm.data.model.CourseItem
+import lamdx4.uis.ptithcm.data.model.RegisterGroup
 import lamdx4.uis.ptithcm.data.model.RegisteredSubject
 import lamdx4.uis.ptithcm.data.model.SubjectFilter
 import lamdx4.uis.ptithcm.data.repository.CourseRegistrationRepository
