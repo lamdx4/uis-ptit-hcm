@@ -60,7 +60,7 @@ class PaymentRepository @Inject constructor(
             val doc = Jsoup.parse(html)
             val dataForm = parsePaymentForm(doc)
 
-            val result = if (dataForm.message.isEmpty()) {
+            val result = if (dataForm.message.isNotEmpty()) {
                 CheckPaymentData(
                     isSuccess = false,
                     newFormData = dataForm
