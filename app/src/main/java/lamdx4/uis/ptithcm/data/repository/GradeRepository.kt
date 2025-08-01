@@ -50,7 +50,7 @@ class GradeRepository @Inject constructor(private val client: HttpClient) {
         }
 
         // 📡 Fetch from API if not cached or expired
-        val response = client.post("http://uis.ptithcm.edu.vn/api/srm/w-locdsdiemsinhvien") {
+        val response = client.post("https://uis.ptithcm.edu.vn/api/srm/w-locdsdiemsinhvien") {
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Text.Plain)
             // Add Cookie if needed based on the curl example

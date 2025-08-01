@@ -32,7 +32,7 @@ class AuthRepository {
 
     suspend fun login(username: String, password: String): Result<LoginResponse> {
         return try {
-            val response: HttpResponse = client.post("http://uis.ptithcm.edu.vn/api/auth/login") {
+            val response: HttpResponse = client.post("https://uis.ptithcm.edu.vn/api/auth/login") {
                 contentType(ContentType.Application.FormUrlEncoded)
                 setBody(
                     listOf(

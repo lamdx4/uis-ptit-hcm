@@ -74,7 +74,7 @@ object NetworkModule {
                         val currentRefreshToken = loginPrefs.getRefreshToken()
                         if (currentRefreshToken.isNullOrBlank()) return@refreshTokens null
 
-                        val response = client.post("http://uis.ptithcm.edu.vn/api/auth/login") {
+                        val response = client.post("https://uis.ptithcm.edu.vn/api/auth/login") {
                             header("Content-Type", "application/x-www-form-urlencoded")
                             setBody(
                                 listOf(

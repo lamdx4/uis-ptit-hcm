@@ -35,7 +35,7 @@ class CourseRegistrationRepository @Inject constructor(
         }"""
         return try {
             val res = client.post(
-                "http://uis.ptithcm.edu.vn/api/dkmh/w-locdsnhomto"
+                "https://uis.ptithcm.edu.vn/api/dkmh/w-locdsnhomto"
             ) {
                 contentType(ContentType.Application.Json)
                 setBody(data)
@@ -50,7 +50,7 @@ class CourseRegistrationRepository @Inject constructor(
     suspend fun getAllRegisteredSubject(): Result<RegisteredScheduleResponse> {
         val jsonData = """{"is_CVHT":false,"is_Clear":false}"""
         return try {
-            val res =this.client.post("http://uis.ptithcm.edu.vn/api/dkmh/w-locdskqdkmhsinhvien") {
+            val res =this.client.post("https://uis.ptithcm.edu.vn/api/dkmh/w-locdskqdkmhsinhvien") {
                 contentType(ContentType.Application.Json)
                 setBody(jsonData)
             }.body<RegisteredScheduleResponse>()
@@ -65,7 +65,7 @@ class CourseRegistrationRepository @Inject constructor(
     suspend fun getAllFilter(): Result<List<SubjectFilter>> {
         return try {
             val res = this.client.post(
-                "http://uis.ptithcm.edu.vn/api/dkmh/w-locdsdieukienloc"
+                "https://uis.ptithcm.edu.vn/api/dkmh/w-locdsdieukienloc"
             ).body<List<SubjectFilter>>()
             Result.success(res)
         } catch (e: Exception) {

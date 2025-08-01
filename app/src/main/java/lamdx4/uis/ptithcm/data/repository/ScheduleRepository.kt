@@ -52,7 +52,7 @@ class ScheduleRepository @Inject constructor(private val client: HttpClient) {
         }
 
         // 📡 Fetch from API if not cached or expired
-        val response = client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdshockytkbuser") {
+        val response = client.post("https://uis.ptithcm.edu.vn/api/sch/w-locdshockytkbuser") {
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
             header(HttpHeaders.Cookie, "ASP.NET_SessionId=hpygoowhw0jposd3gosqw1xn")
@@ -105,7 +105,7 @@ class ScheduleRepository @Inject constructor(private val client: HttpClient) {
 
         // 📡 Fetch from API if not cached or expired
         val response =
-            client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdstkbtuanusertheohocky") {
+            client.post("https://uis.ptithcm.edu.vn/api/sch/w-locdstkbtuanusertheohocky") {
                 header(HttpHeaders.Accept, "application/json, text/plain, */*")
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
 
