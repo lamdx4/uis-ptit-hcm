@@ -43,7 +43,7 @@ class PaymentViewModel @Inject constructor(private val repo: PaymentRepository) 
                     _formState.value = r.getOrThrow().newFormData
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Lỗi khi fetch form", e)
+                Log.e(TAG, "Lỗi khi check thông tin thanh toán", e)
             }
         }
     }
