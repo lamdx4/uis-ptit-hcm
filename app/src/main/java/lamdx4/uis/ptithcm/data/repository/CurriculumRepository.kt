@@ -31,7 +31,7 @@ class CurriculumRepository @Inject constructor(
         }
 
         return try {
-            val response: HttpResponse = client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdsctdtsinhvien") {
+            val response: HttpResponse = client.post("https://uis.ptithcm.edu.vn/api/sch/w-locdsctdtsinhvien") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
                 setBody(
                     """
@@ -76,7 +76,7 @@ class CurriculumRepository @Inject constructor(
         }
 
         return try {
-            val response: HttpResponse = client.post("http://uis.ptithcm.edu.vn/api/sch/w-locdschuongtrinhdaotao") {
+            val response: HttpResponse = client.post("https://uis.ptithcm.edu.vn/api/sch/w-locdschuongtrinhdaotao") {
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
             }
 

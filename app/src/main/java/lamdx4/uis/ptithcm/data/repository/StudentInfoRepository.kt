@@ -27,7 +27,7 @@ import javax.inject.Singleton
 class StudentInfoRepository @Inject constructor(private val client: HttpClient) {
 
     private suspend fun getStudentInfo( maSV: String): StudentInfoResponse {
-        return client.post("http://uis.ptithcm.edu.vn/api/sms/w-locthongtinimagesinhvien?MaSV=$maSV") {
+        return client.post("https://uis.ptithcm.edu.vn/api/sms/w-locthongtinimagesinhvien?MaSV=$maSV") {
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Text.Plain)
             setBody("")
@@ -36,7 +36,7 @@ class StudentInfoRepository @Inject constructor(private val client: HttpClient) 
 
     private suspend fun getStudentDetail(): StudentDetailResponse {
 
-        val response = client.post("http://uis.ptithcm.edu.vn/api/dkmh/w-locsinhvieninfo") {
+        val response = client.post("https://uis.ptithcm.edu.vn/api/dkmh/w-locsinhvieninfo") {
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Text.Plain)
             setBody("")
@@ -50,7 +50,7 @@ class StudentInfoRepository @Inject constructor(private val client: HttpClient) 
     }
 
     suspend fun getAcademicResult(hocKy: Int): AcademicResultResponse {
-        return client.post("http://uis.ptithcm.edu.vn/api/dkmh/w-inketquahoctap") {
+        return client.post("https://uis.ptithcm.edu.vn/api/dkmh/w-inketquahoctap") {
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
             setBody(AcademicResultRequest(hoc_ky = hocKy))
@@ -66,7 +66,7 @@ class StudentInfoRepository @Inject constructor(private val client: HttpClient) 
             )
         )
 
-        return client.post("http://uis.ptithcm.edu.vn/api/dkmh/w-locdshockyketquahoctap") {
+        return client.post("https://uis.ptithcm.edu.vn/api/dkmh/w-locdshockyketquahoctap") {
             header(HttpHeaders.Accept, "application/json, text/plain, */*")
             header(HttpHeaders.ContentType, ContentType.Application.Json)
             setBody(requestBody)

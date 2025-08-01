@@ -120,20 +120,7 @@ fun PaymentScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                 } else {
-
-                    Button(
-                        onClick = { /* Handle bank payment */ },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Thanh toán qua Ngân hàng", style = PTITTypography.buttonText)
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = { /* Handle e-wallet payment */ },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Thanh toán qua Ví điện tử", style = PTITTypography.buttonText)
-                    }
+                    CircularProgressIndicator()
                 }
             }
         }
