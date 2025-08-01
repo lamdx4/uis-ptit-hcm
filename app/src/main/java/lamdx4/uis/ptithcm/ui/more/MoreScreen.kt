@@ -22,6 +22,8 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Send
@@ -162,15 +164,25 @@ fun MoreScreen(
             // Danh sách các chức năng khác
             val otherFeatures = listOf(
                 Triple(
+                    "Thông báo",
+                    "Thông báo từ ban quản trị",
+                    Icons.Default.Notifications
+                ) to "notifications",
+                Triple(
                     "Học phí",
                     "Xem thông tin học phí và thanh toán",
                     Icons.Default.AttachMoney
                 ) to "fee",
                 Triple(
-                    "Thông báo",
-                    "Thông báo từ ban quản trị",
-                    Icons.Default.Notifications
-                ) to "notifications",
+                    "Thanh toán",
+                    "Cổng thanh toán",
+                    Icons.Default.Payments
+                ) to "payment",
+                Triple(
+                    "Hóa đơn điện tử",
+                    "Quản lý hóa đơn điện tử",
+                    Icons.Default.Receipt
+                ) to "invoices",
                 Triple(
                     "Chương trình đào tạo",
                     "Xem chương trình đào tạo",
@@ -181,11 +193,7 @@ fun MoreScreen(
                     "Xem môn học tiên quyết",
                     Icons.Default.AccountTree
                 ) to "prerequisites",
-                Triple(
-                    "Hóa đơn điện tử",
-                    "Quản lý hóa đơn điện tử",
-                    Icons.Default.Receipt
-                ) to "invoices",
+
                 Triple(
                     "Cập nhật thông tin",
                     "Cập nhật thông tin thường trú",

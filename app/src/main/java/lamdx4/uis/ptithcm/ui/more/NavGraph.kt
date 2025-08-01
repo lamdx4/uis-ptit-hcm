@@ -11,6 +11,7 @@ import lamdx4.uis.ptithcm.ui.more.detail.DetailedInfoScreen
 import lamdx4.uis.ptithcm.ui.more.feedback.FeedbackScreen
 import lamdx4.uis.ptithcm.ui.more.invoices.InvoicesScreen
 import lamdx4.uis.ptithcm.ui.more.notifications.NotificationsScreen
+import lamdx4.uis.ptithcm.ui.more.payment.PaymentScreen
 import lamdx4.uis.ptithcm.ui.more.prerequisites.PrerequisitesScreen
 import lamdx4.uis.ptithcm.ui.more.sync.CalendarSyncScreen
 import lamdx4.uis.ptithcm.ui.more.updateinfo.UpdateInfoScreen
@@ -28,6 +29,12 @@ fun NavGraphBuilder.moreNavGraph(
     composable("detailed_info") {
         DetailedInfoScreen(
             navController = navController,
+            modifier = Modifier.padding(innerPadding)
+        )
+    }
+
+    composable("payment") {
+        PaymentScreen(
             modifier = Modifier.padding(innerPadding)
         )
     }

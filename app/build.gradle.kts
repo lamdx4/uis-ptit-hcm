@@ -115,4 +115,6 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("com.google.code.gson:gson:2.13.1")
     implementation("com.google.http-client:google-http-client-gson:1.47.1")
+
+    implementation("org.jsoup:jsoup:1.21.1")
 }
