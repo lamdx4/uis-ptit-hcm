@@ -80,16 +80,18 @@ fun PaymentScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Image(
-                        painter = rememberAsyncImagePainter(
-                            model = formState.value!!.imgCaptchaUrl,
-                        ),
-                        contentDescription = "Mã xác nhận",
-                        modifier = Modifier
-                            .width(180.dp)
-                            .height(60.dp),
-                        contentScale = ContentScale.Fit
-                    )
+                    formState.value?.let { form ->
+                        Image(
+                            painter = rememberAsyncImagePainter(
+                                model = form.imgCaptchaUrl,
+                            ),
+                            contentDescription = "Mã xác nhận",
+                            modifier = Modifier
+                                .width(180.dp)
+                                .height(60.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
