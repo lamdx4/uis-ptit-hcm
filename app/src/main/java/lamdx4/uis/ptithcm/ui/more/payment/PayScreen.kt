@@ -103,14 +103,16 @@ fun PaymentScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Message display
-                    if (formState.value!!.message.isNotEmpty()) {
-                        Text(
-                            text = formState.value!!.message,
-                            color = messageColor,
-                            style = PTITTypography.bodyContent,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
+                    formState.value?.message?.let { message ->
+                        if (message.isNotEmpty()) {
+                            Text(
+                                text = message,
+                                color = messageColor,
+                                style = PTITTypography.bodyContent,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
                     }
 
                     Text(
