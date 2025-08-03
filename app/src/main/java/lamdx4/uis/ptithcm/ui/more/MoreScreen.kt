@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -34,11 +35,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.ui.AppViewModel
 
@@ -248,8 +253,7 @@ fun MoreScreen(
                             )
                         },
                         modifier = Modifier.clickable {
-                            appViewModel.clearProfile()
-                            appViewModel.clearLoginInfo()
+                            appViewModel.logout()
                             navController?.navigate("login")
                         }
                     )
@@ -257,4 +261,29 @@ fun MoreScreen(
             }
         }
     }
+}
+@Composable
+fun LogoutConfirmDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text("Xác nhận đăng xuất")
+        },
+        text = {
+            Text("Bạn có chắc chắn muốn đăng xuất?")
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Đăng xuất")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Hủy")
+            }
+        }
+    )
 }

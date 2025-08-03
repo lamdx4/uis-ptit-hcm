@@ -33,7 +33,7 @@ import com.google.api.services.calendar.model.Events as GEvents
  * Không dùng GoogleSignInOptions hoặc Play Services Auth cũ.
  */
 @Singleton
-class CalendarSyncRepository @Inject constructor() {
+class CalendarSyncRepository  @Inject constructor()  : Cacheable  {
     /**
      * Kiểm tra calendar học kỳ đã tồn tại chưa (không cần check event)
      */
@@ -356,6 +356,10 @@ class CalendarSyncRepository @Inject constructor() {
         } else {
             null
         }
+    }
+
+    override fun clearCache() {
+        // Hiện tại repo này chưa có cache
     }
 
     sealed class SyncResult {

@@ -20,11 +20,12 @@ import lamdx4.uis.ptithcm.data.model.SemesterOrdering
 import lamdx4.uis.ptithcm.data.model.SemesterPaging
 import lamdx4.uis.ptithcm.data.model.StudentDetailResponse
 import lamdx4.uis.ptithcm.data.model.StudentInfoResponse
+import lamdx4.uis.ptithcm.util.invalidateBearerTokens
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class StudentInfoRepository @Inject constructor(private val client: HttpClient) {
+class StudentInfoRepository @Inject constructor(private val client: HttpClient) : Cacheable  {
 
     private suspend fun getStudentInfo( maSV: String): StudentInfoResponse {
         return client.post("https://uis.ptithcm.edu.vn/api/sms/w-locthongtinimagesinhvien?MaSV=$maSV") {
@@ -131,6 +132,11 @@ class StudentInfoRepository @Inject constructor(private val client: HttpClient) 
                 str_nhhk_ra = detailData.str_nhhk_ra ?: ""
             )
         }
+    }
+
+    override fun clearCache() {
+        this.client.invalidateBearerTokens()
+        // Hiện tại repo này chưa có cache
     }
 
 }

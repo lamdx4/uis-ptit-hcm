@@ -17,10 +17,12 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import lamdx4.uis.ptithcm.data.model.LoginResponse
+import lamdx4.uis.ptithcm.util.invalidateBearerTokens
+import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class AuthRepository {
+class AuthRepository @Inject constructor() : Cacheable {
     // Singleton
     private val client = HttpClient(CIO) {
         install(ContentNegotiation) {
@@ -36,18 +38,24 @@ class AuthRepository {
                 contentType(ContentType.Application.FormUrlEncoded)
                 setBody(
                     listOf(
-                        "username" to username,
-                        "password" to password,
-                        "grant_type" to "password"
+                        "username" to username, "password" to password, "grant_type" to "password"
                     ).formUrlEncode()
                 )
             }
             val json = Json.parseToJsonElement(response.bodyAsText()).jsonObject
             val token = json["access_token"]?.jsonPrimitive?.contentOrNull
             if (token != null) Result.success(response.body<LoginResponse>())
-            else Result.failure(Exception(json["message"]?.jsonPrimitive?.content ?: "Đăng nhập thất bại"))
+            else Result.failure(
+                Exception(
+                    json["message"]?.jsonPrimitive?.content ?: "Đăng nhập thất bại"
+                )
+            )
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    override fun clearCache() {
+        this.client.invalidateBearerTokens()
     }
 }

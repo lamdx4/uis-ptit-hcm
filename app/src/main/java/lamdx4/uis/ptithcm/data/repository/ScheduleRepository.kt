@@ -11,11 +11,12 @@ import lamdx4.uis.ptithcm.data.model.ScheduleResponse
 import lamdx4.uis.ptithcm.data.model.Semester
 import lamdx4.uis.ptithcm.data.model.SemesterResponse
 import lamdx4.uis.ptithcm.data.model.WeeklySchedule
+import lamdx4.uis.ptithcm.util.invalidateBearerTokens
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ScheduleRepository @Inject constructor(private val client: HttpClient) {
+class ScheduleRepository @Inject constructor(private val client: HttpClient) : Cacheable {
 
     // 🎯 Cache data to avoid reloading
     private var cachedSemesters: SemesterResponse? = null
@@ -29,7 +30,8 @@ class ScheduleRepository @Inject constructor(private val client: HttpClient) {
     /**
      * Clear all cached data - useful when switching accounts
      */
-    fun clearCache() {
+    override fun clearCache() {
+        this.client.invalidateBearerTokens()
         cachedSemesters = null
         cachedSchedules.clear()
         lastSemestersFetch = 0L

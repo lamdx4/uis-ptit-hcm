@@ -67,6 +67,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.data.repository.AuthRepository
@@ -76,43 +81,22 @@ import lamdx4.uis.ptithcm.ui.AppViewModel
 @Composable
 fun LoginScreen(
     appViewModel: AppViewModel = activityViewModel(),
+    loginViewModel: LoginViewModel = hiltViewModel<LoginViewModel>(),
     innerPadding: PaddingValues = PaddingValues(),
     onLoginSuccess: () -> Unit
 ) {
-    val userState by appViewModel.uiState.collectAsState()
-    var username by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var rememberMe by rememberSaveable { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-    var loading by remember { mutableStateOf(false) }
+
+    val loginState = loginViewModel.uiState.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
-    var hasInitialized by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
-    val authRepository = remember { AuthRepository() }
-    val scrollState = rememberScrollState()
 
-    // Populate from rememberMe ONLY on first load
-    LaunchedEffect(userState.rememberMe) {
-        if (!hasInitialized && userState.rememberMe && userState.username != null && userState.password != null) {
-            username = userState.username.orEmpty()
-            password = userState.password.orEmpty()
-            rememberMe = true
-            hasInitialized = true
-        } else if (!hasInitialized) {
-            hasInitialized = true
-        }
-    }
+//    var username by rememberSaveable { mutableStateOf("") }
+//    var password by rememberSaveable { mutableStateOf("") }
+//    var rememberMe by rememberSaveable { mutableStateOf(false) }
 
-    // Clear profile when username changes (different account)
-    LaunchedEffect(username) {
-        val currentMaSV = userState.maSV
-        if (currentMaSV != null && currentMaSV != username && username.isNotEmpty()) {
-            appViewModel.clearProfile()
-            // Also clear saved credentials if switching to different account
-            if (userState.username != null && userState.username != username) {
-                appViewModel.clearLoginInfo()
-            }
-        }
+    LaunchedEffect(loginState) {
+//        username = loginState.value.username
+//        password = loginState.value.password
+//        rememberMe = loginState.value.rememberMe
     }
 
     Box(
@@ -127,7 +111,6 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
                 .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -139,60 +122,49 @@ fun LoginScreen(
 
             // Login Form Card
             LoginFormCard(
-                username = username,
-                password = password,
+//                username = username,
+                username = loginState.value.username,
+//                password = password,
+                password = loginState.value.password,
                 passwordVisible = passwordVisible,
-                rememberMe = rememberMe,
-                loading = loading,
-                error = error,
+//                rememberMe = rememberMe,
+                rememberMe = loginState.value.rememberMe,
+                loading = loginState.value.loading,
+                error = loginState.value.error,
+//                onUsernameChange = {
+//                    username = it
+//                },
                 onUsernameChange = {
-                    username = it
-                    error = null // Clear error when user types
+                    loginViewModel.updateUsername(it)
                 },
+//                onPasswordChange = {
+//                    password = it
+//                },
                 onPasswordChange = {
-                    password = it
-                    error = null // Clear error when user types
+                    loginViewModel.updatePassword(it)
                 },
                 onPasswordVisibilityToggle = { passwordVisible = !passwordVisible },
-                onRememberMeChange = { rememberMe = it },
+//                onRememberMeChange = { rememberMe = it },
+                onRememberMeChange = {
+                    loginViewModel.onRememberMeChange(it)
+                },
                 onLoginClick = {
                     // Clear error and validate inputs
-                    error = null
+                    loginViewModel.clearError()
 
-                    if (username.trim().isEmpty()) {
-                        error = "Vui lòng nhập tên đăng nhập"
-                        return@LoginFormCard
-                    }
-
-                    if (password.trim().isEmpty()) {
-                        error = "Vui lòng nhập mật khẩu"
-                        return@LoginFormCard
-                    }
-
-                    loading = true
-                    coroutineScope.launch {
+                    appViewModel.viewModelScope.launch {
                         // Use the current input values, not cached ones
-                        val currentUsername = username.trim()
-                        val currentPassword = password.trim()
-
-                        val result = authRepository.login(currentUsername, currentPassword)
-                        if (result.isSuccess) {
-                            val accessToken = result.getOrNull()?.accessToken ?: ""
-                            val refreshToken = result.getOrNull()?.refreshToken ?: ""
+//                        val result = loginViewModel.login(username, password, rememberMe
+                        val result = loginViewModel.login(
+//                            loginState.value.username,
+//                            loginState.value.password,
+//                            loginState.value.rememberMe
+                        )
+                        result.onSuccess {
                             appViewModel.saveLoginInfo(
-                                accessToken = accessToken,
-                                refreshToken = refreshToken,
-                                maSV = currentUsername,
-                                username = currentUsername,
-                                password = currentPassword,
-                                rememberMe = rememberMe
+                                loginState.value.username
                             )
-                            loading = false
                             onLoginSuccess()
-                        } else {
-                            error =
-                                result.exceptionOrNull()?.message ?: "Sai tài khoản hoặc mật khẩu"
-                            loading = false
                         }
                     }
                 }
@@ -603,7 +575,10 @@ private fun FooterSection() {
             append("Bằng việc tiếp tục, bạn đồng ý với ")
 
             // Gắn tag "TERMS" để xử lý click
-            pushStringAnnotation(tag = "TERMS", annotation = "https://lamdx4.github.io/uis-ptit-hcm/term")
+            pushStringAnnotation(
+                tag = "TERMS",
+                annotation = "https://lamdx4.github.io/uis-ptit-hcm/term"
+            )
             withStyle(
                 style = SpanStyle(
                     color = MaterialTheme.colorScheme.primary,
@@ -633,3 +608,4 @@ private fun FooterSection() {
         )
     }
 }
+

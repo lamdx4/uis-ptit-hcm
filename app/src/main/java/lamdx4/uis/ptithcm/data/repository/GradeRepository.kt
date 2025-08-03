@@ -11,11 +11,12 @@ import lamdx4.uis.ptithcm.data.model.GradeResponse
 import lamdx4.uis.ptithcm.data.model.GradeStatistics
 import lamdx4.uis.ptithcm.data.model.SemesterGrade
 import lamdx4.uis.ptithcm.data.model.SubjectGrade
+import lamdx4.uis.ptithcm.util.invalidateBearerTokens
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class GradeRepository @Inject constructor(private val client: HttpClient) {
+class GradeRepository @Inject constructor(private val client: HttpClient): Cacheable  {
 
     // 🎯 Cache data to avoid reloading
     private var cachedGrades: GradeResponse? = null
@@ -29,7 +30,8 @@ class GradeRepository @Inject constructor(private val client: HttpClient) {
     /**
      * Clear all cached data - useful when switching accounts
      */
-    fun clearCache() {
+    override fun clearCache() {
+        this.client.invalidateBearerTokens()
         cachedGrades = null
         cachedStatistics = null
         lastGradesFetch = 0L

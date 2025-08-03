@@ -9,6 +9,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.Parameters
 import io.ktor.http.contentType
+import lamdx4.uis.ptithcm.util.invalidateBearerTokens
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.net.URL
@@ -18,7 +19,7 @@ import javax.inject.Singleton
 @Singleton
 class PaymentRepository @Inject constructor(
     private val client: HttpClient
-) {
+) : Cacheable {
     suspend fun fetchPaymentForm(): Result<PaymentFormData> {
         return try {
             val html = client.get("https://pay.ptithcm.edu.vn/check/").body<String>()
@@ -94,6 +95,11 @@ class PaymentRepository @Inject constructor(
             imgCaptchaUrl = fullUrl ?: "",
             message = document.selectFirst("#lblMessage")?.text()?.takeIf { it.isNotBlank() } ?: ""
         )
+    }
+
+    override fun clearCache() {
+        this.client.invalidateBearerTokens()
+        // Hiện tại repo này chưa có cache
     }
 
 }

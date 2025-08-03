@@ -13,6 +13,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.rememberAsyncImagePainter
+import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.ui.theme.PTITTypography
 
@@ -21,13 +22,13 @@ import lamdx4.uis.ptithcm.ui.theme.PTITTypography
 fun PaymentScreen(
     modifier: Modifier = Modifier,
     viewModel: PaymentViewModel = hiltViewModel<PaymentViewModel>(),
-    appViewModel: AppViewModel = hiltViewModel<AppViewModel>()
+    appViewModel: AppViewModel = activityViewModel()
 ) {
     var captchaInput by remember { mutableStateOf("") }
     var messageColor by remember { mutableStateOf(Color.Unspecified) }
 
-    // Hardcoded captcha for demonstration
-    val studentId = appViewModel.uiState.collectAsState().value.maSV ?: ""
+    val uiState by appViewModel.uiState.collectAsState()
+    val studentId = uiState.maSV.orEmpty()
     val formState = viewModel.formState.collectAsState()
 
     LaunchedEffect(Unit) {

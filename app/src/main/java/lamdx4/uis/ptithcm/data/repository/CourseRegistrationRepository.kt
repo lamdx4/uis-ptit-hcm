@@ -10,13 +10,14 @@ import io.ktor.http.contentType
 import lamdx4.uis.ptithcm.data.model.RegisterScheduleResponse
 import lamdx4.uis.ptithcm.data.model.RegisteredScheduleResponse
 import lamdx4.uis.ptithcm.data.model.SubjectFilter
+import lamdx4.uis.ptithcm.util.invalidateBearerTokens
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class CourseRegistrationRepository @Inject constructor(
     private val client: HttpClient
-) {
+) : Cacheable {
     suspend fun getAllSubjects(): Result<RegisterScheduleResponse> {
         val data = """{
             "is_CVHT": false,
@@ -72,5 +73,9 @@ class CourseRegistrationRepository @Inject constructor(
             Log.e("CourseRegistrationRepository", e.message.toString())
             Result.failure(e)
         }
+    }
+
+    override fun clearCache() {
+        this.client.invalidateBearerTokens()
     }
 }

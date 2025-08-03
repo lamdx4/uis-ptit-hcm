@@ -15,13 +15,14 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import lamdx4.uis.ptithcm.data.model.CurriculumResponse
 import lamdx4.uis.ptithcm.data.model.CurriculumTypeResponse
+import lamdx4.uis.ptithcm.util.invalidateBearerTokens
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class CurriculumRepository @Inject constructor(
     private val client : HttpClient
-){
+) : Cacheable  {
     private var cachedCurriculumTypes: List<CurriculumTypeResponse>? = null
     private val cachedCurriculums = mutableMapOf<Int, CurriculumResponse>()
 
@@ -94,7 +95,8 @@ class CurriculumRepository @Inject constructor(
         }
     }
 
-    fun clearCache() {
+    override fun clearCache() {
+        this.client.invalidateBearerTokens()
         cachedCurriculumTypes = null
         cachedCurriculums.clear()
     }
