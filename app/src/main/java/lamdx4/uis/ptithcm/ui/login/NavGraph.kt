@@ -12,11 +12,7 @@ fun NavGraphBuilder.loginNavGraph(
     composable("login") {
         LoginScreen(
             innerPadding = innerPadding,
-            onLoginSuccess = {
-                navController.navigate("profile") {
-                    popUpTo("login") { inclusive = true }
-                }
-            }
+            navController = navController
         )
     }
 }
