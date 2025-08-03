@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -83,21 +84,10 @@ fun LoginScreen(
     appViewModel: AppViewModel = activityViewModel(),
     loginViewModel: LoginViewModel = hiltViewModel<LoginViewModel>(),
     innerPadding: PaddingValues = PaddingValues(),
-    onLoginSuccess: () -> Unit
+    navController: NavHostController
 ) {
-
     val loginState = loginViewModel.uiState.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
-
-//    var username by rememberSaveable { mutableStateOf("") }
-//    var password by rememberSaveable { mutableStateOf("") }
-//    var rememberMe by rememberSaveable { mutableStateOf(false) }
-
-    LaunchedEffect(loginState) {
-//        username = loginState.value.username
-//        password = loginState.value.password
-//        rememberMe = loginState.value.rememberMe
-    }
 
     Box(
         modifier = Modifier
@@ -153,18 +143,15 @@ fun LoginScreen(
                     loginViewModel.clearError()
 
                     appViewModel.viewModelScope.launch {
-                        // Use the current input values, not cached ones
-//                        val result = loginViewModel.login(username, password, rememberMe
                         val result = loginViewModel.login(
-//                            loginState.value.username,
-//                            loginState.value.password,
-//                            loginState.value.rememberMe
                         )
                         result.onSuccess {
                             appViewModel.saveLoginInfo(
                                 loginState.value.username
                             )
-                            onLoginSuccess()
+                            navController.navigate("profile") {
+                                popUpTo("login")
+                            }
                         }
                     }
                 }
@@ -173,7 +160,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(21.dp))
 
             // Footer Section
-            FooterSection()
+            FooterSection(navController)
         }
     }
 }
@@ -545,7 +532,7 @@ private fun LoginFormCard(
 }
 
 @Composable
-private fun FooterSection() {
+private fun FooterSection(navController: NavHostController) {
     val context = LocalContext.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -553,7 +540,7 @@ private fun FooterSection() {
     ) {
         // Forgot Password Button
         TextButton(
-            onClick = { /* Handle forgot password */ },
+            onClick = { navController.navigate("forgot-password") },
             colors = ButtonDefaults.textButtonColors(
                 contentColor = MaterialTheme.colorScheme.primary
             )

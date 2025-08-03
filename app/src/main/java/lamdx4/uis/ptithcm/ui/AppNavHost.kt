@@ -8,6 +8,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import lamdx4.uis.ptithcm.ui.exam.examNavGraph
 import lamdx4.uis.ptithcm.ui.fee.feeNavGraph
+import lamdx4.uis.ptithcm.ui.forgotpassword.forgotPasswordNavGraph
 import lamdx4.uis.ptithcm.ui.grades.gradesNavGraph
 import lamdx4.uis.ptithcm.ui.login.loginNavGraph
 import lamdx4.uis.ptithcm.ui.more.moreNavGraph
@@ -24,7 +25,7 @@ fun AppNavHost(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val showBottomNav = currentRoute != "login"
+    val showBottomNav = currentRoute != "login" && currentRoute != "forgot-password"
 
     if (showBottomNav) {
         MainNavBarScaffold(navController) { innerPadding ->
@@ -37,6 +38,7 @@ fun AppNavHost(
                 scheduleNavGraph(navController, innerPadding)
                 gradesNavGraph(navController, innerPadding)
                 examNavGraph(navController, innerPadding)
+                forgotPasswordNavGraph(navController, PaddingValues())
                 registerNavGraph(navController, innerPadding)
                 feeNavGraph(navController, innerPadding)
                 moreNavGraph(navController, innerPadding)
@@ -48,6 +50,7 @@ fun AppNavHost(
             startDestination = "login"
         ) {
             loginNavGraph(navController, PaddingValues())
+            forgotPasswordNavGraph(navController, PaddingValues())
             profileNavGraph(navController, PaddingValues())
             scheduleNavGraph(navController, PaddingValues())
             gradesNavGraph(navController, PaddingValues())

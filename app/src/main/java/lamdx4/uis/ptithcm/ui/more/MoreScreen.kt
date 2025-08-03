@@ -198,13 +198,6 @@ fun MoreScreen(
                     "Xem môn học tiên quyết",
                     Icons.Default.AccountTree
                 ) to "prerequisites",
-
-                Triple(
-                    "Cập nhật thông tin",
-                    "Cập nhật thông tin thường trú",
-                    Icons.Default.Edit
-                ) to "update_info",
-                Triple("Gửi ý kiến", "Gửi ý kiến ban quản trị", Icons.Default.Send) to "feedback",
                 Triple(
                     "Đồng bộ Calendar",
                     "Đồng bộ với Google Calendar",
@@ -262,6 +255,7 @@ fun MoreScreen(
         }
     }
 }
+
 @Composable
 fun LogoutConfirmDialog(
     onConfirm: () -> Unit,
