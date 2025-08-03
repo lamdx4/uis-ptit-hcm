@@ -150,7 +150,7 @@ fun LoginScreen(
                                 loginState.value.username
                             )
                             navController.navigate("profile") {
-                                popUpTo("login")
+                                popUpTo("login") { inclusive = true }
                             }
                         }
                     }
