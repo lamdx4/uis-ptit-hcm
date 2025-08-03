@@ -24,7 +24,8 @@ class ForgotPasswordViewModel @Inject constructor(
 
     // Store studentId and email temporarily for the reset process
     private var currentStudentId: String = ""
-    private var currentEmail: String = ""
+    var currentEmail: String = ""
+        private set
 
     fun requestOTP(studentId: String, email: String) {
         if (studentId.isBlank() || email.isBlank()) {
