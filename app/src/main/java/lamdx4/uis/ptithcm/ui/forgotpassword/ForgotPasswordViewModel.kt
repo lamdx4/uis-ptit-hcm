@@ -23,10 +23,8 @@ class ForgotPasswordViewModel @Inject constructor(
     val resetPasswordUiState: StateFlow<ResetPasswordUiState> = _resetPasswordUiState.asStateFlow()
 
     // Store studentId and email temporarily for the reset process
-    var currentStudentId: String = ""
-        private set
-    var currentEmail: String = ""
-        private set
+    private var currentStudentId: String = ""
+    private var currentEmail: String = ""
 
     fun requestOTP(studentId: String, email: String) {
         if (studentId.isBlank() || email.isBlank()) {
