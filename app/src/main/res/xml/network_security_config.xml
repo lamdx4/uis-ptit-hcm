@@ -1,6 +1,8 @@
 <network-security-config>
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>
+            <!-- ⚠️ Cần dòng này để giữ hệ thống chứng chỉ mặc định -->
+            <certificates src="system" />
             <certificates src="@raw/ptit_cert" />
         </trust-anchors>
     </base-config>

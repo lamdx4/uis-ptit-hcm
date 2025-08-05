@@ -10,6 +10,7 @@ import lamdx4.uis.ptithcm.ui.more.curriculum.CurriculumScreen
 import lamdx4.uis.ptithcm.ui.more.detail.DetailedInfoScreen
 import lamdx4.uis.ptithcm.ui.more.feedback.FeedbackScreen
 import lamdx4.uis.ptithcm.ui.more.invoices.InvoicesScreen
+import lamdx4.uis.ptithcm.ui.more.notifications.NotificationDetailScreen
 import lamdx4.uis.ptithcm.ui.more.notifications.NotificationsScreen
 import lamdx4.uis.ptithcm.ui.more.payment.PaymentScreen
 import lamdx4.uis.ptithcm.ui.more.prerequisites.PrerequisitesScreen
@@ -21,7 +22,8 @@ fun NavGraphBuilder.moreNavGraph(
     innerPadding: PaddingValues,
 ) {
     composable("more") {
-        MoreScreen(navController = navController,
+        MoreScreen(
+            navController = navController,
             modifier = Modifier.padding(innerPadding)
         )
     }
@@ -41,7 +43,18 @@ fun NavGraphBuilder.moreNavGraph(
 
     // Additional More feature screens
     composable("notifications") {
-        NotificationsScreen(navController = navController)
+        NotificationsScreen(
+            navController = navController,
+            modifier = Modifier.padding(innerPadding)
+        )
+    }
+    composable("notification_detail/{notificationId}") { backStackEntry ->
+        val notificationId = backStackEntry.arguments?.getString("notificationId") ?: ""
+        NotificationDetailScreen(
+            notificationId = notificationId,
+            navController = navController,
+            modifier = Modifier.padding(innerPadding)
+        )
     }
 
     composable("curriculum") {

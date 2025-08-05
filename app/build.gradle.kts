@@ -66,7 +66,6 @@ android {
 
 dependencies {
     implementation(libs.androidx.material.icons.extended)
-    implementation("androidx.compose.foundation:foundation:1.8.3")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -117,4 +116,5 @@ dependencies {
     implementation("com.google.http-client:google-http-client-gson:1.47.1")
 
     implementation("org.jsoup:jsoup:1.21.1")
+
 }

@@ -46,4 +46,8 @@ abstract class RepoModule {
     @Binds
     @IntoSet
     abstract fun bindLoginPrefs(prefs: LoginPrefs): Cacheable
+
+    @Binds
+    @IntoSet
+    abstract fun bindNotificationRepository(repo: NotificationRepository): Cacheable
 }
