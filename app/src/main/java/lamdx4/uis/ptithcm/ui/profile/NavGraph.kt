@@ -13,6 +13,7 @@ fun NavGraphBuilder.profileNavGraph(
 ) {
     composable("profile") {
         ProfileScreen(
+            navController = navController,
             modifier = Modifier.padding(innerPadding)
         )
     }

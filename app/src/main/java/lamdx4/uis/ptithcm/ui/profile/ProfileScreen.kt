@@ -57,6 +57,8 @@ import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.Wc
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -98,6 +100,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
@@ -115,6 +118,7 @@ fun ProfileScreen(
     appViewModel: AppViewModel = activityViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel(),
     statisticsViewModel: StatisticsViewModel = hiltViewModel(),
+    navController: NavController,
     modifier: Modifier
 ) {
     val userState by appViewModel.uiState.collectAsState()
@@ -192,6 +196,7 @@ fun ProfileScreen(
                     profile = profile,
                     statisticsState = statisticsState,
                     statisticsViewModel = statisticsViewModel,
+                    navi = navController
                 )
             }
 
@@ -206,6 +211,7 @@ private fun ImprovedProfileContent(
     profile: CompleteStudentInfo,
     statisticsState: StatisticsUiState,
     statisticsViewModel: StatisticsViewModel,
+    navi: NavController
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -229,7 +235,7 @@ private fun ImprovedProfileContent(
 
         // Notifications Section
         item {
-            NotificationsSection(statisticsState)
+            NotificationsSection(statisticsState, { navi.navigate("notifications") })
         }
 
         // Statistics Section với improved layout
@@ -1441,7 +1447,7 @@ private fun ScheduleItemCard(schedule: lamdx4.uis.ptithcm.data.model.ScheduleTod
 }
 
 @Composable
-private fun NotificationsSection(statisticsState: StatisticsUiState) {
+private fun NotificationsSection(statisticsState: StatisticsUiState, onClick: () -> Unit) {
     val unreadCount = statisticsState.academicResult?.sl_thong_bao_chua_doc ?: 0
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -1513,12 +1519,21 @@ private fun NotificationsSection(statisticsState: StatisticsUiState) {
             }
 
             // Arrow or action icon
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(24.dp)
-            )
+            Button(
+                onClick = onClick,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                shape = CircleShape,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
     }
 }
