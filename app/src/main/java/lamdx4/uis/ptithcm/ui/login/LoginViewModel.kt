@@ -61,28 +61,52 @@ class LoginViewModel @Inject constructor(
             }
 
             _uiState.update { it.copy(loading = true, error = null) }
-            val result = authRepository.login(username, password)
-            result.onSuccess { token ->
-                _uiState.update { it.copy(loading = false, success = true, error = null) }
-                val accessToken = result.getOrNull()?.accessToken ?: ""
-                val refreshToken = result.getOrNull()?.refreshToken ?: ""
-                loginPrefs.saveLoginInfo(
-                    accessToken,
-                    refreshToken,
-                    username,
-                    username,
-                    password,
-                    rememberMe
-                )
-                Result.success(Unit)
-            }.onFailure { e ->
-                _uiState.update {
-                    it.copy(
-                        loading = false,
-                        error = e.message ?: "Đăng nhập thất bại"
+
+            if (AuthRepository.TYPE_LOGIN == "SSO"){
+                val result = authRepository.login2(username, password)
+                result.onSuccess { res ->
+                    _uiState.update { it.copy(loading = false, success = true, error = null) }
+                    loginPrefs.saveLoginInfo(
+                        res.accessToken,
+                        "none",
+                        res.userName,
+                        res.userName,
+                        password,
+                        rememberMe
                     )
+                    Result.success(Unit)
+                }.onFailure { e ->
+                    _uiState.update {
+                        it.copy(
+                            loading = false,
+                            error = e.message ?: "Đăng nhập thất bại"
+                        )
+                    }
+                    Result.failure<Unit>(e)
                 }
-                Result.failure<Unit>(e)
+            }
+            else {
+                val result = authRepository.login(username, password)
+                result.onSuccess { res ->
+                    _uiState.update { it.copy(loading = false, success = true, error = null) }
+                    loginPrefs.saveLoginInfo(
+                        res.accessToken,
+                        res.refreshToken,
+                        res.userName,
+                        res.userName,
+                        password,
+                        rememberMe
+                    )
+                    Result.success(Unit)
+                }.onFailure { e ->
+                    _uiState.update {
+                        it.copy(
+                            loading = false,
+                            error = e.message ?: "Đăng nhập thất bại"
+                        )
+                    }
+                    Result.failure<Unit>(e)
+                }
             }
         }
 
