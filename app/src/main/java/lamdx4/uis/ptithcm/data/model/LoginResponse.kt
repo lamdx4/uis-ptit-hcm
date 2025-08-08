@@ -56,9 +56,6 @@ data class Login2Response(
     @SerialName("IDDVPC")
     val idDvpc: Long,
 
-    @SerialName("passtype")
-    val passType: Int,
-
     @SerialName("UserLevel")
     val userLevel: Int,
 
