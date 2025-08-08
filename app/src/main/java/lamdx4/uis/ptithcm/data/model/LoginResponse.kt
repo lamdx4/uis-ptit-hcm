@@ -67,4 +67,7 @@ data class Login2Response(
 
     @SerialName("code")
     val code: Int
+
+    @SerialName("passtype")
+    val passType: Int
 )
