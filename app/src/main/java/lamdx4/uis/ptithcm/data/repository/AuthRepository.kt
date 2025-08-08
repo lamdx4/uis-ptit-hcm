@@ -98,8 +98,11 @@ class AuthRepository @Inject constructor(
                 )
             } else {
                 val userJson = String(Base64.getDecoder().decode(currUserBase64))
+                val json = Json {
+                    ignoreUnknownKeys = true
+                }
                 Result.success(
-                    Json.decodeFromString<Login2Response>(userJson)
+                    json.decodeFromString<Login2Response>(userJson)
                 )
             }
 
