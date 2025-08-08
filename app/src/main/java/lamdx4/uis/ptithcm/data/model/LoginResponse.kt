@@ -66,8 +66,5 @@ data class Login2Response(
     val result: Boolean,
 
     @SerialName("code")
-    val code: Int,
-
-    @SerialName("passtype")
-    val passType: Int
+    val code: Int
 )
