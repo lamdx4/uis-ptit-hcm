@@ -23,3 +23,48 @@ data class LoginResponse(
     @SerialName(".expires") val expiresAt: String,
     @SerialName(".issued") val issuedAt: String,
 )
+
+@Serializable
+data class Login2Response(
+    @SerialName("IDUser")
+    val idUser: Long,
+
+    @SerialName("Session")
+    val session: Long,
+
+    @SerialName("id")
+    val id: String,
+
+    @SerialName("name")
+    val name: String,
+
+    @SerialName("FullName")
+    val fullName: String,
+
+    @SerialName("principal")
+    val principal: String,
+
+    @SerialName("access_token")
+    val accessToken: String,
+
+    @SerialName("userName")
+    val userName: String,
+
+    @SerialName("roles")
+    val roles: String,
+
+    @SerialName("IDDVPC")
+    val idDvpc: Long,
+
+    @SerialName("passtype")
+    val passType: Int,
+
+    @SerialName("UserLevel")
+    val userLevel: Int,
+
+    @SerialName("result")
+    val result: Boolean,
+
+    @SerialName("code")
+    val code: Int
+)
