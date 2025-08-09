@@ -17,8 +17,10 @@ class InvoicesViewModel @Inject constructor(
     val invoicesState = _invoicesState
 
     private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage = _errorMessage
 
     private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading
 
     fun loadInvoices() {
         viewModelScope.launch {

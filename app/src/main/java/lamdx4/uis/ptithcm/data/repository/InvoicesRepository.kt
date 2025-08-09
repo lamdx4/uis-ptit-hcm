@@ -37,7 +37,7 @@ class InvoicesRepository @Inject constructor(
 
         // Cache miss or expired, fetch from API
         return try {
-            val res = this.client.post("http://uis.ptithcm.edu.vn/api/rms/w-locdshoadondientu") {
+            val res = this.client.post("https://uis.ptithcm.edu.vn/api/rms/w-locdshoadondientu") {
                 contentType(ContentType.Application.Json)
                 setBody(
                     InvoiceRequest(
