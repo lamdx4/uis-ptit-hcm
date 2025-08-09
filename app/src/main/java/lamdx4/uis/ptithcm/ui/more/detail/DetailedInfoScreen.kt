@@ -44,6 +44,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
@@ -78,7 +79,7 @@ fun DetailedInfoScreen(
     navController: NavController,
     appViewModel: AppViewModel = activityViewModel(),
     profileViewModel: ProfileViewModel = hiltViewModel(),
-    modifier: Modifier = Modifier
+    modifier: Modifier
 ) {
     // Lấy thông tin student từ AppViewModel
     val userState by appViewModel.uiState.collectAsState()
@@ -104,36 +105,20 @@ fun DetailedInfoScreen(
         }
     }
 
-    Scaffold(
+    Surface(
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Thông tin chi tiết",
-                        fontWeight = FontWeight.Bold
-                    ) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
+    ) {
         when {
             profile != null -> {
                 TabbedInformationContent(
                     profile = profile,
-                    modifier = Modifier.padding(paddingValues)
                 )
             }
+
             isLoading -> {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
+                        .fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
@@ -145,11 +130,11 @@ fun DetailedInfoScreen(
                     }
                 }
             }
+
             errorMessage != null -> {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
+                        .fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
@@ -177,11 +162,11 @@ fun DetailedInfoScreen(
                     }
                 }
             }
+
             else -> {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues),
+                        .fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(

@@ -77,30 +77,12 @@ fun CurriculumScreen(
         curriculumViewModel.loadCurriculums(programType = 1)
     }
 
-    Scaffold(
+    Surface(
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { Text("Chương trình đào tạo", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = { navController?.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {
-                        curriculumViewModel.refreshCurriculum(curriculumTypes.getOrNull(selectedTypeIndex)?.value ?: 1)
-                    }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Làm mới")
-                    }
-                }
-            )
-        }
-    ) { padding ->
+        ) {
 
         Column(
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
         ) {
             // Dropdown chọn loại CTĐT
@@ -116,14 +98,15 @@ fun CurriculumScreen(
             )
 
             // Danh sách semester
-            val semesterPrograms: List<SemesterProgram> = curriculumResponse?.data?.semesterPrograms.orEmpty()
+            val semesterPrograms: List<SemesterProgram> =
+                curriculumResponse?.data?.semesterPrograms.orEmpty()
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = 16.dp),
                 contentPadding = PaddingValues(
                     top = 16.dp,
-                    bottom = padding.calculateBottomPadding() + 16.dp
+                    bottom = 16.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {

@@ -24,7 +24,6 @@ fun AppNavHost(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-
     val showBottomNav = currentRoute != "login" && currentRoute != "forgot-password"
 
     if (showBottomNav) {
@@ -38,7 +37,7 @@ fun AppNavHost(
                 scheduleNavGraph(navController, innerPadding)
                 gradesNavGraph(navController, innerPadding)
                 examNavGraph(navController, innerPadding)
-                forgotPasswordNavGraph(navController, PaddingValues())
+                forgotPasswordNavGraph(navController, innerPadding)
                 registerNavGraph(navController, innerPadding)
                 feeNavGraph(navController, innerPadding)
                 moreNavGraph(navController, innerPadding)

@@ -38,6 +38,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -63,6 +64,7 @@ import lamdx4.uis.ptithcm.data.model.CourseItem
 import lamdx4.uis.ptithcm.data.model.RegisteredSubject
 import lamdx4.uis.ptithcm.data.model.SubjectFilter
 import lamdx4.uis.ptithcm.ui.AppViewModel
+import lamdx4.uis.ptithcm.ui.nav.UiEventViewModel
 import lamdx4.uis.ptithcm.ui.theme.PTITTypography
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,6 +74,8 @@ fun CourseRegistrationScreen(
     registrationViewModel: CourseRegistrationViewModel = hiltViewModel(),
     appViewModel: AppViewModel = activityViewModel<AppViewModel>()
 ) {
+
+    val refreshCoordinator = appViewModel.refreshCoordinator
     val userState by appViewModel.uiState.collectAsState()
     val registrationState by registrationViewModel.uiState.collectAsState()
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -85,6 +89,14 @@ fun CourseRegistrationScreen(
 
     val filters = registrationState.subjectFilters
     val selectedFilter = registrationState.selectedFilter
+
+    LaunchedEffect(Unit) {
+        refreshCoordinator.refreshEvent.collect { route ->
+            if (route == "register") {
+                registrationViewModel.refreshData()
+            }
+        }
+    }
 
     // Show snackbar for messages
     registrationState.error?.let { error ->
@@ -101,37 +113,11 @@ fun CourseRegistrationScreen(
         }
     }
 
-    Scaffold(
+    Surface(
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "Đăng ký môn học",
-                        style = PTITTypography.screenTitle
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                ),
-                actions = {
-                    IconButton(
-                        onClick = { registrationViewModel.refreshData() }
-                    ) {
-                        Icon(
-                            Icons.Default.Refresh,
-                            contentDescription = "Làm mới",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            )
-        }
-    ) { padding ->
+    ) {
         Column(
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
         ) {
             // Registration Note (giữ lại cho cả 2 tab)
@@ -568,7 +554,7 @@ private fun AvailableSubjectCard(
                     label = "TC",
                     value = group.credit
                 )
-                    SubjectDetailChip(
+                SubjectDetailChip(
                     label = "Lớp",
                     value = group.className
                 )
