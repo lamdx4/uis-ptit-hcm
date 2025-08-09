@@ -1,11 +1,5 @@
 package lamdx4.uis.ptithcm.ui.nav
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,19 +18,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Grade
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -51,8 +43,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import lamdx4.uis.ptithcm.common.activityViewModel
+import lamdx4.uis.ptithcm.ui.AppViewModel
+import lamdx4.uis.ptithcm.ui.nav.TopAppBarConfig.routeTopBarConfig
+import lamdx4.uis.ptithcm.util.RefreshCoordinator
 
 sealed class MainNavDest(
     val route: String,
@@ -93,15 +90,46 @@ sealed class MainNavDest(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainNavBarScaffold(
     navController: NavHostController,
-    content: @Composable (PaddingValues) -> Unit
+    content: @Composable (PaddingValues) -> Unit,
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val topBarConfig = routeTopBarConfig[currentRoute]
+    val uiEventVM: RefreshCoordinator = activityViewModel<AppViewModel>().refreshCoordinator
 
     Scaffold(
+        topBar = {
+            if (topBarConfig != null) {
+                androidx.compose.material3.TopAppBar(
+                    title = { Text(topBarConfig.title) },
+                    navigationIcon = {
+                        if (topBarConfig.showBack) {
+                            @Composable {
+                                IconButton(onClick = { navController.popBackStack() }) {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = "Back"
+                                    )
+                                }
+                            }
+                        } else null
+                    },
+                    actions = {
+                        if (topBarConfig.showRefresh) {
+                            IconButton(onClick = {
+                                currentRoute?.let { uiEventVM.sendRefresh(it) }
+                            }) {
+                                Icon(Icons.Default.Refresh, contentDescription = "Refresh")
+                            }
+                        }
+                    }
+                )
+            }
+        },
         bottomBar = {
             ModernBottomNavigationBar(
                 currentRoute = currentRoute,

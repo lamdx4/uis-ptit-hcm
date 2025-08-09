@@ -2,17 +2,16 @@ package lamdx4.uis.ptithcm.util
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class RefreshCoordinator {
-    private val _refreshFlows = mutableMapOf<String, MutableSharedFlow<Unit>>()
+@Singleton
+class RefreshCoordinator @Inject constructor() {
+    private val _refreshEvent = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val refreshEvent = _refreshEvent.asSharedFlow()
 
-    fun getRefreshFlow(key: String): Flow<Unit> {
-        return _refreshFlows.getOrPut(key) {
-            MutableSharedFlow(extraBufferCapacity = 1)
-        }
-    }
-
-    fun requestRefresh(key: String) {
-        _refreshFlows[key]?.tryEmit(Unit)
+    fun sendRefresh(route: String) {
+        _refreshEvent.tryEmit(route)
     }
 }

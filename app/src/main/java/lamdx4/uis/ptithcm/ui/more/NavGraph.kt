@@ -78,13 +78,6 @@ fun NavGraphBuilder.moreNavGraph(
         )
     }
 
-    composable("update_info") {
-        UpdateInfoScreen(
-            navController = navController,
-            modifier = Modifier.padding(innerPadding)
-        )
-    }
-
     composable("feedback") {
         FeedbackScreen(
             navController = navController,

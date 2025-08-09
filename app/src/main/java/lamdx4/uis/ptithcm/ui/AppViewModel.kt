@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.data.SessionManager
 import lamdx4.uis.ptithcm.data.local.LoginPrefs
 import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
+import lamdx4.uis.ptithcm.util.RefreshCoordinator
 import javax.inject.Inject
 
 data class AppUserState(
@@ -20,6 +21,7 @@ data class AppUserState(
 @HiltViewModel
 class AppViewModel @Inject constructor(
     app: Application,
+    val refreshCoordinator: RefreshCoordinator,
     private val sessionManager: SessionManager
 ) : AndroidViewModel(app) {
 
