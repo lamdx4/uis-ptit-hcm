@@ -1,5 +1,6 @@
 package lamdx4.uis.ptithcm.ui.more.invoices
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -103,6 +104,7 @@ fun InvoiceCard(index: Int, invoice: Invoice) {
     val code = invoice.invoiceCode // mã hóa đơn từ data
     val pdfUrl = "https://www.meinvoice.vn/tra-cuu/downloadhandler.ashx?type=pdf&code=$code"
     val xmlUrl = "https://www.meinvoice.vn/tra-cuu/downloadhandler.ashx?type=xml&code=$code"
+    val fileName = "hoa_don_${invoice.invoiceNumber}.pdf"
 
     androidx.compose.material3.Card(
         modifier = Modifier
@@ -188,7 +190,7 @@ fun InvoiceCard(index: Int, invoice: Invoice) {
                             downloadFile(
                                 context = context,
                                 url = pdfUrl,
-                                fileName = "hoa_don_${invoice.invoiceNumber}.pdf"
+                                fileName = "${fileName}.pdf"
                             )
                         },
                         modifier = Modifier.weight(1f)
@@ -201,7 +203,7 @@ fun InvoiceCard(index: Int, invoice: Invoice) {
                             downloadFile(
                                 context = context,
                                 url = xmlUrl,
-                                fileName = "hoa_don_${invoice.invoiceNumber}.xml"
+                                fileName = "${fileName}.xml"
                             )
                         },
                         modifier = Modifier.weight(1f)
@@ -224,6 +226,7 @@ fun formatDate(dateString: String): String {
             date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
         }
     } catch (e: Exception) {
-        dateString // Nếu parse lỗi thì trả về nguyên bản
+        Log.e("InvoicesScreen", "Failed to parse date: $dateString", e)
+        "Invalid date format"
     }
 }
