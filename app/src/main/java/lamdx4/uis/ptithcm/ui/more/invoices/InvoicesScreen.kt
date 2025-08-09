@@ -30,11 +30,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import lamdx4.uis.ptithcm.data.model.Invoice
+import lamdx4.uis.ptithcm.util.downloadFile
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -95,6 +97,12 @@ fun InvoicesScreen(
 @Composable
 fun InvoiceCard(index: Int, invoice: Invoice) {
     var expanded by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+
+    val code = invoice.invoiceCode // mã hóa đơn từ data
+    val pdfUrl = "https://www.meinvoice.vn/tra-cuu/downloadhandler.ashx?type=pdf&code=$code"
+    val xmlUrl = "https://www.meinvoice.vn/tra-cuu/downloadhandler.ashx?type=xml&code=$code"
 
     androidx.compose.material3.Card(
         modifier = Modifier
@@ -176,14 +184,26 @@ fun InvoiceCard(index: Int, invoice: Invoice) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Button(
-                        onClick = { /* TODO: tải PDF */ },
+                        onClick = {
+                            downloadFile(
+                                context = context,
+                                url = pdfUrl,
+                                fileName = "hoa_don_${invoice.invoiceNumber}.pdf"
+                            )
+                        },
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("Tải File PDF")
                     }
 
                     Button(
-                        onClick = { /* TODO: tải XML */ },
+                        onClick = {
+                            downloadFile(
+                                context = context,
+                                url = xmlUrl,
+                                fileName = "hoa_don_${invoice.invoiceNumber}.xml"
+                            )
+                        },
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("Tải File XML")
