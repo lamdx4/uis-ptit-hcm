@@ -29,20 +29,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.PictureAsPdf
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,14 +53,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.data.model.Invoice
+import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.util.downloadFile
 import java.text.NumberFormat
 import java.time.LocalDate
@@ -70,21 +71,35 @@ import java.util.Locale
 
 /* ------- Screen ------- */
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InvoicesScreen(
     modifier: Modifier = Modifier,
     navController: NavController? = null,
-    viewModel: InvoicesViewModel = hiltViewModel()
+    viewModel: InvoicesViewModel = hiltViewModel(),
+    appViewModel: AppViewModel = activityViewModel<AppViewModel>()
 ) {
     val invoicesResponse by viewModel.invoicesState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val invoices = invoicesResponse?.data?.invoices ?: emptyList()
 
-    LaunchedEffect(Unit) { viewModel.loadInvoices() }
+    val refreshCoordinator = appViewModel.refreshCoordinator
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
 
-    Box(modifier = modifier.fillMaxSize()) {
+    LaunchedEffect(Unit) {
+        refreshCoordinator.refreshEvent.collect { route ->
+            if (route == "invoices") {
+                viewModel.refreshInvoices()
+            }
+        }
+    }
+
+    PullToRefreshBox(
+        modifier = modifier.fillMaxSize(),
+        isRefreshing = isRefreshing,
+        onRefresh = { viewModel.refreshInvoices() }) {
         when {
-            isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
             errorMessage != null -> Text(
                 text = errorMessage ?: "",
                 color = MaterialTheme.colorScheme.error,
@@ -92,13 +107,14 @@ fun InvoicesScreen(
             )
 
             else -> {
-                val invoices = invoicesResponse?.data?.invoices ?: emptyList()
-                if (invoices.isEmpty()) {
+                if (invoices.isEmpty() && !isLoading) {
                     Text(
                         "Không có hóa đơn",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.align(Alignment.Center)
                     )
+                } else if (isRefreshing) {
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
@@ -110,8 +126,34 @@ fun InvoicesScreen(
                             key = { _, iv -> iv.invoiceCode ?: (iv.invoiceNumber + iv.studentCode) }
                         ) { index, invoice ->
                             InvoiceCard(index + 1, invoice)
+
+                            // Chỉ load thêm khi ở cuối và không đang loading
+                            if (index == invoices.lastIndex && !isLoading) {
+                                LaunchedEffect(index) {
+                                    viewModel.loadNextPage()
+                                }
+                            }
+                        }
+
+                        // Hiển thị loading ở cuối danh sách khi đang tải thêm
+                        if (isLoading && invoices.isNotEmpty()) {
+                            item {
+                                Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 16.dp),
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            }
                         }
                     }
+                }
+
+                // Loading ở giữa khi lần đầu tải
+                if (isLoading && invoices.isEmpty()) {
+                    CircularProgressIndicator(Modifier.align(Alignment.Center))
                 }
             }
         }
@@ -139,7 +181,8 @@ fun InvoiceCard(
     val baseFileName = "hoa_don_${invoice.invoiceNumber}"
 
     val currencyFormatter = remember { NumberFormat.getNumberInstance(Locale("vi", "VN")) }
-    val amountFormatted = runCatching { currencyFormatter.format(invoice.amount ?: 0.0) }.getOrDefault("0")
+    val amountFormatted =
+        runCatching { currencyFormatter.format(invoice.amount ?: 0.0) }.getOrDefault("0")
 
     val shape = RoundedCornerShape(12.dp)
     val outline = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f)
@@ -254,7 +297,11 @@ fun InvoiceCard(
                             },
                             modifier = Modifier.weight(1f)
                         ) {
-                            Icon(Icons.Default.PictureAsPdf, null, tint = MaterialTheme.colorScheme.primary)
+                            Icon(
+                                Icons.Default.PictureAsPdf,
+                                null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                             Spacer(Modifier.width(6.dp))
                             Text("PDF")
                         }

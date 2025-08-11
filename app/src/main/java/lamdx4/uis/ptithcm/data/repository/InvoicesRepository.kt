@@ -15,7 +15,9 @@ import lamdx4.uis.ptithcm.data.model.InvoiceResponse
 import lamdx4.uis.ptithcm.util.CacheEntry
 import lamdx4.uis.ptithcm.util.invalidateBearerTokens
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class InvoicesRepository @Inject constructor(
     private val client: HttpClient
 ) : Cacheable {
@@ -25,12 +27,18 @@ class InvoicesRepository @Inject constructor(
     // Cache timeout in milliseconds (e.g. 5 minutes)
     private val cacheTimeoutMillis = 5 * 60 * 1000L
 
-    suspend fun getInvoices(limit: Int = 10, page: Int = 1): Result<InvoiceResponse> {
+    suspend fun getInvoices(
+        limit: Int = 10,
+        page: Int = 1,
+        isForceRefresh: Boolean = false
+    ): Result<InvoiceResponse> {
         val cacheKey = Pair(limit, page)
         val now = System.currentTimeMillis()
         val cached = cachedInvoices[cacheKey]
 
-        if (cached != null && now - cached.timestamp < cacheTimeoutMillis) {
+        if (isForceRefresh) {
+            cachedInvoices.clear()
+        } else if (cached != null && now - cached.timestamp < cacheTimeoutMillis) {
             // Cache hit and not expired
             return Result.success(cached.data)
         }

@@ -6,7 +6,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.Uri
 import android.os.Environment
 import android.util.Log
 import android.widget.Toast
@@ -29,7 +28,7 @@ fun downloadFile(context: Context, url: String, fileName: String): Long {
         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         .setAllowedOverMetered(true)
         .setAllowedOverRoaming(true)
-        .setDestinationInExternalPublicDir( Environment.DIRECTORY_DOWNLOADS, safeName)
+        .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, safeName)
 
     // Enqueue TRƯỚC khi đăng ký receiver
 
@@ -42,20 +41,17 @@ fun downloadFile(context: Context, url: String, fileName: String): Long {
         return -1L
     }
 
-
     val onComplete = object : BroadcastReceiver() {
         override fun onReceive(c: Context?, intent: Intent?) {
             try {
                 val id = intent?.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1L) ?: -1L
 
-                if (id != downloadId) {
-                }
-
                 // query status
                 val cursor = dm.query(DownloadManager.Query().setFilterById(id))
                 cursor?.use {
                     if (it.moveToFirst()) {
-                        val status = it.getInt(it.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
+                        val status =
+                            it.getInt(it.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))
 
                         when (status) {
                             DownloadManager.STATUS_SUCCESSFUL -> {
@@ -83,7 +79,8 @@ fun downloadFile(context: Context, url: String, fileName: String): Long {
                 }
             } catch (e: Exception) {
                 Log.e("DownloadUtil", "Error processing download complete", e)
-                Toast.makeText(appContext, "Lỗi xử lý download: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(appContext, "Lỗi xử lý download: ${e.message}", Toast.LENGTH_LONG)
+                    .show()
             } finally {
                 // cleanup
                 try {
@@ -116,7 +113,8 @@ fun downloadFile(context: Context, url: String, fileName: String): Long {
         activeReceivers.add(onComplete)
     } catch (e: Exception) {
         Log.e("DownloadUtil", "Failed to register receiver", e)
-        Toast.makeText(appContext, "Không thể đăng ký receiver: ${e.message}", Toast.LENGTH_LONG).show()
+        Toast.makeText(appContext, "Không thể đăng ký receiver: ${e.message}", Toast.LENGTH_LONG)
+            .show()
         return -1L
     }
 
