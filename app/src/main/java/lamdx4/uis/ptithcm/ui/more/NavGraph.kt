@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import lamdx4.uis.ptithcm.ui.more.changepassword.ChangePasswordScreen
 import lamdx4.uis.ptithcm.ui.more.curriculum.CurriculumScreen
 import lamdx4.uis.ptithcm.ui.more.detail.DetailedInfoScreen
 import lamdx4.uis.ptithcm.ui.more.feedback.FeedbackScreen
@@ -15,7 +16,6 @@ import lamdx4.uis.ptithcm.ui.more.notifications.NotificationsScreen
 import lamdx4.uis.ptithcm.ui.more.payment.PaymentScreen
 import lamdx4.uis.ptithcm.ui.more.prerequisites.PrerequisitesScreen
 import lamdx4.uis.ptithcm.ui.more.sync.CalendarSyncScreen
-import lamdx4.uis.ptithcm.ui.more.updateinfo.UpdateInfoScreen
 
 fun NavGraphBuilder.moreNavGraph(
     navController: NavHostController,
@@ -59,6 +59,13 @@ fun NavGraphBuilder.moreNavGraph(
 
     composable("curriculum") {
         CurriculumScreen(
+            navController = navController,
+            modifier = Modifier.padding(innerPadding)
+        )
+    }
+
+    composable("change_password") {
+        ChangePasswordScreen(
             navController = navController,
             modifier = Modifier.padding(innerPadding)
         )

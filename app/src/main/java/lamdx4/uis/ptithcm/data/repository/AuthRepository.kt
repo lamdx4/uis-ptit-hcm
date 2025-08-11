@@ -82,7 +82,6 @@ class AuthRepository @Inject constructor(
             )
 
 
-
             val errorMessage =
                 finalUrl.substringAfter("error=", "").takeIf { "error=" in finalUrl }?.let {
                     URLDecoder.decode(it, "UTF-8")
@@ -164,6 +163,32 @@ class AuthRepository @Inject constructor(
 
     }
 
+    suspend fun changePassword(
+        username: String,
+        oldPassword: String,
+        newPassword: String
+    ): Result<Unit> {
+        return try {
+            val response = this.client.post("https://uis.ptithcm.edu.vn/api/auth/password") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    mapOf(
+                        "username" to username,
+                        "password" to oldPassword,
+                        "newpass" to newPassword
+                    )
+                )
+            }
+            val data = response.body<ForgotPasswordResponse>()
+            if (data.code != 200) {
+                Result.failure<Unit>(Exception("${data.message} "))
+            }
+            this.client.invalidateBearerTokens()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(Exception("Có lỗi xảy ra: ${e.message}"))
+        }
+    }
 
     override fun clearCache() {
         this.client.invalidateBearerTokens()

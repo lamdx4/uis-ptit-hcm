@@ -20,24 +20,45 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.logging.SIMPLE
-import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.formUrlEncode
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.Json
 import lamdx4.uis.ptithcm.data.local.LoginPrefs
-import lamdx4.uis.ptithcm.data.model.LoginResponse
+import lamdx4.uis.ptithcm.data.model.Login2Response
+import lamdx4.uis.ptithcm.data.repository.AuthRepository
+import lamdx4.uis.ptithcm.di.RefreshClient
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
+    // Refresh client tách riêng – không cài Auth
+    @Provides
+    @Singleton
+    @RefreshClient
+    fun provideRefreshClient(): HttpClient = HttpClient(Android) {
+        install(ContentNegotiation) {
+            json(Json { ignoreUnknownKeys = true })
+        }
+        install(Logging) {
+            logger = Logger.SIMPLE
+            level = LogLevel.INFO
+        }
+        install(HttpTimeout) {
+            requestTimeoutMillis = 15000
+            connectTimeoutMillis = 5000
+            socketTimeoutMillis = 10000
+        }
+        install(HttpCookies) { storage = AcceptAllCookiesStorage() }
+        install(UserAgent) { agent = "UIS PTIT HCM Android/1.0" }
+    }
+
     @Provides
     @Singleton
     fun provideHttpClient(
-        loginPrefs: LoginPrefs // Inject LoginPrefs vào đây
+        loginPrefs: LoginPrefs, // Inject LoginPrefs vào đây
+        @RefreshClient refreshClient: HttpClient
     ): HttpClient {
         return HttpClient(Android) {
             install(ContentNegotiation) {
@@ -71,26 +92,19 @@ object NetworkModule {
                         BearerTokens(token ?: "", refreshToken ?: "")
                     }
                     refreshTokens {
-                        val currentRefreshToken = loginPrefs.getRefreshToken()
-                        if (currentRefreshToken.isNullOrBlank()) return@refreshTokens null
-
-                        val response = client.post("https://uis.ptithcm.edu.vn/api/auth/login") {
-                            header("Content-Type", "application/x-www-form-urlencoded")
-                            setBody(
-                                listOf(
-                                    "grant_type" to "refresh_token",
-                                    "refresh_token" to currentRefreshToken
-                                ).formUrlEncode()
-                            )
+                        val authRepository = AuthRepository(refreshClient)
+                        val username = loginPrefs.studentId ?: ""
+                        val password = loginPrefs.password.firstOrNull() ?: ""
+                        val r = authRepository.login2(username, password)
+                        if (r.isSuccess) {
+                            BearerTokens(r.getOrNull()?.accessToken ?: "", "")
+                        } else {
+                            BearerTokens("", "")
                         }
-
-                        val tokenResponse = response.body<LoginResponse>()
-                        loginPrefs.saveAccessToken(tokenResponse.accessToken)
-                        BearerTokens(tokenResponse.accessToken, currentRefreshToken)
                     }
                 }
             }
-            install(HttpCookies){
+            install(HttpCookies) {
                 storage = AcceptAllCookiesStorage()
             }
 

@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.ChevronRight
@@ -202,7 +203,12 @@ fun MoreScreen(
                     "Đồng bộ Calendar",
                     "Đồng bộ với Google Calendar",
                     Icons.Default.CloudSync
-                ) to "sync_calendar"
+                ) to "sync_calendar",
+                Triple(
+                    "Đổi mật khẩu",
+                    "Đổi mật khẩu tài khoản",
+                    Icons.AutoMirrored.Filled.Send
+                ) to "change_password"
             )
 
             items(otherFeatures) { (feature, route) ->
