@@ -55,6 +55,17 @@ class LoginPrefs @Inject constructor(
         cachedAccessToken = accessToken
     }
 
+    suspend fun deleteAllDataLogin(){
+        cachedAccessToken = null
+        cachedRefreshToken = null
+        this.studentId = null
+        dataStore.edit { prefs ->
+            prefs[LoginPrefsKeys.USERNAME] =  ""
+            prefs[LoginPrefsKeys.PASSWORD] = ""
+            prefs[LoginPrefsKeys.REMEMBER_ME] = false
+        }
+    }
+
     override fun clearCache() {
         cachedAccessToken = null
         cachedRefreshToken = null

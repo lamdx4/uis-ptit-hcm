@@ -8,8 +8,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import lamdx4.uis.ptithcm.data.local.LoginPrefs
 import lamdx4.uis.ptithcm.data.repository.AuthRepository
 
 data class ChangePasswordUiState(
@@ -30,7 +32,8 @@ sealed interface ChangePasswordUiEvent {
 
 @HiltViewModel
 class ChangePasswordViewModel @Inject constructor(
-    private val repo: AuthRepository
+    private val repo: AuthRepository,
+    private val loginPrefs: LoginPrefs
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChangePasswordUiState())
@@ -63,19 +66,25 @@ class ChangePasswordViewModel @Inject constructor(
 
         viewModelScope.launch {
             updateState { copy(isSubmitting = true) }
+            val newPassword = _uiState.value.newPassword
             val r = repo.changePassword(
                 username = studentId,
                 oldPassword = _uiState.value.oldPassword,
-                newPassword = _uiState.value.newPassword
+                newPassword = newPassword
             )
             // reset form
             _uiState.value = ChangePasswordUiState()
             r.onSuccess {
-                _events.tryEmit(ChangePasswordUiEvent.Success("Đổi mật khẩu thành công"))
+                val result = repo.login2(studentId, newPassword)
+                result.onSuccess { res ->
+                    loginPrefs.saveAccessToken(res.accessToken)
+                    _events.tryEmit(ChangePasswordUiEvent.Success("Đổi mật khẩu thành công"))
+                }.onFailure { e ->
+                    _events.tryEmit(ChangePasswordUiEvent.Success("Đổi mật khẩu thành công"))
+                    loginPrefs.deleteAllDataLogin()
+                }
             }.onFailure {
-                ChangePasswordUiEvent.ShowMessage(
-                    it.message ?: "Không xác định"
-                )
+                _events.tryEmit(ChangePasswordUiEvent.ShowMessage(it.message ?: "Không xác định"))
             }
             updateState { copy(isSubmitting = false) }
         }
