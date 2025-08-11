@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Grade
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,6 +51,7 @@ import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.ui.nav.TopAppBarConfig.routeTopBarConfig
 import lamdx4.uis.ptithcm.util.RefreshCoordinator
+import kotlin.collections.get
 
 sealed class MainNavDest(
     val route: String,
@@ -107,16 +109,10 @@ fun MainNavBarScaffold(
                 androidx.compose.material3.TopAppBar(
                     title = { Text(topBarConfig.title) },
                     navigationIcon = {
-                        if (topBarConfig.showBack) {
-                            @Composable {
-                                IconButton(onClick = { navController.popBackStack() }) {
-                                    Icon(
-                                        Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Back"
-                                    )
-                                }
-                            }
-                        } else null
+                        BackButton(
+                            showBack = topBarConfig.showBack,
+                            action = { navController.popBackStack() }
+                        )
                     },
                     actions = {
                         if (topBarConfig.showRefresh) {
@@ -245,3 +241,14 @@ private fun CompactNavItem(
     }
 }
 
+@Composable
+fun BackButton(showBack: Boolean, action: () -> Unit) {
+    if (showBack) {
+        IconButton(onClick = { action.invoke() }) {
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back"
+            )
+        }
+    }
+}
