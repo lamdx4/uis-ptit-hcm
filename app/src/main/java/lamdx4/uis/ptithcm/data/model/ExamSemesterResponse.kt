@@ -4,26 +4,26 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ExamTimeResponse(
-    val data: ExamTimeData,
+data class ExamSemesterResponse(
+    val data: ExamSemesterData,
     val result: Boolean,
     val code: Int
 )
 
 @Serializable
-data class ExamTimeData(
+data class ExamSemesterData(
     @SerialName("total_items") val totalItems: Int,
     @SerialName("total_pages") val totalPages: Int,
     @SerialName("hoc_ky") val currentSemester: Int,
     @SerialName("hoc_ky_theo_ngay_hien_tai") val semesterByCurrentDate: Int,
     @SerialName("thoi_gian_hieu_luc_diem_danh_qrcode") val qrCodeAttendanceValidity: Int,
     @SerialName("is_an_in_thong_ke") val isHideStatisticsPrint: Boolean,
-    @SerialName("ds_hoc_ky") val semesters: List<ExamTime>,
+    @SerialName("ds_hoc_ky") val semesters: List<ExamSemester>,
     @SerialName("hoc_ky_dang_ky") val registeredSemester: Int
 )
 
 @Serializable
-data class ExamTime(
+data class ExamSemester(
     @SerialName("hoc_ky") val semesterCode: Int,
     @SerialName("ten_hoc_ky") val semesterName: String,
     @SerialName("is_cvht") val isCvht: Boolean,
