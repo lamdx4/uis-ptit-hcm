@@ -223,9 +223,9 @@ class ExamRepository @Inject constructor(
                         """
                     {
                       "hoc_ky": $semester,
-                      "loai_doi_tuong": $examType,,
-                      "id_du_lieu": $subType,
-                      "ngay_thi": $examDate,
+                      "loai_doi_tuong": $examType,
+                      "id_du_lieu": "$subType",
+                      "ngay_thi": "$examDate",
                       "is_dk_coi_thi": false,
                       "is_giua_ky": false,
                       "additional": {
