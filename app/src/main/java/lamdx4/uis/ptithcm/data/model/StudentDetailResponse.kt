@@ -70,7 +70,7 @@ data class StudentDetailData(
     val id_lop2: String?,
     val id_khoi2: String?,
     val id_bac_he_nganh2: String?,
-    val chuyen_nganh2: String?,
+//    val chuyen_nganh2: String?,
     val str_nhhk_vao2: String?,
     val str_nhhk_ra2: String?,
     val is_master_pass: Boolean?,

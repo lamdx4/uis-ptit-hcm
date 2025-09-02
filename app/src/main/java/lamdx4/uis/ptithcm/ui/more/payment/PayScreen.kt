@@ -1,26 +1,44 @@
 package lamdx4.uis.ptithcm.ui.more.payment
 
+import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.ui.theme.PTITTypography
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentScreen(
-    modifier: Modifier = Modifier,
+    modifier: Modifier,
+    nav: NavHostController,
     viewModel: PaymentViewModel = hiltViewModel<PaymentViewModel>(),
     appViewModel: AppViewModel = activityViewModel()
 ) {
@@ -30,93 +48,247 @@ fun PaymentScreen(
     val uiState by appViewModel.uiState.collectAsState()
     val studentId = uiState.maSV.orEmpty()
     val formState = viewModel.formState.collectAsState()
+    val studentData = viewModel.studentPaymentInfo.collectAsState()
+    val currentState = viewModel.currentPage.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.fetchForm()
     }
 
-    Surface(
-        modifier = modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+    when (currentState.value) {
+        "Check" -> Surface(
+            modifier = modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "Thông tin sinh viên",
-                    style = PTITTypography.screenTitle,
-                    modifier = Modifier.padding(bottom = 24.dp)
-                )
-
-                if (formState.value != null) {
-                    // Input fields and Captcha
-                    OutlinedTextField(
-                        enabled = false,
-                        value = studentId,
-                        onValueChange = { },
-                        label = { Text("Mã sinh viên (*)", style = PTITTypography.bodyContent) },
-                        placeholder = { Text("", style = PTITTypography.bodyContent) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                        modifier = Modifier.fillMaxWidth(),
-                        textStyle = PTITTypography.bodyContent
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Thông tin sinh viên",
+                        style = PTITTypography.screenTitle,
+                        modifier = Modifier.padding(bottom = 24.dp)
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
 
-                    OutlinedTextField(
-                        value = captchaInput,
-                        onValueChange = { captchaInput = it },
-                        label = { Text("Mã xác nhận (*)", style = PTITTypography.bodyContent) },
-                        placeholder = { Text("", style = PTITTypography.bodyContent) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                        modifier = Modifier.fillMaxWidth(),
-                        textStyle = PTITTypography.bodyContent
+
+                    if (formState.value != null) {
+                        // Input fields and Captcha
+                        OutlinedTextField(
+                            enabled = false,
+                            value = studentId,
+                            onValueChange = { },
+                            label = {
+                                Text(
+                                    "Mã sinh viên (*)",
+                                    style = PTITTypography.bodyContent
+                                )
+                            },
+                            placeholder = { Text("", style = PTITTypography.bodyContent) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                            modifier = Modifier.fillMaxWidth(),
+                            textStyle = PTITTypography.bodyContent
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        OutlinedTextField(
+                            value = captchaInput,
+                            onValueChange = { captchaInput = it },
+                            label = { Text("Mã xác nhận (*)", style = PTITTypography.bodyContent) },
+                            placeholder = { Text("", style = PTITTypography.bodyContent) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                            modifier = Modifier.fillMaxWidth(),
+                            textStyle = PTITTypography.bodyContent
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        formState.value?.let { form ->
+                            Image(
+                                painter = rememberAsyncImagePainter(
+                                    model = form.imgCaptchaUrl,
+                                ),
+                                contentDescription = "Mã xác nhận",
+                                modifier = Modifier
+                                    .width(180.dp)
+                                    .height(60.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Button(
+                            onClick = {
+                                viewModel.check(studentId, captchaInput, )
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Thanh toán", style = PTITTypography.buttonText)
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Message display
+                        formState.value?.message?.let { message ->
+                            if (message.isNotEmpty()) {
+                                Text(
+                                    text = message,
+                                    color = messageColor,
+                                    style = PTITTypography.bodyContent,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+                        }
+
+                        Text(
+                            text = "Các thắc mắc trong việc chuyển khoản kinh phí nhập học thí sinh liên hệ: Số điện thoại liên hệ Phòng KTTC tại cơ sở Thủ Đức: 028.3730 8400 gặp cô Thảo. Sinh viên liên hệ giờ hành chính",
+                            style = PTITTypography.bodyContent,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
+        }
+        "Payment-Check" -> Surface(
+            modifier = modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            if (studentData.value == null) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Chi tiết thanh toán",
+                        style = PTITTypography.screenTitle,
+                        modifier = Modifier.padding(bottom = 24.dp)
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
 
-                    formState.value?.let { form ->
-                        Image(
-                            painter = rememberAsyncImagePainter(
-                                model = form.imgCaptchaUrl,
-                            ),
-                            contentDescription = "Mã xác nhận",
+                    // Thông tin sinh viên
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    ) {
+                        Column(
+                            Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            InfoRow(label = "Họ tên", value = studentData.value?.fullName.orEmpty())
+                            InfoRow(
+                                label = "Mã sinh viên",
+                                value = studentData.value?.studentId.orEmpty()
+                            )
+                            InfoRow(label = "Lớp", value = studentData.value?.classCode.orEmpty())
+                            InfoRow(
+                                label = "Số tiền",
+                                value = studentData.value?.amountVnd.orEmpty()
+                            )
+                            InfoRow(
+                                label = "Nội dung",
+                                value = studentData.value?.description.orEmpty()
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(24.dp))
+
+                    // Captcha
+                    Text(
+                        text = "Mã xác nhận",
+                        style = PTITTypography.bodyContent.copy(fontWeight = FontWeight.SemiBold),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = captchaInput,
+                            onValueChange = { captchaInput = it },
+                            label = {
+                                Text(
+                                    "Nhập mã xác nhận (*)",
+                                    style = PTITTypography.bodyContent
+                                )
+                            },
+                            modifier = Modifier.weight(1f),
+                            textStyle = PTITTypography.bodyContent,
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                keyboardType = KeyboardType.Text
+                            )
+                        )
+
+                        IconButton(
+                            onClick = {
+//                            viewModel.refreshCaptcha()
+                            },
+                            modifier = Modifier
+                                .size(56.dp)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Làm mới Captcha")
+                        }
+                    }
+
+                    Spacer(Modifier.height(12.dp))
+
+                    if (!formState.value?.imgCaptchaUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = formState.value?.imgCaptchaUrl,
+                            contentDescription = "Ảnh mã xác nhận",
                             modifier = Modifier
                                 .width(180.dp)
                                 .height(60.dp),
                             contentScale = ContentScale.Fit
                         )
                     }
-                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Spacer(Modifier.height(24.dp))
 
                     Button(
                         onClick = {
-                            viewModel.check(studentId, captchaInput)
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Thanh toán", style = PTITTypography.buttonText)
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    // Message display
-                    formState.value?.message?.let { message ->
-                        if (message.isNotEmpty()) {
-                            Text(
-                                text = message,
-                                color = messageColor,
-                                style = PTITTypography.bodyContent,
-                                modifier = Modifier.fillMaxWidth()
+                            viewModel.pay(
+                                captchaInput,
+                                "Thanh toán VNPAYQR (Redirect)"
                             )
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = captchaInput.isNotBlank()
+                    ) {
+                        Text("Thanh toán (VNPAY QR)", style = PTITTypography.buttonText)
                     }
+
+                    Button(
+                        onClick = {
+                            viewModel.pay(
+                                captchaInput,
+                                "Thanh toán ATM (Redirect)"
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = captchaInput.isNotBlank()
+                    ) {
+                        Text("Thanh toán (ATM)", style = PTITTypography.buttonText)
+                    }
+
+                    Spacer(Modifier.height(12.dp))
 
                     Text(
                         text = "Các thắc mắc trong việc chuyển khoản kinh phí nhập học thí sinh liên hệ: Số điện thoại liên hệ Phòng KTTC tại cơ sở Thủ Đức: 028.3730 8400 gặp cô Thảo. Sinh viên liên hệ giờ hành chính",
@@ -124,10 +296,75 @@ fun PaymentScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.fillMaxWidth()
                     )
-                } else {
-                    CircularProgressIndicator()
                 }
             }
         }
+        "Payment" -> {
+            InAppWebView(url = viewModel.payUrl.collectAsState().value.orEmpty())
+        }
+        else -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Lỗi không xác định")
+            }
+        }
+    }
+}
+
+@Composable
+private fun InfoRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "$label:",
+            style = PTITTypography.bodyContent.copy(fontWeight = FontWeight.SemiBold),
+            modifier = Modifier
+                .widthIn(min = 110.dp)
+                .weight(0.4f)
+        )
+        Text(
+            text = value,
+            style = PTITTypography.bodyContent,
+            modifier = Modifier.weight(0.6f)
+        )
+    }
+}
+
+@Composable
+fun OpenBrowserButton(url: String) {
+    val context = LocalContext.current
+    Button(onClick = {
+        val safeUrl = if (url.startsWith("http")) url else "https://$url"
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, safeUrl.toUri())
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            // xử lý khi không có app mở URL
+        }
+    }) { Text("Mở trình duyệt") }
+}
+@SuppressLint("SetJavaScriptEnabled")
+@Composable
+fun InAppWebView(url: String) {
+    val safeUrl = if (url.startsWith("http")) url else "https://$url"
+    AndroidView(factory = { ctx ->
+        WebView(ctx).apply {
+            settings.javaScriptEnabled = true
+            webViewClient = WebViewClient()
+            loadUrl(safeUrl)
+        }
+    })
+}
+@Composable
+fun OpenCustomTab(url: String) {
+    val context = LocalContext.current
+    val safeUrl = if (url.startsWith("http")) url else "https://$url"
+    val tabs = CustomTabsIntent.Builder()
+        .setShowTitle(true)
+        .setShareState(CustomTabsIntent.SHARE_STATE_ON)
+        .build()
+    Button(onClick = { tabs.launchUrl(context, safeUrl.toUri()) }) {
+        Text("Mở bằng Custom Tab")
     }
 }
