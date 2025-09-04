@@ -80,6 +80,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.room.common.jvm)
     implementation(libs.androidx.room.ktx)
+    ksp("androidx.room:room-compiler:2.7.2")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

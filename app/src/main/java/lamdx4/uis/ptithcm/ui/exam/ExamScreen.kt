@@ -1,6 +1,5 @@
 package lamdx4.uis.ptithcm.ui.exam
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +9,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -17,7 +18,10 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,11 +36,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import java.util.Calendar
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,27 +60,25 @@ fun ExamScreen(
     val errorMessage by viewModel.errorMessage.collectAsState()
 
     val refreshCoordinator = appViewModel.refreshCoordinator
-//    val isRefreshing by viewModel.isRefreshing.collectAsState() // not in use
+
+    // TRYING to save states for dropdown to match with data below
+    val selectedSemester by viewModel.selectedSemester.collectAsState()
+    val selectedType by viewModel.selectedType.collectAsState()
+    val selectedSubType by viewModel.selectedSubType.collectAsState()
+    val selectedDate by viewModel.selectedDate.collectAsState()
+
+    var showDatePicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         refreshCoordinator.refreshEvent.collect { route ->
             if (route == "exam") {
                 viewModel.refreshPersonalExams(20243)
                 viewModel.refreshExamTypes()
-//                viewModel.refreshExamSubTypes(20243, 3)
-//                viewModel.refreshExamSemesters()
-//                viewModel.refreshSubTypeExams(
-//                    20243, 3, "-7832454252451327385", ""
-//                )
+                viewModel.refreshExamSubTypes(20243, 3)
+                viewModel.refreshExamSemesters()
             }
         }
     }
-
-    var selectedSemester by remember { mutableStateOf<Int?>(null) }
-    var selectedType by remember { mutableStateOf<Int?>(null) }
-    var selectedSubType by remember { mutableStateOf<String?>(null) }
-    var showDatePicker by remember { mutableStateOf(false) }
-    var selectedDate by remember { mutableStateOf("") }
 
     Box(
         modifier = modifier
@@ -91,36 +95,46 @@ fun ExamScreen(
             )
         } else {
             Column(modifier = Modifier.fillMaxSize()) {
+                // Semester dropdown
                 DropdownSelector(
-                    label = "Chọn kỳ học",
-                    options = examSemesterResponse?.data?.semesters?.map { it.semesterName } ?: emptyList(),
+                    label = "Học Kỳ",
+                    options = examSemesterResponse?.data?.semesters?.map { it.semesterName }
+                        ?: emptyList(),
                     selectedOption = examSemesterResponse?.data?.semesters
                         ?.firstOrNull { it.semesterCode == selectedSemester }?.semesterName ?: "",
                     onOptionSelected = { option ->
                         val semesterId = examSemesterResponse?.data?.semesters
                             ?.firstOrNull { it.semesterName == option }?.semesterCode
                         if (semesterId != null) {
-                            selectedSemester = semesterId
-                            viewModel.refreshExamSubTypes(
-                                semesterId,
-                                selectedType ?: 0
-                            )
+                            viewModel.setSelectedSemester(semesterId)
+                            if (selectedType == 1) {
+                                viewModel.refreshPersonalExams(semesterId)
+                            } else {
+                                viewModel.refreshExamSubTypes(
+                                    semesterId, selectedType
+                                )
+                            }
                         }
                     }
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Type dropdown
                 DropdownSelector(
-                    label = "Chọn loại lịch thi",
-                    options = examTypeResponse?.data?.scheduleObjects?.map { it.objectName } ?: emptyList(),
+                    label = "Loại lịch thi",
+                    options = examTypeResponse?.data?.scheduleObjects?.map { it.objectName }
+                        ?: emptyList(),
                     selectedOption = examTypeResponse?.data?.scheduleObjects
                         ?.firstOrNull { it.objectType == selectedType }?.objectName ?: "",
                     onOptionSelected = { option ->
                         val typeId = examTypeResponse?.data?.scheduleObjects
                             ?.firstOrNull { it.objectName == option }?.objectType
                         if (typeId != null) {
-                            selectedType = typeId
+                            viewModel.setSelectedType(typeId)
+                            if (typeId != 5) {
+                                viewModel.refreshExamSubTypes(selectedSemester, typeId)
+                            }
                             showDatePicker = typeId == 5
                         }
                     }
@@ -128,57 +142,110 @@ fun ExamScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                if (selectedType != null && examTypeResponse?.data?.scheduleObjects?.firstOrNull { it.objectType == selectedType }?.objectType == 5) {
+                // Nếu type = 5 => hiển thị chọn ngày
+                if (selectedType == 5) {
                     OutlinedTextField(
                         value = selectedDate.ifEmpty { "Chọn ngày" },
                         onValueChange = {},
                         readOnly = true,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { showDatePicker = true },
-                        label = { Text("Chọn ngày") }
+                            .fillMaxWidth(),
+                        label = { Text("Chọn ngày") },
+                        trailingIcon = {
+                            IconButton(onClick = { showDatePicker = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.DateRange, // icon calendar
+                                    contentDescription = "Chọn lại ngày"
+                                )
+                            }
+                        }
                     )
 
                     if (showDatePicker) {
                         DatePickerDialog(
                             onDateSelected = { date ->
-                                selectedDate = date
+                                viewModel.setSelectedDate(date)
                                 showDatePicker = false
+                                viewModel.refreshSubTypeExams(
+                                    semester = selectedSemester,
+                                    examType = selectedType,
+                                    subType = "",
+                                    examDate = selectedDate,
+                                )
                             },
                             onDismiss = { showDatePicker = false }
                         )
                     }
-                } else {
+                } else if (selectedType != 1) {
+                    // Chỉ hiện subtype khi type != 5
                     DropdownSelector(
                         label = "Chọn SubType",
                         options = examSubTypeResponse?.data?.dataItems?.map { it.dataName }
                             ?: emptyList(),
                         selectedOption = selectedSubType,
                         onOptionSelected = { option ->
-                            selectedSubType = option
+                            val subTypeId =
+                                examSubTypeResponse?.data?.dataItems?.firstOrNull { it.dataName == option }?.dataId
+                            viewModel.setSelectedSubType(option)
+                            viewModel.refreshSubTypeExams(
+                                semester = selectedSemester,
+                                examType = selectedType,
+                                subType = subTypeId ?: "",
+                                examDate = ""
+                            )
                         }
                     )
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(personalExamResponse?.data?.examSchedules ?: emptyList()) { exam ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            elevation = CardDefaults.cardElevation(4.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
-                                Text(
-                                    text = exam.subjectName,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Text(text = "Ngày thi: ${exam.examDate}")
-                                Text(text = "Giờ bắt đầu: ${exam.startTime}")
-                                Text(text = "Phòng: ${exam.examLocation}")
-                                Text(text = "Hình thức: ${exam.examFormat}")
+                if (selectedType == 1) {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(personalExamResponse?.data?.examSchedules ?: emptyList()) { exam ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                elevation = CardDefaults.cardElevation(4.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text(
+                                        text = exam.subjectName + " - " + exam.subjectCode,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(text = "Ngày thi: ${exam.examDate}")
+                                    Text(text = "Giờ bắt đầu: ${exam.startTime}")
+                                    Text(text = "Phòng: ${exam.examLocation}")
+                                    Text(text = "Hình thức: ${exam.examFormat}")
+                                    Text(text = "Thời gian thi: ${exam.durationMinutes} phút")
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(
+                            subTypeExamResponse?.studentExamSchedule?.data?.examList ?: emptyList()
+                        ) { exam ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                elevation = CardDefaults.cardElevation(4.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text(
+                                        text = exam.subjectName + " - " + exam.subjectCode,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(text = "Ngày thi: ${exam.examDate}")
+                                    Text(text = "Giờ bắt đầu: ${exam.startTime}")
+                                    Text(text = "Phòng: ${exam.examLocation}")
+                                    Text(text = "Hình thức: ${exam.examFormat}")
+                                    Text(text = "Thời gian thi: ${exam.durationMinutes} phút")
+                                }
                             }
                         }
                     }
@@ -209,7 +276,7 @@ fun DropdownSelector(
             label = { Text(label) },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
-                .menuAnchor()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
                 .fillMaxWidth()
         )
 
@@ -242,7 +309,9 @@ fun DatePickerDialog(
         val dialog = android.app.DatePickerDialog(
             context,
             { _, year, month, dayOfMonth ->
-                onDateSelected("$dayOfMonth/${month + 1}/$year")
+                val day = String.format(Locale.US, "%02d", dayOfMonth)   // luôn 2 chữ số
+                val mon = String.format(Locale.US, "%02d", month + 1)   // month tính từ 0 → cần +1
+                onDateSelected("$day/$mon/$year")
             },
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
@@ -253,7 +322,8 @@ fun DatePickerDialog(
         dialog.show()
 
         onDispose {
-            dialog.dismiss() // Dọn dẹp khi Composable bị remove
+            dialog.dismiss()
         }
     }
+
 }

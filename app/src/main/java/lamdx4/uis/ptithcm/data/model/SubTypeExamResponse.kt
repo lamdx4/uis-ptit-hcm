@@ -14,7 +14,7 @@ data class SubTypeExamResponse(
 
 @Serializable
 data class StudentExamSchedule(
-    val data: ExamScheduleData,
+    val data: ExamScheduleData? = null,
     @SerialName("ds_field_an") val hiddenFields: List<HiddenField>,
     @SerialName("thong_bao_ghi_chu") val noteMessage: String?,
     val result: Boolean,
@@ -52,7 +52,7 @@ data class ExamItem(
     @SerialName("ghi_chu_sv") val studentNote: String?,
     @SerialName("ghep_thi") val combinedExam: String,
     @SerialName("to_thi") val examGroup: String,
-    @SerialName("ghep_phong") val combinedRoom: String?,
+    @SerialName("ghep_phong") val combinedRoom: String? = null,
     @SerialName("ghi_chu_htt") val systemNote: String,
     @SerialName("si_so") val classSize: Int,
     @SerialName("dia_diem_thi") val examLocation: String

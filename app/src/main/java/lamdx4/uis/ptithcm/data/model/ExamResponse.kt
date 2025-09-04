@@ -34,7 +34,7 @@ data class Exam(
     @SerialName("dot_thi") val examBatch: String,
     @SerialName("ma_mon") val subjectCode: String,
     @SerialName("ten_mon") val subjectName: String,
-    @SerialName("ten_mon_eg") val subjectNameEg: String,
+    @SerialName("ten_mon_eg") val subjectNameEg: String? = null,
     @SerialName("ma_phong") val roomCode: String,
     @SerialName("ma_co_so") val campusCode: String,
     @SerialName("ngay_thi") val examDate: String,

@@ -1,9 +1,11 @@
 package lamdx4.uis.ptithcm.ui.exam
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.data.model.AlarmEntity
 import lamdx4.uis.ptithcm.data.model.ExamResponse
@@ -16,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ExamViewModel @Inject constructor(
-    private val examRepository: ExamRepository
+    private val examRepository: ExamRepository,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _alarms = mutableListOf<AlarmEntity>()
     val alarms = _alarms
@@ -41,6 +44,34 @@ class ExamViewModel @Inject constructor(
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading
+
+    private val _selectedSemester = savedStateHandle.getStateFlow("selectedSemester", 20243)
+    val selectedSemester: StateFlow<Int> = _selectedSemester
+
+    private val _selectedType = savedStateHandle.getStateFlow("selectedType", 1)
+    val selectedType: StateFlow<Int> = _selectedType
+
+    private val _selectedSubType = savedStateHandle.getStateFlow<String?>("selectedSubType", null)
+    val selectedSubType: StateFlow<String?> = _selectedSubType
+
+    private val _selectedDate = savedStateHandle.getStateFlow("selectedDate", "")
+    val selectedDate: StateFlow<String> = _selectedDate
+
+    fun setSelectedSemester(value: Int) {
+        savedStateHandle["selectedSemester"] = value
+    }
+
+    fun setSelectedType(value: Int) {
+        savedStateHandle["selectedType"] = value
+    }
+
+    fun setSelectedSubType(value: String?) {
+        savedStateHandle["selectedSubType"] = value
+    }
+
+    fun setSelectedDate(value: String) {
+        savedStateHandle["selectedDate"] = value
+    }
 
     fun loadAlarms() {
         viewModelScope.launch {
@@ -68,6 +99,16 @@ class ExamViewModel @Inject constructor(
             examRepository.deleteAlarm(alarm)
             loadAlarms()
         }
+    }
+
+    init {
+        loadPersonalExams(20243)
+        loadExamTypes()
+        loadExamSubTypes(20243, 3)
+        loadExamSemesters()
+        loadSubTypeExams(
+            20243, 3, "-7832454252451327385", ""
+        )
     }
 
     fun loadPersonalExams(semester: Int, forceRefresh: Boolean = false) {
@@ -126,10 +167,17 @@ class ExamViewModel @Inject constructor(
         }
     }
 
-    fun loadSubTypeExams(semester: Int, examType: Int, subType: String, examDate: String, forceRefresh: Boolean = false) {
+    fun loadSubTypeExams(
+        semester: Int,
+        examType: Int,
+        subType: String,
+        examDate: String,
+        forceRefresh: Boolean = false
+    ) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = examRepository.getSubTypeExams(semester, examType, subType, examDate, forceRefresh)
+            val result =
+                examRepository.getSubTypeExams(semester, examType, subType, examDate, forceRefresh)
             result.onSuccess { exams ->
                 _subTypeExamState.value = exams
                 _errorMessage.value = null
