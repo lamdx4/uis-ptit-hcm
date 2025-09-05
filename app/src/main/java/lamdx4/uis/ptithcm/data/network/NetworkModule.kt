@@ -7,6 +7,7 @@ import dagger.hilt.components.SingletonComponent
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.android.Android
+import io.ktor.client.plugins.HttpRedirect
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.UserAgent
@@ -41,9 +42,12 @@ object NetworkModule {
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true })
         }
+        install(HttpRedirect) {
+            checkHttpMethod = false
+        }
         install(Logging) {
-            logger = Logger.SIMPLE
-            level = LogLevel.INFO
+            logger = Logger.SIMPLE // hoặc Logger.DEFAULT
+            level = LogLevel.ALL   // Ghi log toàn bộ: URL, headers, body…
         }
         install(HttpTimeout) {
             requestTimeoutMillis = 15000
@@ -65,6 +69,10 @@ object NetworkModule {
                 json(Json {
                     ignoreUnknownKeys = true
                 })
+            }
+
+            install(HttpCookies) {
+                storage = AcceptAllCookiesStorage()
             }
 
             install(Logging) {

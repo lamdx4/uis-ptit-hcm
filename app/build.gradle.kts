@@ -120,5 +120,5 @@ dependencies {
     implementation("com.google.http-client:google-http-client-gson:1.47.1")
 
     implementation("org.jsoup:jsoup:1.21.1")
-
+    implementation("androidx.browser:browser:1.7.0")
 }
