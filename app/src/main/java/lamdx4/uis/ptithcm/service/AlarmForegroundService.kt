@@ -1,5 +1,6 @@
 package lamdx4.uis.ptithcm.service
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -15,6 +16,7 @@ import lamdx4.uis.ptithcm.ui.exam.RingingAlarmActivity
 class AlarmForegroundService : Service() {
     override fun onBind(p0: Intent?): IBinder? = null
 
+    @SuppressLint("FullScreenIntentPolicy")  // Checked permission when user click turn on alarm (ExamComponents.kt)
     override fun onStartCommand(
         intent: Intent?,
         flags: Int,

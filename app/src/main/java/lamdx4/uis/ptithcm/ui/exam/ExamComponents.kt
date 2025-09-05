@@ -1,5 +1,11 @@
 package lamdx4.uis.ptithcm.ui.exam
 
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,6 +45,7 @@ import lamdx4.uis.ptithcm.data.model.ExamItem
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -179,6 +186,8 @@ fun PersonalExamItem(
                                         )
                                         .show()
                                 } else {
+                                    context.ensureFullScreenIntentPermission()
+
                                     onAddAlarm(
                                         AlarmEntity(
                                             time = examMillis,
@@ -207,12 +216,12 @@ fun SubtypeExamItem(
     onAddAlarm: (AlarmEntity) -> Unit,
     onDeleteAlarm: (AlarmEntity) -> Unit
 ) {
+    val context = LocalContext.current
+
     val examMillis = remember(exam) {
-        // Parse exam.examDate + exam.startTime thành timestamp millis
         parseExamDateTime(exam.examDate, exam.startTime)
     }
 
-    // Tìm xem alarm có tồn tại chưa
     val existingAlarm = alarms.firstOrNull { it.time == examMillis }
 
     Card(
@@ -257,14 +266,26 @@ fun SubtypeExamItem(
                         checked = existingAlarm != null,
                         onCheckedChange = { checked ->
                             if (checked && existingAlarm == null) {
-                                onAddAlarm(
-                                    AlarmEntity(
-                                        time = examMillis,
-                                        label = "${exam.subjectName} (${exam.subjectCode})",
-                                        toneUri = null,
-                                        vibrate = true
+                                if (examMillis <= System.currentTimeMillis()) {
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            "Thời gian đã trôi qua, không thể đặt nhắc nhở!",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+                                } else {
+                                    context.ensureFullScreenIntentPermission()
+
+                                    onAddAlarm(
+                                        AlarmEntity(
+                                            time = examMillis,
+                                            label = "${exam.subjectName} (${exam.subjectCode})",
+                                            toneUri = null,
+                                            vibrate = true
+                                        )
                                     )
-                                )
+                                }
                             } else if (!checked && existingAlarm != null) {
                                 onDeleteAlarm(existingAlarm)
                             }
@@ -281,4 +302,19 @@ fun parseExamDateTime(date: String, time: String): Long {
     val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
     val dateTime = formatter.parse("$date $time")
     return dateTime?.time ?: 0L
+}
+
+fun Context.ensureFullScreenIntentPermission() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android 14
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val granted = nm.canUseFullScreenIntent()
+        if (!granted) {
+            // Mở màn hình settings cho user bật
+            val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
+                data = "package:$packageName".toUri()
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+        }
+    }
 }
