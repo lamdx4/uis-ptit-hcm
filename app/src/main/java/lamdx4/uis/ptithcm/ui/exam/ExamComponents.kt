@@ -1,5 +1,6 @@
 package lamdx4.uis.ptithcm.ui.exam
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -114,17 +115,17 @@ fun DatePickerDialog(
 
 @Composable
 fun PersonalExamItem(
-    exam: Exam,                     // model của lịch thi
-    alarms: List<AlarmEntity>,      // lấy từ viewModel.alarms.collectAsState()
+    exam: Exam,
+    alarms: List<AlarmEntity>,
     onAddAlarm: (AlarmEntity) -> Unit,
     onDeleteAlarm: (AlarmEntity) -> Unit
 ) {
+    val context = LocalContext.current
+
     val examMillis = remember(exam) {
-        // Parse exam.examDate + exam.startTime thành timestamp millis
         parseExamDateTime(exam.examDate, exam.startTime)
     }
 
-    // Tìm xem alarm có tồn tại chưa
     val existingAlarm = alarms.firstOrNull { it.time == examMillis }
 
     Card(
@@ -169,25 +170,35 @@ fun PersonalExamItem(
                         checked = existingAlarm != null,
                         onCheckedChange = { checked ->
                             if (checked && existingAlarm == null) {
-                                onAddAlarm(
-                                    AlarmEntity(
-                                        time = examMillis,
-                                        label = "${exam.subjectName} (${exam.subjectCode})",
-                                        toneUri = null,
-                                        vibrate = true
+                                if (examMillis <= System.currentTimeMillis()) {
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            "Thời gian đã trôi qua, không thể đặt nhắc nhở!",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+                                } else {
+                                    onAddAlarm(
+                                        AlarmEntity(
+                                            time = examMillis,
+                                            label = "${exam.subjectName} (${exam.subjectCode})",
+                                            toneUri = null,
+                                            vibrate = true
+                                        )
                                     )
-                                )
+                                }
                             } else if (!checked && existingAlarm != null) {
                                 onDeleteAlarm(existingAlarm)
                             }
                         }
                     )
                 }
-
             }
         }
     }
 }
+
 
 @Composable
 fun SubtypeExamItem(
