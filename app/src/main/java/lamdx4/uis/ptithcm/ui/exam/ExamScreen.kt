@@ -11,21 +11,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,14 +27,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.ui.AppViewModel
-import java.util.Calendar
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +46,7 @@ fun ExamScreen(
     val subTypeExamResponse by viewModel.subTypeExamState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val alarms by viewModel.alarms.collectAsState()
 
     val refreshCoordinator = appViewModel.refreshCoordinator
 
@@ -76,6 +65,7 @@ fun ExamScreen(
                 viewModel.refreshExamTypes()
                 viewModel.refreshExamSubTypes(20243, 3)
                 viewModel.refreshExamSemesters()
+                viewModel.loadAlarms()
             }
         }
     }
@@ -202,25 +192,12 @@ fun ExamScreen(
                 if (selectedType == 1) {
                     LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(personalExamResponse?.data?.examSchedules ?: emptyList()) { exam ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
-                                elevation = CardDefaults.cardElevation(4.dp)
-                            ) {
-                                Column(modifier = Modifier.padding(12.dp)) {
-                                    Text(
-                                        text = exam.subjectName + " - " + exam.subjectCode,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(text = "Ngày thi: ${exam.examDate}")
-                                    Text(text = "Giờ bắt đầu: ${exam.startTime}")
-                                    Text(text = "Phòng: ${exam.examLocation}")
-                                    Text(text = "Hình thức: ${exam.examFormat}")
-                                    Text(text = "Thời gian thi: ${exam.durationMinutes} phút")
-                                }
-                            }
+                            PersonalExamItem(
+                                exam = exam,
+                                alarms = alarms,
+                                onAddAlarm = viewModel::addAlarm,
+                                onDeleteAlarm = viewModel::deleteAlarm
+                            )
                         }
                     }
                 } else {
@@ -228,102 +205,16 @@ fun ExamScreen(
                         items(
                             subTypeExamResponse?.studentExamSchedule?.data?.examList ?: emptyList()
                         ) { exam ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
-                                elevation = CardDefaults.cardElevation(4.dp)
-                            ) {
-                                Column(modifier = Modifier.padding(12.dp)) {
-                                    Text(
-                                        text = exam.subjectName + " - " + exam.subjectCode,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(text = "Ngày thi: ${exam.examDate}")
-                                    Text(text = "Giờ bắt đầu: ${exam.startTime}")
-                                    Text(text = "Phòng: ${exam.examLocation}")
-                                    Text(text = "Hình thức: ${exam.examFormat}")
-                                    Text(text = "Thời gian thi: ${exam.durationMinutes} phút")
-                                }
-                            }
+                            SubtypeExamItem(
+                                exam = exam,
+                                alarms = alarms,
+                                onAddAlarm = viewModel::addAlarm,
+                                onDeleteAlarm = viewModel::deleteAlarm
+                            )
                         }
                     }
                 }
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DropdownSelector(
-    label: String,
-    options: List<String>,
-    selectedOption: String?,
-    onOptionSelected: (String) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
-        OutlinedTextField(
-            value = selectedOption ?: "",
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(label) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth()
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        onOptionSelected(option)
-                        expanded = false
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun DatePickerDialog(
-    onDateSelected: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-    val calendar = Calendar.getInstance()
-
-    DisposableEffect(Unit) {
-        val dialog = android.app.DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                val day = String.format(Locale.US, "%02d", dayOfMonth)   // luôn 2 chữ số
-                val mon = String.format(Locale.US, "%02d", month + 1)   // month tính từ 0 → cần +1
-                onDateSelected("$day/$mon/$year")
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        )
-
-        dialog.setOnDismissListener { onDismiss() }
-        dialog.show()
-
-        onDispose {
-            dialog.dismiss()
-        }
-    }
-
 }

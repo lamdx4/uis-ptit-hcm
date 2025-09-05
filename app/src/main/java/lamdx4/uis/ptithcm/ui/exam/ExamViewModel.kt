@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.data.model.AlarmEntity
 import lamdx4.uis.ptithcm.data.model.ExamResponse
@@ -21,8 +22,8 @@ class ExamViewModel @Inject constructor(
     private val examRepository: ExamRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val _alarms = mutableListOf<AlarmEntity>()
-    val alarms = _alarms
+    private val _alarms = MutableStateFlow<List<AlarmEntity>>(emptyList())
+    val alarms: StateFlow<List<AlarmEntity>> = _alarms.asStateFlow()
 
     private val _personalExamState = MutableStateFlow<ExamResponse?>(null)
     val personalExamState = _personalExamState
@@ -75,29 +76,28 @@ class ExamViewModel @Inject constructor(
 
     fun loadAlarms() {
         viewModelScope.launch {
-            _alarms.clear()
-            _alarms.addAll(examRepository.getAllAlarms())
+            _alarms.value = examRepository.getAllAlarms()
         }
     }
 
     fun addAlarm(alarm: AlarmEntity) {
         viewModelScope.launch {
             examRepository.insertAlarm(alarm)
-            loadAlarms()
+            _alarms.value = examRepository.getAllAlarms()
         }
     }
 
     fun updateAlarm(alarm: AlarmEntity) {
         viewModelScope.launch {
             examRepository.updateAlarm(alarm)
-            loadAlarms()
+            _alarms.value = examRepository.getAllAlarms()
         }
     }
 
     fun deleteAlarm(alarm: AlarmEntity) {
         viewModelScope.launch {
             examRepository.deleteAlarm(alarm)
-            loadAlarms()
+            _alarms.value = examRepository.getAllAlarms()
         }
     }
 
@@ -109,6 +109,7 @@ class ExamViewModel @Inject constructor(
         loadSubTypeExams(
             20243, 3, "-7832454252451327385", ""
         )
+        loadAlarms()
     }
 
     fun loadPersonalExams(semester: Int, forceRefresh: Boolean = false) {
