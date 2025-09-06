@@ -3,7 +3,6 @@ package lamdx4.uis.ptithcm.ui.exam
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
@@ -39,13 +38,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import lamdx4.uis.ptithcm.data.model.AlarmEntity
 import lamdx4.uis.ptithcm.data.model.Exam
 import lamdx4.uis.ptithcm.data.model.ExamItem
+import lamdx4.uis.ptithcm.service.AlarmScheduler
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import androidx.core.net.toUri
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -186,19 +186,31 @@ fun PersonalExamItem(
                                         )
                                         .show()
                                 } else {
-                                    context.ensureFullScreenIntentPermission()
+                                    context.ensureFullScreenIntentPermission() // check permission
 
                                     onAddAlarm(
                                         AlarmEntity(
                                             time = examMillis,
-                                            label = "${exam.subjectName} (${exam.subjectCode})",
+                                            label = "Nhắc nhở lịch thi ${exam.subjectName}",
                                             toneUri = null,
                                             vibrate = true
                                         )
                                     )
+
+                                    AlarmScheduler().scheduleExactAlarm(
+                                        context = context,
+                                        label = "Nhắc nhở lịch thi ${exam.subjectName}",
+                                        requestCode = examMillis.toInt(),
+                                        triggerAtMillis = examMillis
+                                    )
                                 }
                             } else if (!checked && existingAlarm != null) {
                                 onDeleteAlarm(existingAlarm)
+
+                                AlarmScheduler().cancelAlarm(
+                                    context = context,
+                                    requestCode = examMillis.toInt()
+                                )
                             }
                         }
                     )
@@ -275,19 +287,31 @@ fun SubtypeExamItem(
                                         )
                                         .show()
                                 } else {
-                                    context.ensureFullScreenIntentPermission()
+                                    context.ensureFullScreenIntentPermission() // check permission
 
                                     onAddAlarm(
                                         AlarmEntity(
                                             time = examMillis,
-                                            label = "${exam.subjectName} (${exam.subjectCode})",
+                                            label = "Nhắc nhở lịch thi ${exam.subjectName}",
                                             toneUri = null,
                                             vibrate = true
                                         )
                                     )
+
+                                    AlarmScheduler().scheduleExactAlarm(
+                                        context = context,
+                                        label = "Nhắc nhở lịch thi ${exam.subjectName}",
+                                        requestCode = examMillis.toInt(),
+                                        triggerAtMillis = examMillis
+                                    )
                                 }
                             } else if (!checked && existingAlarm != null) {
                                 onDeleteAlarm(existingAlarm)
+
+                                AlarmScheduler().cancelAlarm(
+                                    context = context,
+                                    requestCode = examMillis.toInt()
+                                )
                             }
                         }
                     )

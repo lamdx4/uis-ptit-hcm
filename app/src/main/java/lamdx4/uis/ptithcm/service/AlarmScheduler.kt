@@ -10,10 +10,12 @@ import androidx.core.net.toUri
 
 class AlarmScheduler {
     // đặt alarm bằng epoch millis
-    fun scheduleExactAlarm(context: Context, requestCode: Int, triggerAtMillis: Long) {
+    fun scheduleExactAlarm(context: Context, label: String, requestCode: Int, triggerAtMillis: Long) {
         val am = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, AlarmReceiver::class.java)
-        intent.putExtra("requestCode", requestCode)
+        val intent = Intent(context, AlarmReceiver::class.java).apply {
+            putExtra("requestCode", requestCode)
+            putExtra("label", label)
+        }
         val pi = PendingIntent.getBroadcast(
             context, requestCode, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE

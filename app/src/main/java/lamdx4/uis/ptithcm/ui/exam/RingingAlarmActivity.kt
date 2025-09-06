@@ -1,7 +1,9 @@
 package lamdx4.uis.ptithcm.ui.exam
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -31,6 +33,16 @@ class RingingAlarmActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Cho phép Activity hiển thị trên lock screen và bật màn hình
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+        } else {
+            window.addFlags(
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+            )
+        }
+
         setContent {
             MaterialTheme {
                 Box(
@@ -52,8 +64,9 @@ class RingingAlarmActivity : ComponentActivity() {
 
                         Spacer(modifier = Modifier.height(32.dp))
 
+                        val label = intent.getStringExtra("label") ?: "Báo thức"
                         Text(
-                            text = "Báo thức đang reo!",
+                            text = label,
                             style = MaterialTheme.typography.headlineMedium.copy(
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold

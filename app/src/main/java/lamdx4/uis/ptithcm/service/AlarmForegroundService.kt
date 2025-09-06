@@ -22,7 +22,11 @@ class AlarmForegroundService : Service() {
         flags: Int,
         startId: Int
     ): Int {
+        val label = intent?.getStringExtra("label") ?: "Báo thức"
+        val requestCode = intent?.getIntExtra("requestCode", -1) ?: -1
+
         val channelId = "alarm_channel"
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val channel = NotificationChannel(
                 channelId,
@@ -34,26 +38,29 @@ class AlarmForegroundService : Service() {
             getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
         }
 
+        val ringingIntent = Intent(this, RingingAlarmActivity::class.java).apply {
+            putExtra("label", label)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
+        startActivity(ringingIntent)
+
         val pendingIntent = PendingIntent.getActivity(
-            this, intent?.getIntExtra("requestCode", 0) ?: -1, Intent(
-                this,
-                RingingAlarmActivity::class.java
-            ),
+            this, requestCode, ringingIntent,
             PendingIntent.FLAG_IMMUTABLE
         )
 
         val cancelIntent = PendingIntent.getBroadcast(
             this,
-            intent?.getIntExtra("requestCode", 0) ?: -1,
+            requestCode,
             Intent(this, AlarmReceiver::class.java).apply {
                 action = "alarm.ACTION_DISMISS"
             },
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         val snoozeIntent = PendingIntent.getBroadcast(
             this,
-            intent?.getIntExtra("requestCode", 0) ?: -1,
+            requestCode,
             Intent(this, AlarmReceiver::class.java).apply {
                 action = "alarm.ACTION_SNOOZE"
             },
@@ -61,10 +68,12 @@ class AlarmForegroundService : Service() {
         )
 
         val notification = NotificationCompat.Builder(this, channelId)
-            .setContentTitle("Báo thức")
-            .setContentText("Đang báo thức")
+            .setContentTitle("Báo thức nhắc nhở")
+            .setContentText(label)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(Notification.CATEGORY_ALARM)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setAutoCancel(false)
             .setFullScreenIntent(pendingIntent, true)

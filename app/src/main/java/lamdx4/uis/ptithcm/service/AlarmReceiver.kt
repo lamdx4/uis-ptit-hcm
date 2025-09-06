@@ -6,6 +6,9 @@ import android.content.Intent
 
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
+        val label = intent?.getStringExtra("label")
+        val requestCode = intent?.getIntExtra("requestCode", -1) ?: -1
+
         if (intent?.action == "alarm.ACTION_DISMISS") {
             context?.stopService(Intent(context, AlarmForegroundService::class.java))
             return
@@ -13,14 +16,15 @@ class AlarmReceiver : BroadcastReceiver() {
             return
         }
 
-        val aRIntent = Intent(context, AlarmForegroundService::class.java).apply {
-            putExtra("requestCode", intent?.getIntExtra("requestCode", 0))
+        val alarmForegroundIntent = Intent(context, AlarmForegroundService::class.java).apply {
+            putExtra("requestCode", requestCode)
+            putExtra("label", label)
         }
 
         try {
-            context?.startForegroundService(aRIntent)
+            context?.startForegroundService(alarmForegroundIntent)
         } catch (e: Exception) {
-            context?.startService(aRIntent)
+            context?.startService(alarmForegroundIntent)
         }
     }
 }
