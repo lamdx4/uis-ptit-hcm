@@ -17,10 +17,10 @@
 
     <!-- service foreground -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
-
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <application
         android:name=".PTITApplication"
@@ -34,7 +34,8 @@
         android:supportsRtl="true"
         android:theme="@style/ThemeApplication"
         tools:targetApi="31">
-        <receiver android:name=".service.AlarmReceiver"
+        <receiver
+            android:name=".service.AlarmReceiver"
             android:exported="false">
         </receiver>
         <activity
@@ -48,6 +49,7 @@
         </activity>
         <service
             android:name=".service.AlarmForegroundService"
+            android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback">
         </service>

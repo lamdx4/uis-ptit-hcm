@@ -7,6 +7,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
@@ -42,7 +43,6 @@ class AlarmForegroundService : Service() {
             putExtra("label", label)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
-        startActivity(ringingIntent)
 
         val pendingIntent = PendingIntent.getActivity(
             this, requestCode, ringingIntent,
@@ -81,7 +81,15 @@ class AlarmForegroundService : Service() {
             .addAction(0, "Nhắc lại", snoozeIntent)
             .build()
 
-        startForeground(1, notification)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                1,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+            )
+        } else {
+            startForeground(1, notification)
+        }
 
         // Play ringtone if available
 
