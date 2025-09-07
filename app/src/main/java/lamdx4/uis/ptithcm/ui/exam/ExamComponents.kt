@@ -1,8 +1,10 @@
 package lamdx4.uis.ptithcm.ui.exam
 
+import android.app.Activity
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
@@ -38,6 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import lamdx4.uis.ptithcm.data.model.AlarmEntity
 import lamdx4.uis.ptithcm.data.model.Exam
@@ -186,7 +190,7 @@ fun PersonalExamItem(
                                         )
                                         .show()
                                 } else {
-                                    context.ensureFullScreenIntentPermission() // check permission
+                                    context.ensureNotificationAndAlarmPermission() // check permission
 
                                     onAddAlarm(
                                         AlarmEntity(
@@ -287,7 +291,7 @@ fun SubtypeExamItem(
                                         )
                                         .show()
                                 } else {
-                                    context.ensureFullScreenIntentPermission() // check permission
+                                    context.ensureNotificationAndAlarmPermission() // check permission
 
                                     onAddAlarm(
                                         AlarmEntity(
@@ -328,12 +332,35 @@ fun parseExamDateTime(date: String, time: String): Long {
     return dateTime?.time ?: 0L
 }
 
-fun Context.ensureFullScreenIntentPermission() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android 14
-        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+fun Context.ensureNotificationAndAlarmPermission() {
+    val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+    // 1. Android 13+ → check POST_NOTIFICATIONS
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                (this as Activity),
+                arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                1001
+            )
+        }
+    }
+
+    // 2. Check app notifications có bị block không
+    if (!nm.areNotificationsEnabled()) {
+        val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+            putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(intent)
+    }
+
+    // 3. Android 14+ → check quyền full-screen intent cho alarm
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
         val granted = nm.canUseFullScreenIntent()
         if (!granted) {
-            // Mở màn hình settings cho user bật
             val intent = Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT).apply {
                 data = "package:$packageName".toUri()
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
