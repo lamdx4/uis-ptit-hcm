@@ -37,6 +37,10 @@
         <receiver
             android:name=".service.AlarmReceiver"
             android:exported="false">
+            <intent-filter>
+                <action android:name="alarm.ACTION_DISMISS" />
+                <action android:name="alarm.ACTION_SNOOZE" />
+            </intent-filter>
         </receiver>
         <activity
             android:name=".MainActivity"

@@ -41,6 +41,7 @@ class AlarmForegroundService : Service() {
 
         val ringingIntent = Intent(this, RingingAlarmActivity::class.java).apply {
             putExtra("label", label)
+            putExtra("requestCode", requestCode)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
 
@@ -54,6 +55,8 @@ class AlarmForegroundService : Service() {
             requestCode,
             Intent(this, AlarmReceiver::class.java).apply {
                 action = "alarm.ACTION_DISMISS"
+                putExtra("requestCode", requestCode)
+                putExtra("label", label)
             },
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )

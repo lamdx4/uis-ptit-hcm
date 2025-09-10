@@ -10,10 +10,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material3.Button
@@ -24,12 +26,15 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import lamdx4.uis.ptithcm.service.AlarmForegroundService
+import lamdx4.uis.ptithcm.service.AlarmReceiver
 
 class RingingAlarmActivity : ComponentActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -51,6 +56,10 @@ class RingingAlarmActivity : ComponentActivity() {
                         .background(Color.Black),
                     contentAlignment = Alignment.Center
                 ) {
+                    val label = intent.getStringExtra("label") ?: "Báo thức"
+                    val requestCode = intent.getIntExtra("requestCode", -1)
+                    val context = LocalContext.current
+
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
@@ -64,7 +73,6 @@ class RingingAlarmActivity : ComponentActivity() {
 
                         Spacer(modifier = Modifier.height(32.dp))
 
-                        val label = intent.getStringExtra("label") ?: "Báo thức"
                         Text(
                             text = label,
                             style = MaterialTheme.typography.headlineMedium.copy(
@@ -76,19 +84,40 @@ class RingingAlarmActivity : ComponentActivity() {
 
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        Button(
-                            onClick = {
-                                stopService(
-                                    Intent(
-                                        this@RingingAlarmActivity,
-                                        AlarmForegroundService::class.java
+                        Row(horizontalArrangement = Arrangement.Center) {
+                            Button(
+                                onClick = {
+                                    val intent = Intent(context, AlarmReceiver::class.java).apply {
+                                        action = "alarm.ACTION_DISMISS"
+                                        putExtra("requestCode", requestCode)
+                                        putExtra("label", label)
+                                    }
+                                    context.sendBroadcast(intent)
+                                    stopService(
+                                        Intent(
+                                            this@RingingAlarmActivity,
+                                            AlarmForegroundService::class.java
+                                        )
                                     )
-                                )
-                                finish()
-                            },
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                        ) {
-                            Text("Tắt báo thức", color = Color.White)
+                                    if (context is ComponentActivity) {
+                                        context.finish()
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                            ) {
+                                Text("Tắt báo thức", color = Color.White)
+                            }
+
+                            Spacer(modifier = Modifier.width(16.dp)) // Add some space between buttons
+
+                            Button(
+                                onClick = {
+                                    // Implement snooze functionality here
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                            ) {
+                                Text("Nhắc lại", color = Color.White) // Snooze button text
+                            }
                         }
                     }
                 }
