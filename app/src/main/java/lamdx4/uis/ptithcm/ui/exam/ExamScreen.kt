@@ -61,9 +61,15 @@ fun ExamScreen(
     LaunchedEffect(Unit) {
         refreshCoordinator.refreshEvent.collect { route ->
             if (route == "exam") {
-                viewModel.refreshPersonalExams(20243)
+                viewModel.refreshPersonalExams(
+                    examSemesterResponse?.data?.semesters
+                        ?.first()?.semesterCode ?: 20243
+                )
                 viewModel.refreshExamTypes()
-                viewModel.refreshExamSubTypes(20243, 3)
+                viewModel.refreshExamSubTypes(
+                    examSemesterResponse?.data?.semesters
+                        ?.first()?.semesterCode ?: 20243, 3
+                )
                 viewModel.refreshExamSemesters()
                 viewModel.loadAlarms()
             }

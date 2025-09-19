@@ -19,8 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ExamViewModel @Inject constructor(
-    private val examRepository: ExamRepository,
-    private val savedStateHandle: SavedStateHandle
+    private val examRepository: ExamRepository, private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _alarms = MutableStateFlow<List<AlarmEntity>>(emptyList())
     val alarms: StateFlow<List<AlarmEntity>> = _alarms.asStateFlow()
@@ -102,12 +101,18 @@ class ExamViewModel @Inject constructor(
     }
 
     init {
-        loadPersonalExams(20243)
+        loadPersonalExams(examSemesterState.value?.data?.semesters?.first()?.semesterCode ?: 20243)
         loadExamTypes()
-        loadExamSubTypes(20243, 3)
+        loadExamSubTypes(
+            examSemesterState.value?.data?.semesters?.first()?.semesterCode ?: 20243,
+            3
+        )
         loadExamSemesters()
         loadSubTypeExams(
-            20243, 3, "-7832454252451327385", ""
+            examSemesterState.value?.data?.semesters?.first()?.semesterCode ?: 20243,
+            3,
+            examSubTypeState.value?.data?.dataItems?.first()?.dataId ?: "-7832454252451327385",
+            ""
         )
         loadAlarms()
     }
