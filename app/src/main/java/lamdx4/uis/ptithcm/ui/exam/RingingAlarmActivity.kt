@@ -112,7 +112,22 @@ class RingingAlarmActivity : ComponentActivity() {
 
                             Button(
                                 onClick = {
-                                    // Implement snooze functionality here
+                                    val now = System.currentTimeMillis()
+                                    val intent = Intent(context, AlarmReceiver::class.java).apply {
+                                        action = "alarm.ACTION_SNOOZE"
+                                        putExtra("requestCode", requestCode)
+                                        putExtra("label", label)
+                                    }
+                                    context.sendBroadcast(intent)
+                                    stopService(
+                                        Intent(
+                                            this@RingingAlarmActivity,
+                                            AlarmForegroundService::class.java
+                                        )
+                                    )
+                                    if (context is ComponentActivity) {
+                                        context.finish()
+                                    }
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
                             ) {

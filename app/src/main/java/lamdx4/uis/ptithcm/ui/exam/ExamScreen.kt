@@ -68,7 +68,8 @@ fun ExamScreen(
                 viewModel.refreshExamTypes()
                 viewModel.refreshExamSubTypes(
                     examSemesterResponse?.data?.semesters
-                        ?.first()?.semesterCode ?: 20243, 3
+                        ?.first()?.semesterCode ?: 20243,
+                    examTypeResponse?.data?.scheduleObjects[1]?.objectType ?: 3
                 )
                 viewModel.refreshExamSemesters()
                 viewModel.loadAlarms()

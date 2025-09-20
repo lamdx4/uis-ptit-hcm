@@ -52,7 +52,7 @@ class AlarmForegroundService : Service() {
 
         val cancelIntent = PendingIntent.getBroadcast(
             this,
-            requestCode,
+            requestCode + 1,
             Intent(this, AlarmReceiver::class.java).apply {
                 action = "alarm.ACTION_DISMISS"
                 putExtra("requestCode", requestCode)
@@ -63,9 +63,11 @@ class AlarmForegroundService : Service() {
 
         val snoozeIntent = PendingIntent.getBroadcast(
             this,
-            requestCode,
+            requestCode + 2,
             Intent(this, AlarmReceiver::class.java).apply {
                 action = "alarm.ACTION_SNOOZE"
+                putExtra("requestCode", requestCode)
+                putExtra("label", label)
             },
             PendingIntent.FLAG_IMMUTABLE
         )

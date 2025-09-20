@@ -105,12 +105,12 @@ class ExamViewModel @Inject constructor(
         loadExamTypes()
         loadExamSubTypes(
             examSemesterState.value?.data?.semesters?.first()?.semesterCode ?: 20243,
-            3
+            examTypeState.value?.data?.scheduleObjects[1]?.objectType ?: 3
         )
         loadExamSemesters()
         loadSubTypeExams(
             examSemesterState.value?.data?.semesters?.first()?.semesterCode ?: 20243,
-            3,
+            examTypeState.value?.data?.scheduleObjects[1]?.objectType ?: 3,
             examSubTypeState.value?.data?.dataItems?.first()?.dataId ?: "-7832454252451327385",
             ""
         )

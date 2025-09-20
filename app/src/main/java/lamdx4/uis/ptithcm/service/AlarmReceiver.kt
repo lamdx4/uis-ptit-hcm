@@ -23,7 +23,7 @@ class AlarmReceiver : BroadcastReceiver() {
                     try {
                         val db = AlarmDatabase.getInstance(context!!)
                         val alarms = db.alarmDao().getAllAlarms()
-                        val alarm = alarms.find { it.time.toInt() == requestCode }
+                        val alarm = alarms.find { it.label == label }
                         if (alarm != null) {
                             db.alarmDao().deleteAlarm(alarm)
                         }
@@ -34,6 +34,23 @@ class AlarmReceiver : BroadcastReceiver() {
             }
             return
         } else if (intent?.action == "alarm.ACTION_SNOOZE") {
+            context?.stopService(Intent(context, AlarmForegroundService::class.java))
+            if (requestCode != -1) {
+                val pendingResult = goAsync()
+                GlobalScope.launch(Dispatchers.IO) {
+                    try {
+                        val db = AlarmDatabase.getInstance(context!!)
+                        val alarms = db.alarmDao().getAllAlarms()
+                        val alarm = alarms.find { it.label == label }
+                        alarm?.time += 300_000
+                        if (alarm != null) {
+                            db.alarmDao().updateAlarm(alarm)
+                        }
+                    } finally {
+                        pendingResult.finish()
+                    }
+                }
+            }
             return
         }
 

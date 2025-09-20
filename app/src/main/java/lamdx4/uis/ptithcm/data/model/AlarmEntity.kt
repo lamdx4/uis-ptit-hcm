@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class AlarmEntity (
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val time: Long, // Milliseconds for easy comparison
+    var time: Long, // Milliseconds for easy comparison
     val label: String,
     val isEnabled: Boolean = true,
     val toneUri: String?,
