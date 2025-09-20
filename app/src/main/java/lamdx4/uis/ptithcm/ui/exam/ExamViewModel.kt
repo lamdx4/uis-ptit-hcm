@@ -1,6 +1,5 @@
 package lamdx4.uis.ptithcm.ui.exam
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,11 +14,12 @@ import lamdx4.uis.ptithcm.data.model.ExamSubTypeResponse
 import lamdx4.uis.ptithcm.data.model.ExamTypeResponse
 import lamdx4.uis.ptithcm.data.model.SubTypeExamResponse
 import lamdx4.uis.ptithcm.data.repository.ExamRepository
+import lamdx4.uis.ptithcm.data.repository.ExamUiState
 import javax.inject.Inject
 
 @HiltViewModel
 class ExamViewModel @Inject constructor(
-    private val examRepository: ExamRepository, private val savedStateHandle: SavedStateHandle
+    private val examRepository: ExamRepository,
 ) : ViewModel() {
     private val _alarms = MutableStateFlow<List<AlarmEntity>>(emptyList())
     val alarms: StateFlow<List<AlarmEntity>> = _alarms.asStateFlow()
@@ -45,32 +45,29 @@ class ExamViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading
 
-    private val _selectedSemester = savedStateHandle.getStateFlow("selectedSemester", 20243)
-    val selectedSemester: StateFlow<Int> = _selectedSemester
+    private val _uiState = MutableStateFlow(
+        examRepository.getUiState() ?: ExamUiState()
+    )
+    val uiState: StateFlow<ExamUiState> = _uiState.asStateFlow()
 
-    private val _selectedType = savedStateHandle.getStateFlow("selectedType", 1)
-    val selectedType: StateFlow<Int> = _selectedType
-
-    private val _selectedSubType = savedStateHandle.getStateFlow<String?>("selectedSubType", null)
-    val selectedSubType: StateFlow<String?> = _selectedSubType
-
-    private val _selectedDate = savedStateHandle.getStateFlow("selectedDate", "")
-    val selectedDate: StateFlow<String> = _selectedDate
-
-    fun setSelectedSemester(value: Int) {
-        savedStateHandle["selectedSemester"] = value
+    fun setSelectedSemester(semester: Int) {
+        _uiState.value = _uiState.value.copy(selectedSemester = semester)
+        examRepository.saveUiState(_uiState.value)
     }
 
-    fun setSelectedType(value: Int) {
-        savedStateHandle["selectedType"] = value
+    fun setSelectedType(type: Int) {
+        _uiState.value = _uiState.value.copy(selectedType = type)
+        examRepository.saveUiState(_uiState.value)
     }
 
-    fun setSelectedSubType(value: String?) {
-        savedStateHandle["selectedSubType"] = value
+    fun setSelectedSubType(subType: String?) {
+        _uiState.value = _uiState.value.copy(selectedSubType = subType)
+        examRepository.saveUiState(_uiState.value)
     }
 
-    fun setSelectedDate(value: String) {
-        savedStateHandle["selectedDate"] = value
+    fun setSelectedDate(date: String) {
+        _uiState.value = _uiState.value.copy(selectedDate = date)
+        examRepository.saveUiState(_uiState.value)
     }
 
     fun loadAlarms() {
@@ -115,6 +112,7 @@ class ExamViewModel @Inject constructor(
             ""
         )
         loadAlarms()
+        loadUiState(false)
     }
 
     fun loadPersonalExams(semester: Int, forceRefresh: Boolean = false) {
@@ -191,6 +189,19 @@ class ExamViewModel @Inject constructor(
                 _errorMessage.value = e.message ?: "Không thể tải lịch thi"
             }
             _isLoading.value = false
+        }
+    }
+
+    fun loadUiState(forceRefresh: Boolean = false) {
+        if (forceRefresh || (_uiState.value.selectedSemester == null && _uiState.value.selectedType == null)) {
+            _uiState.value = _uiState.value.copy(
+                selectedSemester = examSemesterState.value?.data?.semesters?.first()?.semesterCode
+                    ?: 20243,
+                selectedType = examTypeState.value?.data?.scheduleObjects[0]?.objectType ?: 1,
+                selectedSubType = null,
+                selectedDate = null
+            )
+            examRepository.saveUiState(_uiState.value)
         }
     }
 

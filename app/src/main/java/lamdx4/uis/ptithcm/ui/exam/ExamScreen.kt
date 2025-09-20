@@ -31,6 +31,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.ui.AppViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,14 +50,14 @@ fun ExamScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val alarms by viewModel.alarms.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
+
+    val selectedSemester = uiState.selectedSemester
+    val selectedType = uiState.selectedType
+    val selectedSubType = uiState.selectedSubType
+    val selectedDate = uiState.selectedDate
 
     val refreshCoordinator = appViewModel.refreshCoordinator
-
-    // TRYING to save states for dropdown to match with data below
-    val selectedSemester by viewModel.selectedSemester.collectAsState()
-    val selectedType by viewModel.selectedType.collectAsState()
-    val selectedSubType by viewModel.selectedSubType.collectAsState()
-    val selectedDate by viewModel.selectedDate.collectAsState()
 
     var showDatePicker by remember { mutableStateOf(false) }
 
@@ -73,6 +76,7 @@ fun ExamScreen(
                 )
                 viewModel.refreshExamSemesters()
                 viewModel.loadAlarms()
+                viewModel.loadUiState(true)
             }
         }
     }
@@ -108,7 +112,10 @@ fun ExamScreen(
                                 viewModel.refreshPersonalExams(semesterId)
                             } else {
                                 viewModel.refreshExamSubTypes(
-                                    semesterId, selectedType
+                                    semesterId,
+                                    selectedType
+                                        ?: (examTypeResponse?.data?.scheduleObjects[1]?.objectType
+                                            ?: 3)
                                 )
                             }
                         }
@@ -130,7 +137,11 @@ fun ExamScreen(
                         if (typeId != null) {
                             viewModel.setSelectedType(typeId)
                             if (typeId != 5) {
-                                viewModel.refreshExamSubTypes(selectedSemester, typeId)
+                                viewModel.refreshExamSubTypes(
+                                    selectedSemester
+                                        ?: (examSemesterResponse?.data?.semesters?.first()?.semesterCode
+                                            ?: 20243), typeId
+                                )
                             }
                             showDatePicker = typeId == 5
                         }
@@ -142,7 +153,7 @@ fun ExamScreen(
                 // Nếu type = 5 => hiển thị chọn ngày
                 if (selectedType == 5) {
                     OutlinedTextField(
-                        value = selectedDate.ifEmpty { "Chọn ngày" },
+                        value = selectedDate ?: "Chọn ngày",
                         onValueChange = {},
                         readOnly = true,
                         modifier = Modifier
@@ -163,11 +174,16 @@ fun ExamScreen(
                             onDateSelected = { date ->
                                 viewModel.setSelectedDate(date)
                                 showDatePicker = false
+                                val currentDate: String =
+                                    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                                        .format(Date())
                                 viewModel.refreshSubTypeExams(
-                                    semester = selectedSemester,
+                                    semester = selectedSemester
+                                        ?: examSemesterResponse?.data?.semesters?.first()?.semesterCode
+                                        ?: 20243,
                                     examType = selectedType,
                                     subType = "",
-                                    examDate = selectedDate,
+                                    examDate = selectedDate ?: currentDate,
                                 )
                             },
                             onDismiss = { showDatePicker = false }
@@ -185,8 +201,12 @@ fun ExamScreen(
                                 examSubTypeResponse?.data?.dataItems?.firstOrNull { it.dataName == option }?.dataId
                             viewModel.setSelectedSubType(option)
                             viewModel.refreshSubTypeExams(
-                                semester = selectedSemester,
-                                examType = selectedType,
+                                semester = selectedSemester
+                                    ?: examSemesterResponse?.data?.semesters?.first()?.semesterCode
+                                    ?: 20243,
+                                examType = selectedType
+                                    ?: examTypeResponse?.data?.scheduleObjects?.first()?.objectType
+                                    ?: 3,
                                 subType = subTypeId ?: "",
                                 examDate = ""
                             )

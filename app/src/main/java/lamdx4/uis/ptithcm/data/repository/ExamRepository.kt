@@ -18,6 +18,13 @@ import lamdx4.uis.ptithcm.util.invalidateBearerTokens
 import javax.inject.Inject
 import javax.inject.Singleton
 
+data class ExamUiState(
+    val selectedSemester: Int? = null,
+    val selectedType: Int? = null,
+    val selectedSubType: String? = null,
+    val selectedDate: String? = null
+)
+
 @Singleton
 class ExamRepository @Inject constructor(
     private val client: HttpClient,
@@ -36,6 +43,7 @@ class ExamRepository @Inject constructor(
     private val cachedExamTypes = mutableMapOf<Pair<Int, Int>, CacheEntry<ExamTypeResponse>>()
     private val cachedExamSubTypes = mutableMapOf<Pair<Int, Int>, CacheEntry<ExamSubTypeResponse>>()
     private val cachedSubTypeExams = mutableMapOf<Pair<Int, Int>, CacheEntry<SubTypeExamResponse>>()
+    private var cachedUiState: ExamUiState? = null
     private val cacheTimeoutMillis = 5 * 60 * 1000L
 
     suspend fun getPersonalExams(
@@ -251,12 +259,21 @@ class ExamRepository @Inject constructor(
         }
     }
 
+    fun saveUiState(state: ExamUiState) {
+        cachedUiState = state
+    }
+
+    fun getUiState(): ExamUiState? {
+        return cachedUiState
+    }
+
     override fun clearCache() {
         cachedPersonalExams.clear()
         cachedExamSemester.clear()
         cachedExamTypes.clear()
         cachedExamSubTypes.clear()
         cachedSubTypeExams.clear()
+        cachedUiState = null
         this.client.invalidateBearerTokens()
     }
 }
