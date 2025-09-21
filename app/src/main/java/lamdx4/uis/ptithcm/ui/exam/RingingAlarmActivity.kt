@@ -112,7 +112,6 @@ class RingingAlarmActivity : ComponentActivity() {
 
                             Button(
                                 onClick = {
-                                    val now = System.currentTimeMillis()
                                     val intent = Intent(context, AlarmReceiver::class.java).apply {
                                         action = "alarm.ACTION_SNOOZE"
                                         putExtra("requestCode", requestCode)

@@ -45,6 +45,12 @@ class AlarmReceiver : BroadcastReceiver() {
                         alarm?.time += 300_000
                         if (alarm != null) {
                             db.alarmDao().updateAlarm(alarm)
+                            AlarmScheduler().scheduleExactAlarm(
+                                context = context,
+                                requestCode = alarm.time.toInt(),
+                                triggerAtMillis = alarm.time,
+                                label = alarm.label
+                            )
                         }
                     } finally {
                         pendingResult.finish()

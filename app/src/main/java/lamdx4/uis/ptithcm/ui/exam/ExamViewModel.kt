@@ -21,6 +21,10 @@ import javax.inject.Inject
 class ExamViewModel @Inject constructor(
     private val examRepository: ExamRepository,
 ) : ViewModel() {
+    val DEFAULT_SEMESTER_CODE = 20243
+    val DEFAULT_TYPE_ID = 3
+    val DEFAULT_SUBTYPE_ID = "-7832454252451327385"
+
     private val _alarms = MutableStateFlow<List<AlarmEntity>>(emptyList())
     val alarms: StateFlow<List<AlarmEntity>> = _alarms.asStateFlow()
 
@@ -98,27 +102,30 @@ class ExamViewModel @Inject constructor(
     }
 
     init {
-        loadPersonalExams(examSemesterState.value?.data?.semesters?.first()?.semesterCode ?: 20243)
+        loadPersonalExams(
+            examSemesterState.value?.data?.semesters?.first()?.semesterCode ?: DEFAULT_SEMESTER_CODE
+        )
         loadExamTypes()
         loadExamSubTypes(
-            examSemesterState.value?.data?.semesters?.first()?.semesterCode ?: 20243,
-            examTypeState.value?.data?.scheduleObjects[1]?.objectType ?: 3
+            examSemesterState.value?.data?.semesters?.first()?.semesterCode ?: DEFAULT_SEMESTER_CODE,
+            examTypeState.value?.data?.scheduleObjects[1]?.objectType ?: DEFAULT_TYPE_ID
         )
         loadExamSemesters()
         loadSubTypeExams(
-            examSemesterState.value?.data?.semesters?.first()?.semesterCode ?: 20243,
+            examSemesterState.value?.data?.semesters?.first()?.semesterCode ?: DEFAULT_SEMESTER_CODE,
             examTypeState.value?.data?.scheduleObjects[1]?.objectType ?: 3,
-            examSubTypeState.value?.data?.dataItems?.first()?.dataId ?: "-7832454252451327385",
+            examSubTypeState.value?.data?.dataItems?.first()?.dataId ?: DEFAULT_SUBTYPE_ID,
             ""
         )
         loadAlarms()
-        loadUiState(false)
+        loadUiState(false) // Load UI state from cache
     }
 
     fun loadPersonalExams(semester: Int, forceRefresh: Boolean = false) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = examRepository.getPersonalExams(semester, forceRefresh)
+            val result =
+                examRepository.getPersonalExams(semester = semester, isForceRefresh = forceRefresh)
             result.onSuccess { exams ->
                 _personalExamState.value = exams
                 _errorMessage.value = null
@@ -132,7 +139,7 @@ class ExamViewModel @Inject constructor(
     fun loadExamSemesters(forceRefresh: Boolean = false) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = examRepository.getExamSemesters(forceRefresh)
+            val result = examRepository.getExamSemesters(isForceRefresh = forceRefresh)
             result.onSuccess { semesters ->
                 _examSemesterState.value = semesters
                 _errorMessage.value = null
@@ -146,7 +153,7 @@ class ExamViewModel @Inject constructor(
     fun loadExamTypes(forceRefresh: Boolean = false) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = examRepository.getExamTypes(forceRefresh)
+            val result = examRepository.getExamTypes(isForceRefresh = forceRefresh)
             result.onSuccess { types ->
                 _examTypeState.value = types
                 _errorMessage.value = null
@@ -160,7 +167,11 @@ class ExamViewModel @Inject constructor(
     fun loadExamSubTypes(semester: Int, examType: Int, forceRefresh: Boolean = false) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = examRepository.getExamSubTypes(semester, examType, forceRefresh)
+            val result = examRepository.getExamSubTypes(
+                semester = semester,
+                examType = examType,
+                isForceRefresh = forceRefresh
+            )
             result.onSuccess { subTypes ->
                 _examSubTypeState.value = subTypes
                 _errorMessage.value = null
@@ -181,7 +192,13 @@ class ExamViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             val result =
-                examRepository.getSubTypeExams(semester, examType, subType, examDate, forceRefresh)
+                examRepository.getSubTypeExams(
+                    semester = semester,
+                    examType = examType,
+                    subType = subType,
+                    examDate = examDate,
+                    isForceRefresh = forceRefresh
+                )
             result.onSuccess { exams ->
                 _subTypeExamState.value = exams
                 _errorMessage.value = null
@@ -193,7 +210,7 @@ class ExamViewModel @Inject constructor(
     }
 
     fun loadUiState(forceRefresh: Boolean = false) {
-        if (forceRefresh || (_uiState.value.selectedSemester == null && _uiState.value.selectedType == null)) {
+        if (forceRefresh || (_uiState.value.selectedSemester == null || _uiState.value.selectedType == null)) {
             _uiState.value = _uiState.value.copy(
                 selectedSemester = examSemesterState.value?.data?.semesters?.first()?.semesterCode
                     ?: 20243,

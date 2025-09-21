@@ -47,10 +47,12 @@ class ExamRepository @Inject constructor(
     private val cacheTimeoutMillis = 5 * 60 * 1000L
 
     suspend fun getPersonalExams(
+        limit: Int = 100,
+        page: Int = 1,
         semester: Int,
         isForceRefresh: Boolean = false
     ): Result<ExamResponse> {
-        val cacheKey = Pair(100, 1)
+        val cacheKey = Pair(limit, page)
         val now = System.currentTimeMillis()
         val cached = cachedPersonalExams[cacheKey]
 
@@ -74,8 +76,8 @@ class ExamRepository @Inject constructor(
                            },
                            "additional": {
                              "paging": {
-                               "limit": 100,
-                               "page": 1
+                               "limit": $limit,
+                               "page": $page
                              },
                              "ordering": [
                                {
@@ -96,9 +98,11 @@ class ExamRepository @Inject constructor(
     }
 
     suspend fun getExamSemesters(
+        limit: Int = 100,
+        page: Int = 1,
         isForceRefresh: Boolean = false
     ): Result<ExamSemesterResponse> {
-        val cacheKey = Pair(100, 1)
+        val cacheKey = Pair(limit, page)
         val now = System.currentTimeMillis()
         val cached = cachedExamSemester[cacheKey]
 
@@ -121,8 +125,8 @@ class ExamRepository @Inject constructor(
                       },
                       "additional": {
                         "paging": {
-                          "limit": 100,
-                          "page": 1
+                          "limit": $limit,
+                          "page": $page
                         },
                         "ordering": [
                           {
@@ -143,9 +147,11 @@ class ExamRepository @Inject constructor(
     }
 
     suspend fun getExamTypes(
+        limit: Int = 100,
+        page: Int = 1,
         isForceRefresh: Boolean = false
     ): Result<ExamTypeResponse> {
-        val cacheKey = Pair(100, 1)
+        val cacheKey = Pair(limit, page)
         val now = System.currentTimeMillis()
         val cached = cachedExamTypes[cacheKey]
 
@@ -169,11 +175,13 @@ class ExamRepository @Inject constructor(
     }
 
     suspend fun getExamSubTypes(
+        limit: Int = 100,
+        page: Int = 1,
         semester: Int,
         examType: Int,
         isForceRefresh: Boolean = false
     ): Result<ExamSubTypeResponse> {
-        val cacheKey = Pair(100, 1)
+        val cacheKey = Pair(limit, page)
         val now = System.currentTimeMillis()
         val cached = cachedExamSubTypes[cacheKey]
 
@@ -206,13 +214,15 @@ class ExamRepository @Inject constructor(
     }
 
     suspend fun getSubTypeExams(
+        limit: Int = 100,
+        page: Int = 1,
         semester: Int,
         examType: Int,
         subType: String = "",
         examDate: String = "",
         isForceRefresh: Boolean = false
     ): Result<SubTypeExamResponse> {
-        val cacheKey = Pair(100, 1)
+        val cacheKey = Pair(limit, page)
         val now = System.currentTimeMillis()
         val cached = cachedSubTypeExams[cacheKey]
 
@@ -238,8 +248,8 @@ class ExamRepository @Inject constructor(
                       "is_giua_ky": false,
                       "additional": {
                         "paging": {
-                          "limit": 100,
-                          "page": 1
+                          "limit": $limit,
+                          "page": $page
                         },
                         "ordering": [
                           {

@@ -31,9 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.ui.AppViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,18 +58,22 @@ fun ExamScreen(
 
     var showDatePicker by remember { mutableStateOf(false) }
 
+    val DEFAULT_SEMESTER_CODE = 20243
+    val DEFAULT_TYPE_ID = 3
+
     LaunchedEffect(Unit) {
         refreshCoordinator.refreshEvent.collect { route ->
             if (route == "exam") {
                 viewModel.refreshPersonalExams(
                     examSemesterResponse?.data?.semesters
-                        ?.first()?.semesterCode ?: 20243
+                        ?.first()?.semesterCode ?: DEFAULT_SEMESTER_CODE
                 )
                 viewModel.refreshExamTypes()
                 viewModel.refreshExamSubTypes(
                     examSemesterResponse?.data?.semesters
-                        ?.first()?.semesterCode ?: 20243,
-                    examTypeResponse?.data?.scheduleObjects[1]?.objectType ?: 3
+                        ?.first()?.semesterCode ?: DEFAULT_SEMESTER_CODE,
+                    examTypeResponse?.data?.scheduleObjects?.getOrNull(1)?.objectType
+                        ?: DEFAULT_TYPE_ID
                 )
                 viewModel.refreshExamSemesters()
                 viewModel.loadAlarms()
@@ -115,7 +116,7 @@ fun ExamScreen(
                                     semesterId,
                                     selectedType
                                         ?: (examTypeResponse?.data?.scheduleObjects[1]?.objectType
-                                            ?: 3)
+                                            ?: DEFAULT_TYPE_ID)
                                 )
                             }
                         }
@@ -140,7 +141,7 @@ fun ExamScreen(
                                 viewModel.refreshExamSubTypes(
                                     selectedSemester
                                         ?: (examSemesterResponse?.data?.semesters?.first()?.semesterCode
-                                            ?: 20243), typeId
+                                            ?: DEFAULT_SEMESTER_CODE), typeId
                                 )
                             }
                             showDatePicker = typeId == 5
@@ -174,16 +175,13 @@ fun ExamScreen(
                             onDateSelected = { date ->
                                 viewModel.setSelectedDate(date)
                                 showDatePicker = false
-                                val currentDate: String =
-                                    SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                                        .format(Date())
                                 viewModel.refreshSubTypeExams(
                                     semester = selectedSemester
                                         ?: examSemesterResponse?.data?.semesters?.first()?.semesterCode
-                                        ?: 20243,
+                                        ?: DEFAULT_SEMESTER_CODE,
                                     examType = selectedType,
                                     subType = "",
-                                    examDate = selectedDate ?: currentDate,
+                                    examDate = date,
                                 )
                             },
                             onDismiss = { showDatePicker = false }
@@ -203,10 +201,10 @@ fun ExamScreen(
                             viewModel.refreshSubTypeExams(
                                 semester = selectedSemester
                                     ?: examSemesterResponse?.data?.semesters?.first()?.semesterCode
-                                    ?: 20243,
+                                    ?: DEFAULT_SEMESTER_CODE,
                                 examType = selectedType
                                     ?: examTypeResponse?.data?.scheduleObjects?.first()?.objectType
-                                    ?: 3,
+                                    ?: DEFAULT_TYPE_ID,
                                 subType = subTypeId ?: "",
                                 examDate = ""
                             )
