@@ -17,5 +17,6 @@ object TopAppBarConfig {
         "detailed_info" to TopBarConfig("Thông tin chi tiết", showBack = true, showRefresh = false),
         "payment" to TopBarConfig("Thanh toán", showBack = true, showRefresh = false),
         "register" to TopBarConfig("Đăng ký môn học", showBack = true, showRefresh = true),
+        "exam" to TopBarConfig("Lịch thi", showBack = true, showRefresh = true),
     )
 }
