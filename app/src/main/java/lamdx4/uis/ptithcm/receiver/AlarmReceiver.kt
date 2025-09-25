@@ -1,4 +1,4 @@
-package lamdx4.uis.ptithcm.service
+package lamdx4.uis.ptithcm.receiver
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -8,6 +8,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.data.database.AlarmDatabase
+import lamdx4.uis.ptithcm.service.AlarmForegroundService
+import lamdx4.uis.ptithcm.service.AlarmScheduler
 
 class AlarmReceiver : BroadcastReceiver() {
     @OptIn(DelicateCoroutinesApi::class)
@@ -21,7 +23,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 val pendingResult = goAsync()
                 GlobalScope.launch(Dispatchers.IO) {
                     try {
-                        val db = AlarmDatabase.getInstance(context!!)
+                        val db = AlarmDatabase.Companion.getInstance(context!!)
                         val alarms = db.alarmDao().getAllAlarms()
                         val alarm = alarms.find { it.label == label }
                         if (alarm != null) {
@@ -39,7 +41,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 val pendingResult = goAsync()
                 GlobalScope.launch(Dispatchers.IO) {
                     try {
-                        val db = AlarmDatabase.getInstance(context!!)
+                        val db = AlarmDatabase.Companion.getInstance(context!!)
                         val alarms = db.alarmDao().getAllAlarms()
                         val alarm = alarms.find { it.label == label }
                         alarm?.time += 300_000

@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import lamdx4.uis.ptithcm.R
+import lamdx4.uis.ptithcm.receiver.AlarmReceiver
 import lamdx4.uis.ptithcm.ui.exam.RingingAlarmActivity
 
 class AlarmForegroundService : Service() {
