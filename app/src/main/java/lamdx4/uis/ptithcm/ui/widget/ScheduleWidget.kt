@@ -10,6 +10,7 @@ import androidx.glance.GlanceModifier
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
@@ -18,6 +19,7 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import dagger.hilt.EntryPoint
@@ -27,103 +29,177 @@ import dagger.hilt.components.SingletonComponent
 import lamdx4.uis.ptithcm.data.repository.ScheduleRepository
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class ScheduleWidget() : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        // Lấy repository qua EntryPoint
         val entryPoint = EntryPointAccessors.fromApplication(
             context,
             ScheduleRepositoryEntryPoint::class.java
         )
         val scheduleRepository = entryPoint.getScheduleRepository()
 
-        // Lấy lịch tuần hiện tại
         val semesterCode = scheduleRepository.getCurrentSemester()?.semesterCode
-            ?: scheduleRepository.getSemesters().data.semesters.first().semesterCode
-        val weeklySchedule = scheduleRepository.getCurrentWeek(semesterCode)
+            ?: scheduleRepository.getSemesters().data.semesters.firstOrNull()?.semesterCode
 
-        // Lấy ngày hiện tại
+        val weeklySchedule = semesterCode?.let { scheduleRepository.getCurrentWeek(it) }
+
+        // Ngày hiện tại
         val today = LocalDate.now()
-        val showedDate = today.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-        val compareFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
-        val formattedDate = today.atStartOfDay().format(compareFormat)
+        val formatter = DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy", Locale("vi", "VN"))
+        val showedDate = today.format(formatter).replaceFirstChar { it.uppercaseChar() }
 
-        val morningClass =
-            weeklySchedule?.scheduleItems?.find { it.studyDate == formattedDate && it.startPeriod == 1 }
-        val afternoonClass =
-            weeklySchedule?.scheduleItems?.find { it.studyDate == formattedDate && it.startPeriod == 7 }
+        // Tìm lớp học
+        val morningClass = weeklySchedule?.scheduleItems?.find {
+            it.studyDate?.startsWith(today.toString()) == true && it.startPeriod == 1
+        }
+        val afternoonClass = weeklySchedule?.scheduleItems?.find {
+            it.studyDate?.startsWith(today.toString()) == true && it.startPeriod == 7
+        }
 
         provideContent {
             Column(
                 modifier = GlanceModifier
                     .fillMaxSize()
-                    .background(Color(0xFFFFFFFF)) // nền trắng tổng thể
-                    .padding(12.dp)
+                    .background(ColorProvider(Color.White, Color(0xFF121212))) // tổng nền
             ) {
-                // Hàng đầu: ngày + nút refresh
+                // Header
                 Row(
                     modifier = GlanceModifier
                         .fillMaxWidth()
-                        .padding(bottom = 8.dp),
+                        .background(
+                            ColorProvider(
+                                Color(0xFFB71C1C),
+                                Color(0xFF333333)
+                            )
+                        ) // đỏ PTIT / xám
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = showedDate,
                         style = TextStyle(
-                            fontSize = 16.sp
+                            fontSize = 14.sp,
+                            color = ColorProvider(Color.White, Color.White)
                         ),
                         modifier = GlanceModifier.defaultWeight()
                     )
 
                     Button(
                         text = "⟳",
-                        onClick = { /* TODO: refresh sau */ }
+                        onClick = { /* TODO: refresh */ },
+                        modifier = GlanceModifier
+                            .background(
+                                ColorProvider(
+                                    Color.White,
+                                    Color(0xFFB71C1C)
+                                )
+                            ) // nút trắng / đỏ
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
 
-                // Cột chứa buổi sáng và buổi chiều
+                // Phần lịch học
                 Column(
                     modifier = GlanceModifier
                         .fillMaxWidth()
-                        .background(Color(0xFFFFEBEE)) // nền đỏ nhạt
+                        .padding(12.dp)
+                        .background(
+                            ColorProvider(
+                                Color(0xFFFFEBEE),
+                                Color(0xFF1E1E1E)
+                            )
+                        ) // đỏ nhạt / xám đậm
                         .padding(8.dp)
                 ) {
                     // Buổi sáng
                     Row(
                         modifier = GlanceModifier
                             .fillMaxWidth()
-                            .background(Color(0xFFFFFFFF)) // ô trắng
-                            .padding(8.dp)
+                            .background(ColorProvider(Color.White, Color(0xFF2C2C2C)))
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        // Label
                         Text(
-                            text = "Sáng: ${morningClass?.subjectCode ?: "Rãnh rỗi"}" ,
+                            text = "Sáng",
                             style = TextStyle(
-                                fontSize = 14.sp
-                            )
+                                fontSize = 14.sp,
+                                color = ColorProvider(
+                                    Color(0xFFB71C1C),
+                                    Color(0xFFFFCDD2)
+                                ) // đỏ / hồng nhạt
+                            ),
+                            modifier = GlanceModifier.padding(end = 8.dp)
                         )
+
+                        // Chi tiết
+                        Column(modifier = GlanceModifier.defaultWeight()) {
+                            Text(
+                                text = morningClass?.subjectName ?: "Rảnh rỗi",
+                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            )
+                            Text(
+                                text = morningClass?.subjectCode ?: "",
+                                style = TextStyle(
+                                    fontSize = 12.sp,
+                                    color = ColorProvider(Color.Black, Color.LightGray)
+                                )
+                            )
+                            Text(
+                                text = morningClass?.roomCode ?: "",
+                                style = TextStyle(
+                                    fontSize = 12.sp,
+                                    color = ColorProvider(Color.Black, Color.LightGray)
+                                )
+                            )
+                        }
                     }
 
-                    Spacer(modifier = GlanceModifier.height(6.dp))
+                    Spacer(modifier = GlanceModifier.height(8.dp))
 
                     // Buổi chiều
                     Row(
                         modifier = GlanceModifier
                             .fillMaxWidth()
-                            .background(Color(0xFFFFFFFF)) // ô trắng
-                            .padding(8.dp)
+                            .background(ColorProvider(Color.White, Color(0xFF2C2C2C)))
+                            .padding(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Chiều: ${afternoonClass?.subjectCode ?: "Rãnh rỗi"}",
+                            text = "Chiều",
                             style = TextStyle(
-                                fontSize = 14.sp
-                            )
+                                fontSize = 14.sp,
+                                color = ColorProvider(Color(0xFFB71C1C), Color(0xFFFFCDD2))
+                            ),
+                            modifier = GlanceModifier.padding(end = 8.dp)
                         )
+
+                        Column(modifier = GlanceModifier.defaultWeight()) {
+                            Text(
+                                text = afternoonClass?.subjectName ?: "Rảnh rỗi",
+                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            )
+                            Text(
+                                text = afternoonClass?.subjectCode ?: "",
+                                style = TextStyle(
+                                    fontSize = 12.sp,
+                                    color = ColorProvider(Color.Black, Color.LightGray)
+                                )
+                            )
+                            Text(
+                                text = afternoonClass?.roomCode ?: "",
+                                style = TextStyle(
+                                    fontSize = 12.sp,
+                                    color = ColorProvider(Color.Black, Color.LightGray)
+                                )
+                            )
+                        }
                     }
                 }
             }
         }
-
     }
 }
 
