@@ -40,29 +40,18 @@ class ScheduleWidget() : GlanceAppWidget() {
         )
         val scheduleRepository = entryPoint.getScheduleRepository()
 
-        val semesterCode = scheduleRepository.getCurrentSemester()?.semesterCode
-            ?: scheduleRepository.getSemesters().data.semesters.firstOrNull()?.semesterCode
-
-        val weeklySchedule = semesterCode?.let { scheduleRepository.getCurrentWeek(it) }
-
-        // Ngày hiện tại
         val today = LocalDate.now()
         val formatter = DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy", Locale("vi", "VN"))
         val showedDate = today.format(formatter).replaceFirstChar { it.uppercaseChar() }
 
-        // Tìm lớp học
-        val morningClass = weeklySchedule?.scheduleItems?.find {
-            it.studyDate?.startsWith(today.toString()) == true && it.startPeriod == 1
-        }
-        val afternoonClass = weeklySchedule?.scheduleItems?.find {
-            it.studyDate?.startsWith(today.toString()) == true && it.startPeriod == 7
-        }
+        val morningClass = scheduleRepository.getClassFromCache(today.toString(), 1)
+        val afternoonClass = scheduleRepository.getClassFromCache(today.toString(), 7)
 
         provideContent {
             Column(
                 modifier = GlanceModifier
                     .fillMaxSize()
-                    .background(ColorProvider(Color.White, Color(0xFF121212))) // tổng nền
+                    .background(ColorProvider(Color.White, Color(0xFF121212)))
             ) {
                 // Header
                 Row(
@@ -73,7 +62,7 @@ class ScheduleWidget() : GlanceAppWidget() {
                                 Color(0xFFB71C1C),
                                 Color(0xFF333333)
                             )
-                        ) // đỏ PTIT / xám
+                        )
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -95,12 +84,12 @@ class ScheduleWidget() : GlanceAppWidget() {
                                     Color.White,
                                     Color(0xFFB71C1C)
                                 )
-                            ) // nút trắng / đỏ
+                            )
                             .padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
 
-                // Phần lịch học
+                // Schedule section
                 Column(
                     modifier = GlanceModifier
                         .fillMaxWidth()
@@ -110,10 +99,10 @@ class ScheduleWidget() : GlanceAppWidget() {
                                 Color(0xFFFFEBEE),
                                 Color(0xFF1E1E1E)
                             )
-                        ) // đỏ nhạt / xám đậm
+                        )
                         .padding(8.dp)
                 ) {
-                    // Buổi sáng
+                    // Morning
                     Row(
                         modifier = GlanceModifier
                             .fillMaxWidth()
@@ -133,8 +122,7 @@ class ScheduleWidget() : GlanceAppWidget() {
                             ),
                             modifier = GlanceModifier.padding(end = 8.dp)
                         )
-
-                        // Chi tiết
+                        // Details
                         Column(modifier = GlanceModifier.defaultWeight()) {
                             Text(
                                 text = morningClass?.subjectName ?: "Rảnh rỗi",
@@ -159,7 +147,7 @@ class ScheduleWidget() : GlanceAppWidget() {
 
                     Spacer(modifier = GlanceModifier.height(8.dp))
 
-                    // Buổi chiều
+                    // Afternoon
                     Row(
                         modifier = GlanceModifier
                             .fillMaxWidth()

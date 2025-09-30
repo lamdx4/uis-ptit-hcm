@@ -101,6 +101,9 @@ class WeeklyScheduleViewModel @Inject constructor(
                     currentWeekDisplay = selectedWeek?.let { createWeekDisplay(it) },
                     error = null // Clear error on success
                 )
+
+                // Save weekly schedule to database
+                scheduleRepository.saveWeeklySchedule(semester.semesterCode)
                 
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(

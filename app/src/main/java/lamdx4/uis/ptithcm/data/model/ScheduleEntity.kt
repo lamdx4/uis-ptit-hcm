@@ -1,15 +1,13 @@
 package lamdx4.uis.ptithcm.data.model
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 
-@Entity(tableName = "schedule_items")
+@Entity(tableName = "schedule_items", primaryKeys = ["semesterCode", "studyDate", "startPeriod"])
 data class ScheduleItemEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-
-    val semesterCode: Int,          // link to Semester table
+    val semesterCode: Int,
     val studyDate: String,
-    val startPeriod: Int,           // VD: 1 = morning, 7 = afternoon
+    val startPeriod: Int,           // 1 = morning, 7 = afternoon
     val subjectName: String,
-    val room: String? = null
+    val subjectCode: String,
+    val roomCode: String?
 )

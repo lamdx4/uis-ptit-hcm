@@ -5,15 +5,11 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import lamdx4.uis.ptithcm.data.model.ScheduleItemEntity
-import lamdx4.uis.ptithcm.data.model.SemesterEntity
 
 @Dao
 interface ScheduleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSemesters(semesters: List<SemesterEntity>)
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertScheduleItems(items: List<ScheduleItemEntity>)
+    suspend fun insertAll(items: List<ScheduleItemEntity>)
 
     @Query("SELECT * FROM schedule_items WHERE studyDate = :date AND startPeriod = :period LIMIT 1")
     suspend fun getClassByDateAndPeriod(date: String, period: Int): ScheduleItemEntity?

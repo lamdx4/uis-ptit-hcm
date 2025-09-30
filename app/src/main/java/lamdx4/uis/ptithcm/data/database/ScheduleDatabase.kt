@@ -3,10 +3,9 @@ package lamdx4.uis.ptithcm.data.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import lamdx4.uis.ptithcm.data.model.ScheduleItemEntity
-import lamdx4.uis.ptithcm.data.model.SemesterEntity
 
 @Database(
-    entities = [SemesterEntity::class, ScheduleItemEntity::class],
+    entities = [ScheduleItemEntity::class],
     version = 1
 )
 abstract class ScheduleDatabase : RoomDatabase() {
