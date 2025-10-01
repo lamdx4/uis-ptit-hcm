@@ -7,7 +7,10 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.Button
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.action.ActionParameters
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.color.ColorProvider
@@ -15,10 +18,10 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
-import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.wrapContentHeight
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -50,7 +53,8 @@ class ScheduleWidget() : GlanceAppWidget() {
         provideContent {
             Column(
                 modifier = GlanceModifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .wrapContentHeight()
                     .background(ColorProvider(Color.White, Color(0xFF121212)))
             ) {
                 // Header
@@ -77,7 +81,7 @@ class ScheduleWidget() : GlanceAppWidget() {
 
                     Button(
                         text = "⟳",
-                        onClick = { /* TODO: refresh */ },
+                        onClick = actionRunCallback<RefreshActionCallback>(),
                         modifier = GlanceModifier
                             .background(
                                 ColorProvider(
@@ -129,13 +133,6 @@ class ScheduleWidget() : GlanceAppWidget() {
                                 style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             )
                             Text(
-                                text = morningClass?.subjectCode ?: "",
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    color = ColorProvider(Color.Black, Color.LightGray)
-                                )
-                            )
-                            Text(
                                 text = morningClass?.roomCode ?: "",
                                 style = TextStyle(
                                     fontSize = 12.sp,
@@ -170,13 +167,6 @@ class ScheduleWidget() : GlanceAppWidget() {
                                 style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Bold)
                             )
                             Text(
-                                text = afternoonClass?.subjectCode ?: "",
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    color = ColorProvider(Color.Black, Color.LightGray)
-                                )
-                            )
-                            Text(
                                 text = afternoonClass?.roomCode ?: "",
                                 style = TextStyle(
                                     fontSize = 12.sp,
@@ -195,4 +185,25 @@ class ScheduleWidget() : GlanceAppWidget() {
 @InstallIn(SingletonComponent::class)
 interface ScheduleRepositoryEntryPoint {
     fun getScheduleRepository(): ScheduleRepository
+}
+
+class RefreshActionCallback : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters
+    ) {
+        val entryPoint = EntryPointAccessors.fromApplication(
+            context,
+            ScheduleRepositoryEntryPoint::class.java
+        )
+        val scheduleRepository = entryPoint.getScheduleRepository()
+
+        // Fetch and save weekly schedule to database
+        val semesterCode = scheduleRepository.getCurrentSemester()?.semesterCode
+        if (semesterCode != null) {
+            scheduleRepository.saveWeeklySchedule(semesterCode)
+        }
+        ScheduleWidget().update(context, glanceId)
+    }
 }
