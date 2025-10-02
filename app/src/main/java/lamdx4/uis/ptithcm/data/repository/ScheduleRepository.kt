@@ -7,6 +7,8 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import lamdx4.uis.ptithcm.data.database.ScheduleDao
+import lamdx4.uis.ptithcm.data.model.ScheduleItemEntity
 import lamdx4.uis.ptithcm.data.model.ScheduleResponse
 import lamdx4.uis.ptithcm.data.model.Semester
 import lamdx4.uis.ptithcm.data.model.SemesterResponse
@@ -16,7 +18,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ScheduleRepository @Inject constructor(private val client: HttpClient) : Cacheable {
+class ScheduleRepository @Inject constructor(
+    private val client: HttpClient,
+    private val scheduleDao: ScheduleDao
+) : Cacheable {
 
     // 🎯 Cache data to avoid reloading
     private var cachedSemesters: SemesterResponse? = null
@@ -191,6 +196,35 @@ class ScheduleRepository @Inject constructor(private val client: HttpClient) : C
                     false
                 }
             }
+    }
+
+    // Save weekly schedule to database
+    suspend fun saveWeeklySchedule(semesterCode: Int) {
+        val week = getCurrentWeek(semesterCode)
+        val entities = week?.scheduleItems
+            ?.mapNotNull { item ->
+                val date = item.studyDate?.substring(0, 10)
+                val period = item.startPeriod
+                if (date != null && period != null) {
+                    ScheduleItemEntity(
+                        semesterCode = semesterCode,
+                        studyDate = date,
+                        startPeriod = period,
+                        subjectName = item.subjectName,
+                        subjectCode = item.subjectCode,
+                        roomCode = item.roomCode
+                    )
+                } else {
+                    null // bỏ record bị thiếu khóa chính
+                }
+            }.orEmpty()
+
+        scheduleDao.insertAll(entities)
+    }
+
+    // Get weekly schedule from database (for widget)
+    suspend fun getClassFromCache(date: String, period: Int): ScheduleItemEntity? {
+        return scheduleDao.getClassByDateAndPeriod(date, period)
     }
 
     fun clearScheduleCache(semesterCode: Int? = null) {

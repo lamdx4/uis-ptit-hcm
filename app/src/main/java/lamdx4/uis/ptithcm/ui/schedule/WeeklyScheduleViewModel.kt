@@ -44,24 +44,24 @@ class WeeklyScheduleViewModel @Inject constructor(
     fun loadSemesters() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingSemesters = true, error = null)
-            
+
             try {
                 val semesterResponse = scheduleRepository.getSemesters()
                 val semesters = semesterResponse.data.semesters
-                
+
                 // Lấy học kỳ hiện tại hoặc mặc định học kỳ đầu tiên
                 val currentSemester = scheduleRepository.getCurrentSemester()
                     ?: semesters.firstOrNull()
-                
+
                 _uiState.value = _uiState.value.copy(
                     isLoadingSemesters = false,
                     semesters = semesters,
                     selectedSemester = currentSemester
                 )
-                
+
                 // Auto-load schedule for default semester
                 currentSemester?.let { loadScheduleForSemester(it) }
-                
+
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoadingSemesters = false,
@@ -83,16 +83,16 @@ class WeeklyScheduleViewModel @Inject constructor(
     private fun loadScheduleForSemester(semester: Semester) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoadingSchedule = true, error = null)
-            
+
             try {
-                val scheduleResponse = scheduleRepository.getWeeklySchedule( semester.semesterCode)
+                val scheduleResponse = scheduleRepository.getWeeklySchedule(semester.semesterCode)
                 // Hiển thị tất cả tuần, kể cả tuần không có lịch học
                 val availableWeeks = scheduleResponse.data.weeklySchedules
-                
+
                 // Tìm tuần hiện tại hoặc tuần đầu tiên nếu không có tuần hiện tại
-                val currentWeek = scheduleRepository.getCurrentWeek( semester.semesterCode)
+                val currentWeek = scheduleRepository.getCurrentWeek(semester.semesterCode)
                 val selectedWeek = currentWeek ?: availableWeeks.firstOrNull()
-                
+
                 _uiState.value = _uiState.value.copy(
                     isLoadingSchedule = false,
                     weeklySchedules = availableWeeks,
@@ -101,7 +101,6 @@ class WeeklyScheduleViewModel @Inject constructor(
                     currentWeekDisplay = selectedWeek?.let { createWeekDisplay(it) },
                     error = null // Clear error on success
                 )
-                
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isLoadingSchedule = false,
@@ -124,20 +123,20 @@ class WeeklyScheduleViewModel @Inject constructor(
 
     private fun createWeekDisplay(week: WeeklySchedule): WeekScheduleDisplay {
         val daySchedules = mutableMapOf<Int, MutableList<ScheduleItem>>()
-        
+
         // Group schedule items by day of week
         week.scheduleItems.forEach { item ->
             item.dayOfWeek?.let { day ->
                 daySchedules.getOrPut(day) { mutableListOf() }.add(item)
             }
         }
-        
+
         // Create day schedules for the entire week (Monday to Sunday)
         val weekDaySchedules = (2..8).map { dayOfWeek ->
             val dayName = getDayName(dayOfWeek)
             val date = getDateForDay(week.startDate, dayOfWeek)
             val items = daySchedules[dayOfWeek]?.sortedBy { it.startPeriod } ?: emptyList()
-            
+
             DaySchedule(
                 dayOfWeek = dayOfWeek,
                 dayName = dayName,
@@ -145,7 +144,7 @@ class WeeklyScheduleViewModel @Inject constructor(
                 scheduleItems = items
             )
         }
-        
+
         return WeekScheduleDisplay(
             weekInfo = week.weekInfo ?: "Tuần học",
             startDate = week.startDate ?: "",
@@ -153,39 +152,39 @@ class WeeklyScheduleViewModel @Inject constructor(
             daySchedules = weekDaySchedules
         )
     }
-    
+
     private fun getDayName(dayOfWeek: Int): String {
         return when (dayOfWeek) {
             2 -> "Thứ 2"
             3 -> "Thứ 3"
             4 -> "Thứ 4"
-            5 -> "Thứ 5" 
+            5 -> "Thứ 5"
             6 -> "Thứ 6"
             7 -> "Thứ 7"
             8 -> "Chủ nhật"
             else -> "Không xác định"
         }
     }
-    
+
     private fun getDateForDay(startDateStr: String?, dayOfWeek: Int): String {
         if (startDateStr.isNullOrEmpty()) return ""
-        
+
         try {
             val startDate = dateFormat.parse(startDateStr) ?: return ""
             val calendar = Calendar.getInstance()
             calendar.time = startDate
-            
+
             // Add days to get to the specific day of week
             // dayOfWeek: 2=Monday, 3=Tuesday, etc.
             val daysToAdd = dayOfWeek - 2 // Monday is day 0 in our calculation
             calendar.add(Calendar.DAY_OF_MONTH, daysToAdd)
-            
+
             return dateFormat.format(calendar.time)
         } catch (e: Exception) {
             return ""
         }
     }
-    
+
     fun getCurrentWeek(): WeeklySchedule? {
         val currentDate = Date()
         return _uiState.value.weeklySchedules
@@ -194,32 +193,32 @@ class WeeklyScheduleViewModel @Inject constructor(
                 try {
                     val startDate = week.startDate?.let { dateFormat.parse(it) }
                     val endDate = week.endDate?.let { dateFormat.parse(it) }
-                    
+
                     startDate != null && endDate != null &&
-                    currentDate.time >= startDate.time && currentDate.time <= endDate.time
+                            currentDate.time >= startDate.time && currentDate.time <= endDate.time
                 } catch (e: Exception) {
                     false
                 }
             }
     }
-    
+
     fun setWeeklySchedules(schedules: List<WeeklySchedule>) {
         _uiState.value = _uiState.value.copy(
             weeklySchedules = schedules, // Hiển thị tất cả tuần, kể cả tuần rỗng
             isLoading = false
         )
-        
+
         // Auto-select current week if available
         getCurrentWeek()?.let { currentWeek ->
             selectWeek(currentWeek)
         } ?: run {
             // If no current week, select first available week
             schedules.firstOrNull()?.let { firstWeek ->
-                selectWeek(firstWeek)  
+                selectWeek(firstWeek)
             }
         }
     }
-    
+
     // Hilt automatically manages repository lifecycle
     // No need for onCleared() method
 }

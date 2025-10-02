@@ -31,7 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import lamdx4.uis.ptithcm.service.AlarmForegroundService
-import lamdx4.uis.ptithcm.service.AlarmReceiver
+import lamdx4.uis.ptithcm.receiver.AlarmReceiver
 
 class RingingAlarmActivity : ComponentActivity() {
 

@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import androidx.core.net.toUri
+import lamdx4.uis.ptithcm.receiver.AlarmReceiver
 
 class AlarmScheduler {
     // đặt alarm bằng epoch millis
