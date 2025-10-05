@@ -11,7 +11,7 @@ fun scheduleDailyWidgetUpdate(context: Context) {
     val delay = calculateInitialDelay() // tính số ms từ bây giờ đến 0h hôm sau
 
     val workRequest = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(
-        1, TimeUnit.DAYS // lặp lại mỗi 1 ngày
+        4, TimeUnit.HOURS // lặp lại mỗi 4 giờ
     )
         .setInitialDelay(delay, TimeUnit.MILLISECONDS) // lần đầu chạy sau delay
         .build()
