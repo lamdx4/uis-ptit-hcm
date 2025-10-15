@@ -31,6 +31,7 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import lamdx4.uis.ptithcm.data.repository.ScheduleRepository
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -43,7 +44,8 @@ class ScheduleWidget() : GlanceAppWidget() {
         )
         val scheduleRepository = entryPoint.getScheduleRepository()
 
-        val today = LocalDate.now()
+        val zoneVN = ZoneId.of("Asia/Ho_Chi_Minh")
+        val today = LocalDate.now(zoneVN)
         val formatter = DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy", Locale("vi", "VN"))
         val showedDate = today.format(formatter).replaceFirstChar { it.uppercaseChar() }
 
@@ -193,17 +195,19 @@ class RefreshActionCallback : ActionCallback {
         glanceId: GlanceId,
         parameters: ActionParameters
     ) {
-        val entryPoint = EntryPointAccessors.fromApplication(
-            context,
-            ScheduleRepositoryEntryPoint::class.java
-        )
-        val scheduleRepository = entryPoint.getScheduleRepository()
+        // refresh token lifetime is too short
+//        val entryPoint = EntryPointAccessors.fromApplication(
+//            context,
+//            ScheduleRepositoryEntryPoint::class.java
+//        )
+//        val scheduleRepository = entryPoint.getScheduleRepository()
+//
+//        // Fetch and save weekly schedule to database
+//        val semesterCode = scheduleRepository.getCurrentSemester()?.semesterCode
+//        if (semesterCode != null) {
+//            scheduleRepository.saveWeeklySchedule(semesterCode)
+//        }
 
-        // Fetch and save weekly schedule to database
-        val semesterCode = scheduleRepository.getCurrentSemester()?.semesterCode
-        if (semesterCode != null) {
-            scheduleRepository.saveWeeklySchedule(semesterCode)
-        }
         ScheduleWidget().update(context, glanceId)
     }
 }
