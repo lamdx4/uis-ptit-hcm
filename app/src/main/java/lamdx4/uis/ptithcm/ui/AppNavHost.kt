@@ -3,9 +3,9 @@ package lamdx4.uis.ptithcm.ui
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import lamdx4.uis.ptithcm.ui.exam.examNavGraph
 import lamdx4.uis.ptithcm.ui.fee.feeNavGraph
 import lamdx4.uis.ptithcm.ui.forgotpassword.forgotPasswordNavGraph
@@ -19,9 +19,9 @@ import lamdx4.uis.ptithcm.ui.schedule.scheduleNavGraph
 
 @Composable
 fun AppNavHost(
+    navController: NavHostController,
     appViewModel: AppViewModel
 ) {
-    val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomNav = currentRoute != "login" && currentRoute != "forgot-password"

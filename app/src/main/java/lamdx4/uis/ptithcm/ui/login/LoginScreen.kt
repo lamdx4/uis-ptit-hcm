@@ -1,5 +1,6 @@
 package lamdx4.uis.ptithcm.ui.login
 
+import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,14 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -43,13 +42,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,16 +62,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.common.activityViewModel
-import lamdx4.uis.ptithcm.data.repository.AuthRepository
 import lamdx4.uis.ptithcm.ui.AppViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,6 +81,7 @@ fun LoginScreen(
 ) {
     val loginState = loginViewModel.uiState.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -143,15 +137,38 @@ fun LoginScreen(
                     loginViewModel.clearError()
 
                     appViewModel.viewModelScope.launch {
-                        val result = loginViewModel.login(
-                        )
+                        val result = loginViewModel.login()
                         result.onSuccess {
+                            // Lưu trạng thái login
+                            // sau khi login thành công
+                            val sp = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+                            sp.edit { putBoolean("is_logged_in", true) }
+
+                            val pendingDest = sp.getString("pending_destination", null)
+                            val fromShortcut = sp.getBoolean("pending_from_shortcut", false)
+
+                            // dọn cờ để tránh tự nhảy lần sau
+                            sp.edit {
+                                remove("pending_destination")
+                                remove("pending_from_shortcut")
+                            }
+
                             appViewModel.saveLoginInfo(
                                 loginState.value.username
                             )
-                            navController.navigate("profile") {
-                                popUpTo("login") { inclusive = true }
+                            if (fromShortcut && pendingDest != null) {
+                                navController.navigate(pendingDest) {
+                                    popUpTo("login") { inclusive = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            } else {
+                                // nếu không đi từ shortcut
+                                navController.navigate("profile") {
+                                    popUpTo("login") { inclusive = true }
+                                }
                             }
+
                         }
                     }
                 }
@@ -515,7 +532,7 @@ private fun LoginFormCard(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Icon(
-                            Icons.Default.Login,
+                            Icons.AutoMirrored.Filled.Login,
                             contentDescription = null,
                             modifier = Modifier.size(20.dp)
                         )
