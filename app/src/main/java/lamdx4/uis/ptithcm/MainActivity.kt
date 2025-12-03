@@ -6,14 +6,11 @@ import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -23,7 +20,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.ui.AppNavHost
 import lamdx4.uis.ptithcm.ui.AppViewModel
@@ -50,16 +48,13 @@ class MainActivity : ComponentActivity() {
                 navController = rememberNavController()
                 val appViewModel = hiltViewModel<AppViewModel>()
 
-                var hasNavigated by remember { mutableStateOf(false) }
-
                 AppNavHost(navController, appViewModel)
 
                 LaunchedEffect(navController) {
-                    delay(200)
-                    if (!hasNavigated && pendingDest != null) {
+                    navController.awaitGraphReady()
+                    if (pendingDest != null) {
                         handleShortcutDestination(pendingDest!!)
                         pendingDest = null
-                        hasNavigated = true
                     }
                 }
             }
@@ -114,36 +109,57 @@ class MainActivity : ComponentActivity() {
     // Handle intent when app is already open and user selects shortcut
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        val dest = intent.getStringExtra("shortcut_destination")
-        dest?.let {
-            pendingDest = it
-            if (::navController.isInitialized) {
-                navController.navigateOrQueue(it)
+        setIntent(intent)
+        val dest = intent.getStringExtra("shortcut_destination") ?: return
+
+        pendingDest = dest
+
+        if (::navController.isInitialized) {
+            lifecycleScope.launch {
+                try {
+                    navController.awaitGraphReady()
+
+                    handleShortcutDestination(dest)
+
+                } catch (ce: CancellationException) {
+                    throw ce
+                } catch (t: Throwable) {
+                    t.printStackTrace()
+                } finally {
+                    if (pendingDest == dest) {
+                        pendingDest = null
+                    }
+                }
             }
         }
     }
 
     private fun NavHostController.navigateOrQueue(route: String) {
-        // tránh crash nếu chưa gắn graph
         try {
             navigate(route) {
                 launchSingleTop = true
                 restoreState = true
             }
-        } catch (_: IllegalArgumentException) {
-            // Graph chưa attach -> đợi đến khi Activity vào RESUMED rồi điều hướng
+        } catch (t: Throwable) {
+            if (!t.isGraphNotReady()) {
+                Log.e("NavSafe", "navigate($route) failed", t)
+                throw t
+            }
+
             this@MainActivity.lifecycleScope.launch {
-                var done = false
-                lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    if (!done) {
-                        done = true
-                        // chờ 1 nhịp rất ngắn để NavHost hoàn tất setGraph
-                        delay(100)
-                        this@navigateOrQueue.navigate(route) {
+                try {
+                    lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                        awaitGraphReady()
+                        navigate(route) {
                             launchSingleTop = true
                             restoreState = true
                         }
                     }
+                } catch (ce: CancellationException) {
+                    // lifecycle cancel -> bỏ qua
+                    throw ce
+                } catch (e: Throwable) {
+                    Log.e("NavSafe", "Deferred navigate($route) failed", e)
                 }
             }
         }
@@ -159,5 +175,29 @@ class MainActivity : ComponentActivity() {
         if (current != "login") {
             navController.navigateOrQueue("login")
         }
+    }
+
+    suspend fun NavHostController.awaitGraphReady() {
+        // sẽ suspend cho đến khi NavHost attach graph và vào startDestination
+        currentBackStackEntryFlow.first()
+    }
+
+    private fun Throwable.isGraphNotReady(): Boolean {
+        val msg = message.orEmpty()
+        val byType = this is IllegalArgumentException || this is IllegalStateException
+        // các thông điệp đặc trưng
+        val looksLikeGraphNotSet =
+            msg.contains("Navigation graph has not been set", ignoreCase = true) ||
+                    msg.contains(
+                        "You must call setGraph() before calling getGraph()",
+                        ignoreCase = true
+                    ) ||
+                    msg.contains(
+                        "cannot be found in the NavGraph",
+                        ignoreCase = true
+                    ) &&  // tùy phiên bản
+                    (this is IllegalArgumentException)
+
+        return byType && looksLikeGraphNotSet
     }
 }

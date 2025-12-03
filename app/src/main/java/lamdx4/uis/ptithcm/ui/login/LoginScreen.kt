@@ -153,6 +153,9 @@ fun LoginScreen(
                                 remove("pending_from_shortcut")
                             }
 
+                            appViewModel.saveLoginInfo(
+                                loginState.value.username
+                            )
                             if (fromShortcut && pendingDest != null) {
                                 navController.navigate(pendingDest) {
                                     popUpTo("login") { inclusive = true }
@@ -161,9 +164,6 @@ fun LoginScreen(
                                 }
                             } else {
                                 // nếu không đi từ shortcut
-                                appViewModel.saveLoginInfo(
-                                    loginState.value.username
-                                )
                                 navController.navigate("profile") {
                                     popUpTo("login") { inclusive = true }
                                 }
