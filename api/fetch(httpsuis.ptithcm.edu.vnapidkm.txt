@@ -1,0 +1,112 @@
+fetch("https://uis.ptithcm.edu.vn/api/dkmh/w-xulydkmhsinhvien", {
+  "headers": {
+    "accept": "application/json, text/plain, */*",
+    "accept-language": "en-GB,en;q=0.9,en-US;q=0.8,vi;q=0.7",
+    "authorization": "Bearer eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6Ii02NjIzMTc1NjYxNTEyNjU0NDcwIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6Ik4yMkRDQ04wNDciLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL2FjY2Vzc2NvbnRyb2xzZXJ2aWNlLzIwMTAvMDcvY2xhaW1zL2lkZW50aXR5cHJvdmlkZXIiOiJBU1AuTkVUIElkZW50aXR5IiwiQXNwTmV0LklkZW50aXR5LlNlY3VyaXR5U3RhbXAiOiJia2VFWjtyXSokKTw-QGAlTmZ5NCZSIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiU0lOSFZJRU4iLCJzZXNzaW9uIjoiLTgzODkyNTM1ODk2NDg1NTkxNDUiLCJkdnBjIjoiLTc0ODIzMzY3OTgxODk0NDkwMzgiLCJuYW1lIjoixJDhurduZyBYdcOibiBMw6JtIiwicGFzc3R5cGUiOiIwIiwidWN2IjoiMTQ0OTQ1MjA5IiwicHJpbmNpcGFsIjoibjIyZGNjbjA0N0BzdHVkZW50LnB0aXRoY20uZWR1LnZuIiwid2NmIjoiMCIsIm5iZiI6MTc1MTk5MzczMiwiZXhwIjoxNzUyMDAwOTMyLCJpc3MiOiJlZHVzb2Z0IiwiYXVkIjoiYWxsIn0.a-X5HWhpjTaG2urZSEPWyXIvcSqn64SLcaoCC-jtkBs",
+    "content-type": "application/json",
+    "idpc": "-7482336798189449038",
+    "priority": "u=1, i",
+    "sec-ch-ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\", \"Microsoft Edge\";v=\"138\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "ua": "Ok17KsOswoTCizo9w7J/S3Usw6zCicKJMkDCjQcwbUzDtsOpw69PXcKCATUKSMKSw7/DslVNwoM=",
+    "cookie": "ASP.NET_SessionId=zqrobqzmk3r4dxcg3qh202fv",
+    "Referer": "https://uis.ptithcm.edu.vn/"
+  },
+  "body": "{\"filter\":{\"id_to_hoc\":\"-9192918596315801502\",\"is_checked\":true,\"sv_nganh\":1}}",
+  "method": "POST"
+});
+
+
+
+
+
+fetch("https://uis.ptithcm.edu.vn/api/dkmh/w-xulydkmhsinhvien", {
+  "headers": {
+    "accept": "application/json, text/plain, */*",
+    "accept-language": "en-GB,en;q=0.9,en-US;q=0.8,vi;q=0.7",
+    "authorization": "Bearer eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6Ii02NjIzMTc1NjYxNTEyNjU0NDcwIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6Ik4yMkRDQ04wNDciLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL2FjY2Vzc2NvbnRyb2xzZXJ2aWNlLzIwMTAvMDcvY2xhaW1zL2lkZW50aXR5cHJvdmlkZXIiOiJBU1AuTkVUIElkZW50aXR5IiwiQXNwTmV0LklkZW50aXR5LlNlY3VyaXR5U3RhbXAiOiJia2VFWjtyXSokKTw-QGAlTmZ5NCZSIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiU0lOSFZJRU4iLCJzZXNzaW9uIjoiLTU5OTQ5MTE1MjkxMzM1NDUxNjkiLCJkdnBjIjoiLTc0ODIzMzY3OTgxODk0NDkwMzgiLCJuYW1lIjoixJDhurduZyBYdcOibiBMw6JtIiwicGFzc3R5cGUiOiIwIiwidWN2IjoiOTkyNzExODk0IiwicHJpbmNpcGFsIjoibjIyZGNjbjA0N0BzdHVkZW50LnB0aXRoY20uZWR1LnZuIiwid2NmIjoiMCIsIm5iZiI6MTc1MTk5MzcyOCwiZXhwIjoxNzUyMDAwOTI4LCJpc3MiOiJlZHVzb2Z0IiwiYXVkIjoiYWxsIn0.bg3iwbwSeDg5is1p77KQXO6031OopwnF46vhAqs8Cy8",
+    "content-type": "application/json",
+    "idpc": "-7482336798189449038",
+    "priority": "u=1, i",
+    "sec-ch-ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\", \"Microsoft Edge\";v=\"138\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "ua": "Oxo7X8KSMcO6B8O/cMOBHzRYwpwzw7kJwoIPwrpkLDnCiFzCnnLCnwDCvGFLPcOsSsKDaMKPAQ=="
+  },
+  "referrer": "https://uis.ptithcm.edu.vn/",
+  "body": "{\"filter\":{\"id_to_hoc\":\"-8474310799067288384\",\"is_checked\":true,\"sv_nganh\":1}}",
+  "method": "POST",
+  "mode": "cors",
+  "credentials": "include"
+});
+
+
+
+
+
+
+
+
+
+{
+    "data": {
+        "is_thanh_cong": true,
+        "thong_bao_loi": "",
+        "is_chung_nhom_mon_hoc": false,
+        "is_show_nganh_hoc": false,
+        "ket_qua_dang_ky": {
+            "id_kqdk": "0",
+            "trang_thai_mon": "",
+            "ngay_dang_ky": "2025-07-09T00:10:16.094438+07:00",
+            "nguoi_dang_ky": "N22DCCN047",
+            "is_da_rut_mon_hoc": false,
+            "enable_xoa": true,
+            "dien_giai_enable_xoa": "",
+            "hoc_phi_tam_tinh": 0.0,
+            "to_hoc": {
+                "id_to_hoc": "-8474310799067288384",
+                "id_mon": "-7569026237060793811",
+                "ma_mon": "INT1450",
+                "ten_mon": "Quản lý dự án phần mềm",
+                "so_tc": "2",
+                "so_tc_so": 0.0,
+                "is_vuot": false,
+                "nhom_to": "03",
+                "lop": "D22CQCNPM01-N",
+                "is_kdk": false,
+                "sl_dk": 0,
+                "sl_cp": 0,
+                "sl_cl": 0,
+                "tkb": "Thứ 7,tiết 7->10,16/08/25 đến 04/10/25",
+                "is_hl": false,
+                "enable": false,
+                "hauk": false,
+                "is_dk": false,
+                "is_rot": false,
+                "is_ctdt": false,
+                "is_chctdt": false,
+                "is_kg_lt": false,
+                "thu": 0,
+                "tbd": 0,
+                "so_tiet": 0,
+                "is_kg_huy_kqdk": false,
+                "is_kg_xet_trungtkb": false
+            },
+            "id_dia_diem_thi": "0"
+        },
+        "thong_bao_tien_quyet": "",
+        "id_to_hoc_xoa": "",
+        "is_choose": false,
+        "id_to_hoc_choose": "0"
+    },
+    "result": true,
+    "code": 200,
+    "message": ""
+}

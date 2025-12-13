@@ -1,0 +1,47 @@
+fetch("https://uis.ptithcm.edu.vn/api/dkmh/w-xulydkmhsinhvien", {
+  "headers": {
+    "accept": "application/json, text/plain, */*",
+    "accept-language": "en-GB,en;q=0.9,en-US;q=0.8,vi;q=0.7",
+    "authorization": "Bearer eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6Ii02NjIzMTc1NjYxNTEyNjU0NDcwIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZSI6Ik4yMkRDQ04wNDciLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL2FjY2Vzc2NvbnRyb2xzZXJ2aWNlLzIwMTAvMDcvY2xhaW1zL2lkZW50aXR5cHJvdmlkZXIiOiJBU1AuTkVUIElkZW50aXR5IiwiQXNwTmV0LklkZW50aXR5LlNlY3VyaXR5U3RhbXAiOiJia2VFWjtyXSokKTw-QGAlTmZ5NCZSIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiU0lOSFZJRU4iLCJzZXNzaW9uIjoiLTUzNjg3NTY3MzEyMTg0MzA2MTEiLCJkdnBjIjoiLTc0ODIzMzY3OTgxODk0NDkwMzgiLCJuYW1lIjoixJDhurduZyBYdcOibiBMw6JtIiwicGFzc3R5cGUiOiIwIiwidWN2IjoiMTYwMTcyMDM0MiIsInByaW5jaXBhbCI6Im4yMmRjY24wNDdAc3R1ZGVudC5wdGl0aGNtLmVkdS52biIsIndjZiI6IjAiLCJuYmYiOjE3NTIxNjA2NzksImV4cCI6MTc1MjE2Nzg3OSwiaXNzIjoiZWR1c29mdCIsImF1ZCI6ImFsbCJ9.cRQlqCuoeUqe3RM0OpOi9bWAsdQuh2wWf-A6tYZPhP8",
+    "content-type": "application/json",
+    "idpc": "-7482336798189449038",
+    "priority": "u=1, i",
+    "sec-ch-ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\", \"Microsoft Edge\";v=\"138\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "ua": "LcO/w7XDhlvDmUpCwokrMcO6w7HDjlnDlExLw7tQS8KDw6nCoEHCtC0/w6ZfTcKGwo7CpCXCojAlw7Ze"
+  },
+  "referrer": "https://uis.ptithcm.edu.vn/",
+  "body": "{\"filter\":{\"id_to_hoc\":\"-5967717555741179028\",\"is_checked\":false,\"sv_nganh\":1}}",
+  "method": "POST",
+  "mode": "cors",
+  "credentials": "include"
+});
+
+
+{
+    "data": {
+        "is_thanh_cong": true,
+        "thong_bao_loi": "",
+        "is_chung_nhom_mon_hoc": false,
+        "is_show_nganh_hoc": false,
+        "ket_qua_dang_ky": {
+            "id_kqdk": "0",
+            "ngay_dang_ky": "0001-01-01T00:00:00",
+            "is_da_rut_mon_hoc": false,
+            "enable_xoa": false,
+            "hoc_phi_tam_tinh": 0.0,
+            "id_dia_diem_thi": "0"
+        },
+        "thong_bao_tien_quyet": "",
+        "id_to_hoc_xoa": "-5967717555741179028",
+        "is_choose": false,
+        "id_to_hoc_choose": "0"
+    },
+    "result": true,
+    "code": 200,
+    "message": ""
+}

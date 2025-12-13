@@ -63,6 +63,7 @@ import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.data.model.CourseItem
 import lamdx4.uis.ptithcm.data.model.RegisteredSubject
 import lamdx4.uis.ptithcm.data.model.SubjectFilter
+import lamdx4.uis.ptithcm.data.model.SubjectGroup
 import lamdx4.uis.ptithcm.ui.AppViewModel
 import lamdx4.uis.ptithcm.ui.nav.UiEventViewModel
 import lamdx4.uis.ptithcm.ui.theme.PTITTypography
@@ -176,6 +177,9 @@ fun CourseRegistrationScreen(
                     },
                     onRegisterSubject = { item ->
                         registrationViewModel.registerSubject(item.group)
+                    },
+                    onUnregisterSubject = { item ->
+                        registrationViewModel.unregisterSubject(item)
                     }
                 )
 
@@ -315,7 +319,8 @@ private fun AvailableSubjectsContent(
     searchQuery: String,
     onFilterSelected: (SubjectFilter) -> Unit,
     onSearchQueryChanged: (String) -> Unit,
-    onRegisterSubject: (CourseItem) -> Unit
+    onRegisterSubject: (CourseItem) -> Unit,
+    onUnregisterSubject: (RegisteredSubject) -> Unit
 ) {
     Column {
         // Filter dropdown
@@ -430,7 +435,10 @@ private fun AvailableSubjectsContent(
                         AvailableSubjectCard(
                             item = item,
                             canRegister = isInRegistrationTime,
-                            onRegister = { onRegisterSubject(item) }
+                            onRegister = { onRegisterSubject(item) },
+                            onUnregister = { registeredSubject ->
+                                onUnregisterSubject(registeredSubject)
+                            }
                         )
                     }
                 }
@@ -443,7 +451,8 @@ private fun AvailableSubjectsContent(
 private fun AvailableSubjectCard(
     item: CourseItem,
     canRegister: Boolean,
-    onRegister: () -> Unit
+    onRegister: () -> Unit,
+    onUnregister: (RegisteredSubject) -> Unit
 ) {
     val group = item.group
     val subject = item.subject
@@ -482,17 +491,78 @@ private fun AvailableSubjectCard(
                     )
                 }
 
-                // Register button
+                // Register/Unregister button
                 when {
                     group.isRegistered -> {
-                        Badge(
-                            containerColor = Color(0xFF4CAF50).copy(alpha = 0.2f)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                "Đã đăng ký",
-                                style = PTITTypography.badgeText,
-                                color = Color(0xFF4CAF50)
-                            )
+                            Badge(
+                                containerColor = Color(0xFF4CAF50).copy(alpha = 0.2f)
+                            ) {
+                                Text(
+                                    "Đã đăng ký",
+                                    style = PTITTypography.badgeText,
+                                    color = Color(0xFF4CAF50)
+                                )
+                            }
+                            // Nút hủy môn - chuyển từ RegisterGroup sang RegisteredSubject
+                            IconButton(
+                                onClick = {
+                                    // Convert RegisterGroup to RegisteredSubject for unregister
+                                    val registeredSubject = RegisteredSubject(
+                                        registrationId = group.groupId,
+                                        subjectStatus = "Đã đăng ký",
+                                        registeredAt = "",
+                                        registeredBy = "",
+                                        isWithdrawn = false,
+                                        canDelete = true,
+                                        deleteReason = "",
+                                        estimatedFee = 0.0,
+                                        subjectGroup = SubjectGroup(
+                                            groupId = group.groupId,
+                                            subjectId = group.subjectId,
+                                            subjectCode = group.subjectCode,
+                                            subjectName = group.subjectName,
+                                            subjectNameEn = group.subjectEnglishName,
+                                            creditsText = group.credit,
+                                            creditsNumber = group.creditNumber,
+                                            isOverload = group.isOverload,
+                                            groupCode = group.groupName,
+                                            classCode = group.className,
+                                            isNotRegistered = false,
+                                            registeredCount = group.registeredCount,
+                                            quota = group.capacity,
+                                            remaining = group.remaining,
+                                            schedule = group.schedule,
+                                            isHighlight = group.isHighlight,
+                                            isEnabled = group.isEnabled,
+                                            hauk = group.isAfterDeadline,
+                                            isRegistered = group.isRegistered,
+                                            isFailed = group.isRepeat,
+                                            isCTDT = group.isCurriculumSubject,
+                                            isCHCTDT = group.isCurriculumRequirement,
+                                            isNonTheory = group.isNotTheory,
+                                            dayOfWeek = group.dayOfWeek,
+                                            startPeriod = group.startPeriod,
+                                            numberOfPeriods = group.numberOfPeriods,
+                                            isCancelDisabled = group.isNotAllowCancel,
+                                            isConflictCheckDisabled = group.isNotCheckConflict
+                                        ),
+                                        examLocationId = "",
+                                        examLocationName = ""
+                                    )
+                                    onUnregister(registeredSubject)
+                                },
+                                modifier = Modifier.size(28.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.DeleteOutline,
+                                    contentDescription = "Hủy đăng ký",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
                     }
 

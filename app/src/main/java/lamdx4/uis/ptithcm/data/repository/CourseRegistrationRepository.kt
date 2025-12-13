@@ -7,6 +7,9 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import lamdx4.uis.ptithcm.data.model.RegisterActionRequest
+import lamdx4.uis.ptithcm.data.model.RegisterActionResponse
+import lamdx4.uis.ptithcm.data.model.RegisterFilter
 import lamdx4.uis.ptithcm.data.model.RegisterScheduleResponse
 import lamdx4.uis.ptithcm.data.model.RegisteredScheduleResponse
 import lamdx4.uis.ptithcm.data.model.SubjectFilter
@@ -71,6 +74,56 @@ class CourseRegistrationRepository @Inject constructor(
             Result.success(res)
         } catch (e: Exception) {
             Log.e("CourseRegistrationRepository", e.message.toString())
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Register a course/subject group
+     * @param groupId ID of the subject group (id_to_hoc)
+     * @return RegisterActionResponse with registration result
+     */
+    suspend fun registerSubject(groupId: String): Result<RegisterActionResponse> {
+        return try {
+            val request = RegisterActionRequest(
+                filter = RegisterFilter(
+                    groupId = groupId,
+                    isChecked = true,  // true = register
+                    studentMajor = 1
+                )
+            )
+            val res = client.post("https://uis.ptithcm.edu.vn/api/dkmh/w-xulydkmhsinhvien") {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }.body<RegisterActionResponse>()
+            Result.success(res)
+        } catch (e: Exception) {
+            Log.e("CourseRegistrationRepository", "registerSubject error: ${e.message}")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Unregister a course/subject group
+     * @param groupId ID of the subject group (id_to_hoc)
+     * @return RegisterActionResponse with unregistration result
+     */
+    suspend fun unregisterSubject(groupId: String): Result<RegisterActionResponse> {
+        return try {
+            val request = RegisterActionRequest(
+                filter = RegisterFilter(
+                    groupId = groupId,
+                    isChecked = false,  // false = unregister
+                    studentMajor = 1
+                )
+            )
+            val res = client.post("https://uis.ptithcm.edu.vn/api/dkmh/w-xulydkmhsinhvien") {
+                contentType(ContentType.Application.Json)
+                setBody(request)
+            }.body<RegisterActionResponse>()
+            Result.success(res)
+        } catch (e: Exception) {
+            Log.e("CourseRegistrationRepository", "unregisterSubject error: ${e.message}")
             Result.failure(e)
         }
     }

@@ -220,13 +220,37 @@ class CourseRegistrationViewModel @Inject constructor(
                 return@launch
             }
 
-            // TODO: Implement actual registration API call
-            _uiState.value = _uiState.value.copy(
-                successMessage = "Đăng ký môn ${subject.subjectName} thành công!"
-            )
+            // Set loading state
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
-            // Reload data after registration
-            refreshData()
+            // Call API
+            repository.registerSubject(subject.groupId).fold(
+                onSuccess = { response ->
+                    if (response.data.isSuccess) {
+                        _uiState.value = _uiState.value.copy(
+                            successMessage = "Đăng ký môn ${subject.subjectName} thành công!",
+                            isLoading = false
+                        )
+                        // Reload data after registration
+                        refreshData()
+                    } else {
+                        // API returned error message
+                        val errorMsg = response.data.errorMessage.ifEmpty {
+                            "Không thể đăng ký môn ${subject.subjectName}"
+                        }
+                        _uiState.value = _uiState.value.copy(
+                            error = errorMsg,
+                            isLoading = false
+                        )
+                    }
+                },
+                onFailure = { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        error = "Lỗi kết nối: ${exception.message}",
+                        isLoading = false
+                    )
+                }
+            )
         }
     }
 
@@ -246,13 +270,37 @@ class CourseRegistrationViewModel @Inject constructor(
                 return@launch
             }
 
-            // TODO: Implement actual unregistration API call
-            _uiState.value = _uiState.value.copy(
-                successMessage = "Hủy đăng ký môn ${subject.subjectGroup.subjectName} thành công!"
-            )
+            // Set loading state
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
-            // Reload data after unregistration
-            refreshData()
+            // Call API - use groupId from subjectGroup
+            repository.unregisterSubject(subject.subjectGroup.groupId).fold(
+                onSuccess = { response ->
+                    if (response.data.isSuccess) {
+                        _uiState.value = _uiState.value.copy(
+                            successMessage = "Hủy đăng ký môn ${subject.subjectGroup.subjectName} thành công!",
+                            isLoading = false
+                        )
+                        // Reload data after unregistration
+                        refreshData()
+                    } else {
+                        // API returned error message
+                        val errorMsg = response.data.errorMessage.ifEmpty {
+                            "Không thể hủy môn ${subject.subjectGroup.subjectName}"
+                        }
+                        _uiState.value = _uiState.value.copy(
+                            error = errorMsg,
+                            isLoading = false
+                        )
+                    }
+                },
+                onFailure = { exception ->
+                    _uiState.value = _uiState.value.copy(
+                        error = "Lỗi kết nối: ${exception.message}",
+                        isLoading = false
+                    )
+                }
+            )
         }
     }
 
