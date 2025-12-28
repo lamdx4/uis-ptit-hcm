@@ -6,6 +6,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.data.model.AlarmEntity
 import lamdx4.uis.ptithcm.data.model.ExamResponse
@@ -21,10 +24,6 @@ import javax.inject.Inject
 class ExamViewModel @Inject constructor(
     private val examRepository: ExamRepository,
 ) : ViewModel() {
-    val DEFAULT_SEMESTER_CODE = 20243
-    val DEFAULT_TYPE_ID = 3
-    val DEFAULT_SUBTYPE_ID = "-7832454252451327385"
-
     private val _alarms = MutableStateFlow<List<AlarmEntity>>(emptyList())
     val alarms: StateFlow<List<AlarmEntity>> = _alarms.asStateFlow()
 
@@ -102,23 +101,40 @@ class ExamViewModel @Inject constructor(
     }
 
     init {
-        loadPersonalExams(
-            examSemesterState.value?.data?.semesters?.first()?.semesterCode ?: DEFAULT_SEMESTER_CODE
-        )
-        loadExamTypes()
-        loadExamSubTypes(
-            examSemesterState.value?.data?.semesters?.first()?.semesterCode ?: DEFAULT_SEMESTER_CODE,
-            examTypeState.value?.data?.scheduleObjects[1]?.objectType ?: DEFAULT_TYPE_ID
-        )
-        loadExamSemesters()
-        loadSubTypeExams(
-            examSemesterState.value?.data?.semesters?.first()?.semesterCode ?: DEFAULT_SEMESTER_CODE,
-            examTypeState.value?.data?.scheduleObjects[1]?.objectType ?: 3,
-            examSubTypeState.value?.data?.dataItems?.first()?.dataId ?: DEFAULT_SUBTYPE_ID,
-            ""
-        )
-        loadAlarms()
-        loadUiState(false) // Load UI state from cache
+        viewModelScope.launch {
+            loadExamSemesters()
+            val semesterCode = examSemesterState
+                .filterNotNull()
+                .map { it.data.semesters.firstOrNull()?.semesterCode }
+                .filterNotNull()
+                .first()
+
+            loadPersonalExams(semesterCode)
+
+            loadExamTypes()
+            val typeId = examTypeState
+                .filterNotNull()
+                .map { it.data.scheduleObjects.getOrNull(1)?.objectType }
+                .filterNotNull()
+                .first()
+
+            loadExamSubTypes(semesterCode, typeId)
+            val subTypeId = examSubTypeState
+                .filterNotNull()
+                .map { it.data.dataItems.firstOrNull()?.dataId }
+                .filterNotNull()
+                .first()
+
+            loadSubTypeExams(
+                semesterCode,
+                examTypeState.value?.data?.scheduleObjects[1]?.objectType ?: 3,
+                subTypeId,
+                ""
+            )
+
+            loadAlarms()
+            loadUiState(false) // Load UI state from cache
+        }
     }
 
     fun loadPersonalExams(semester: Int, forceRefresh: Boolean = false) {
