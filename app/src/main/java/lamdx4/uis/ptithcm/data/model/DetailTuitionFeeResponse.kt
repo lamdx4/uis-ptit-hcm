@@ -18,37 +18,37 @@ data class DetailTuitionFeeResponse(
 @Serializable
 data class DetailTuitionDetailFeeData(
     @SerialName("total_items")
-    val totalItems: Int,
+    val totalItems: Int = 0,
 
     @SerialName("total_pages")
-    val totalPages: Int,
+    val totalPages: Int = 0,
 
     @SerialName("is_dhmo")
-    val isOpenUniversity: Boolean,
+    val isOpenUniversity: Boolean = false,
 
     @SerialName("is_tg_dong_hoc_phi")
-    val isTuitionPaymentTime: Boolean,
+    val isTuitionPaymentTime: Boolean = false,
 
     @SerialName("is_show_don_gia")
-    val isShowUnitPrice: Boolean,
+    val isShowUnitPrice: Boolean = false,
 
     @SerialName("is_show_dot_hoc_nhhk")
-    val isShowSemesterBatch: Boolean,
+    val isShowSemesterBatch: Boolean = false,
 
     @SerialName("is_hvsg")
-    val isPostgraduate: Boolean,
+    val isPostgraduate: Boolean = false,
 
     @SerialName("no_cu")
-    val oldDebt: Double,
+    val oldDebt: Double = 0.0,
 
     @SerialName("da_mien_giam")
-    val totalDiscount: Double,
+    val totalDiscount: Double = 0.0,
 
     @SerialName("ds_phai_thu")
-    val payableList: List<PayableItem>,
+    val payableList: List<PayableItem> = emptyList(),
 
     @SerialName("ds_da_thu")
-    val paidList: List<PaidItem>
+    val paidList: List<PaidItem> = emptyList()
 )
 
 @Serializable
