@@ -16,7 +16,13 @@ import androidx.core.net.toUri
 private val activeReceivers = mutableSetOf<BroadcastReceiver>()
 
 @SuppressLint("UnspecifiedRegisterReceiverFlag")
-fun downloadFile(context: Context, url: String, fileName: String): Long {
+fun downloadFile(
+    context: Context,
+    url: String,
+    fileName: String,
+    cookie: String? = null,
+    userAgent: String? = null
+): Long {
     val appContext = context.applicationContext
     val dm = appContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     val safeName = sanitizeFileName(fileName)
@@ -29,6 +35,13 @@ fun downloadFile(context: Context, url: String, fileName: String): Long {
         .setAllowedOverMetered(true)
         .setAllowedOverRoaming(true)
         .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, safeName)
+
+    if (cookie != null) {
+        request.addRequestHeader("Cookie", cookie)
+    }
+    if (userAgent != null) {
+        request.addRequestHeader("User-Agent", userAgent)
+    }
 
     // Enqueue TRƯỚC khi đăng ký receiver
 

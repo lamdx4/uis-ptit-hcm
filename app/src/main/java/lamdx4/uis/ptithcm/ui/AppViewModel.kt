@@ -5,10 +5,11 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import lamdx4.uis.ptithcm.data.SessionManager
-import lamdx4.uis.ptithcm.data.local.LoginPrefs
 import lamdx4.uis.ptithcm.data.model.CompleteStudentInfo
 import lamdx4.uis.ptithcm.util.RefreshCoordinator
 import javax.inject.Inject
@@ -28,6 +29,13 @@ class AppViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(AppUserState())
     val uiState: StateFlow<AppUserState> = _uiState
 
+    val userCookie: StateFlow<String> = sessionManager.cookieFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ""
+        )
+
     fun saveLoginInfo(
         maSV: String,
     ) {
@@ -46,7 +54,10 @@ class AppViewModel @Inject constructor(
     }
 
     fun logout() {
-        this.clearLoginInfo()
-        this.sessionManager.logout()
+        viewModelScope.launch {
+            clearLoginInfo()
+            sessionManager.logout()
+            sessionManager.clearSession()
+        }
     }
 }

@@ -5,7 +5,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.HttpRedirect
 import io.ktor.client.plugins.HttpRequestRetry
@@ -25,7 +24,6 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.serialization.json.Json
 import lamdx4.uis.ptithcm.data.local.LoginPrefs
-import lamdx4.uis.ptithcm.data.model.Login2Response
 import lamdx4.uis.ptithcm.data.repository.AuthRepository
 import lamdx4.uis.ptithcm.di.RefreshClient
 import javax.inject.Singleton
@@ -71,9 +69,9 @@ object NetworkModule {
                 })
             }
 
-            install(HttpCookies) {
-                storage = AcceptAllCookiesStorage()
-            }
+//            install(HttpCookies) {
+//                storage = AcceptAllCookiesStorage()
+//            }
 
             install(Logging) {
                 logger = Logger.SIMPLE // hoặc Logger.DEFAULT

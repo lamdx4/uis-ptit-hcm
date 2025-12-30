@@ -1,6 +1,5 @@
 package lamdx4.uis.ptithcm.data.repository
 
-import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -36,6 +35,8 @@ class AuthRepository @Inject constructor(
         const val TYPE_LOGIN = "SSO"
     }
 
+    var tempCookie: String = ""
+
     suspend fun login(username: String, password: String): Result<LoginResponse> {
         return try {
             val response: HttpResponse = client.post("https://uis.ptithcm.edu.vn/api/auth/login") {
@@ -46,6 +47,14 @@ class AuthRepository @Inject constructor(
                     ).formUrlEncode()
                 )
             }
+
+            val setCookies = response.headers.getAll("Set-Cookie")
+            if (!setCookies.isNullOrEmpty()) {
+                val sessionCookie = setCookies.find { it.contains("ASP.NET_SessionId") }
+                    ?: setCookies[0] // Hoặc lấy cái đầu tiên
+                tempCookie = sessionCookie.split(";")[0]
+            }
+
             val json = Json.parseToJsonElement(response.bodyAsText()).jsonObject
             val token = json["access_token"]?.jsonPrimitive?.contentOrNull
             if (token != null) Result.success(response.body<LoginResponse>())
@@ -58,6 +67,8 @@ class AuthRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    fun getCapturedCookie() = tempCookie
 
     suspend fun login2(
         username: String,

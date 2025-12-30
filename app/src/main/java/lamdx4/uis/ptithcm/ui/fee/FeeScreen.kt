@@ -4,24 +4,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -39,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import lamdx4.uis.ptithcm.common.activityViewModel
 import lamdx4.uis.ptithcm.data.model.TuitionFeeSemester
 import lamdx4.uis.ptithcm.ui.AppViewModel
@@ -50,7 +44,8 @@ import java.util.Locale
 fun FeeScreen(
     modifier: Modifier = Modifier,
     viewModel: FeeViewModel = hiltViewModel(),
-    appViewModel: AppViewModel = activityViewModel<AppViewModel>()
+    appViewModel: AppViewModel = activityViewModel<AppViewModel>(),
+    navController: NavController
 ) {
     val totalTuitionFeeResponse by viewModel.totalTuitionFee.collectAsState()
     val tuitionFeeSemesterResponse by viewModel.tuitionFeeSemester.collectAsState()
@@ -62,6 +57,9 @@ fun FeeScreen(
 
     var selectedSemester by remember { mutableStateOf<TuitionFeeSemester?>(null) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
+
+//    val cookie by appViewModel.userCookie.collectAsState()
+//    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         refreshCoordinator.refreshEvent.collect { route ->
@@ -106,7 +104,9 @@ fun FeeScreen(
                     shadowElevation = 1.dp
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -159,7 +159,7 @@ fun FeeScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.width(8.dp))
+//                        Spacer(modifier = Modifier.width(8.dp))
 
                         // Print button
 //                        IconButton(
@@ -178,18 +178,43 @@ fun FeeScreen(
 //                        Spacer(modifier = Modifier.width(8.dp))
 
                         // Export Excel button
-                        IconButton(
-                            onClick = { /* TODO */ },
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = PTITColors.success
-                            )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.FileDownload,
-                                contentDescription = "Xuất Excel",
-                                tint = Color.White
-                            )
-                        }
+//                        IconButton(
+//                            onClick = {
+//                                if (cookie.isNotEmpty()) {
+//                                    try {
+//                                        val targetUrl = "https://uis.ptithcm.edu.vn/#/hocphi"
+//                                        val encodedUrl = URLEncoder.encode(
+//                                            targetUrl,
+//                                            StandardCharsets.UTF_8.toString()
+//                                        )
+//                                        val encodedCookie = URLEncoder.encode(
+//                                            cookie,
+//                                            StandardCharsets.UTF_8.toString()
+//                                        )
+//                                        navController.navigate("export_screen?url=$encodedUrl&cookie=$encodedCookie")
+//                                    } catch (e: Exception) {
+//                                        Toast.makeText(
+//                                            context,
+//                                            "Lỗi điều hướng: ${e.message}",
+//                                            Toast.LENGTH_SHORT
+//                                        ).show()
+//                                    }
+//                                } else {
+//                                    Toast.makeText(
+//                                        context,
+//                                        "Vui lòng đăng nhập lại",
+//                                        Toast.LENGTH_SHORT
+//                                    ).show()
+//                                }
+//                            },
+//                            modifier = Modifier.padding(start = 8.dp)
+//                        ) {
+//                            Icon(
+//                                imageVector = Icons.Default.FileDownload,
+//                                contentDescription = "Mở web tải file",
+//                                tint = MaterialTheme.colorScheme.primary
+//                            )
+//                        }
                     }
                 }
 
