@@ -11,19 +11,22 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -40,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -94,7 +98,6 @@ fun FeeScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
-
         if (isLoading) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         } else if (!errorMessage.isNullOrEmpty()) {
@@ -200,18 +203,20 @@ fun FeeScreen(
                 }
 
                 // Content based on selection
-                if (selectedSemester == null) {
-                    // Show total tuition fee table
-                    TotalTuitionFeeTable(
-                        data = totalTuitionFeeResponse,
-                        modifier = Modifier
-                    )
-                } else {
-                    // Show detail tuition fee table
-                    DetailTuitionFeeTable(
-                        data = detailTuitionFeeResponse,
-                        modifier = Modifier
-                    )
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    if (selectedSemester == null) {
+                        // Show total tuition fee table
+                        TotalTuitionFeeTable(
+                            data = totalTuitionFeeResponse,
+                            modifier = Modifier
+                        )
+                    } else {
+                        // Show detail tuition fee table
+                        DetailTuitionFeeTable(
+                            data = detailTuitionFeeResponse,
+                            modifier = Modifier
+                        )
+                    }
                 }
             }
         }
@@ -236,60 +241,43 @@ fun TotalTuitionFeeTable(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(PTITColors.neutralMuted)
-                    .padding(12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(vertical = 12.dp, horizontal = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "STT",
-                    modifier = Modifier.weight(0.5f),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
+                    text = "STT",
+                    modifier = Modifier.weight(0.35f),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    textAlign = TextAlign.Center
                 )
                 Text(
-                    "Niên học học kỳ",
-                    modifier = Modifier.weight(2f),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
+                    text = "Học kỳ",
+                    modifier = Modifier.weight(1.35f),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    textAlign = TextAlign.Center
                 )
                 Text(
-                    "HP chưa giảm",
-                    modifier = Modifier.weight(1.2f),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.End
+                    text = "Học phí",
+                    modifier = Modifier.weight(1.3f),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    textAlign = TextAlign.Center
                 )
                 Text(
-                    "Miễn giảm",
-                    modifier = Modifier.weight(1f),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.End
+                    text = "Giảm",
+                    modifier = Modifier.weight(1.0f),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    textAlign = TextAlign.Center
                 )
                 Text(
-                    "Phải thu",
-                    modifier = Modifier.weight(1.2f),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.End
-                )
-                Text(
-                    "Đã thu",
-                    modifier = Modifier.weight(1.2f),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.End
-                )
-                Text(
-                    "Còn nợ",
-                    modifier = Modifier.weight(1f),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.End
+                    text = "Đã thu",
+                    modifier = Modifier.weight(1.3f),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    textAlign = TextAlign.Center
                 )
             }
 
-            Divider()
+            HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
 
             // Group by category
             val regularFees = data.data.tuitionFeeList.filter { it.groupName == "Thu Học Phí" }
@@ -365,162 +353,160 @@ fun TuitionFeeRow(
             .padding(12.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(index.toString(), modifier = Modifier.weight(0.5f), fontSize = 12.sp)
-        Text(fee.semesterName, modifier = Modifier.weight(2f), fontSize = 12.sp)
-        Text(
-            formatCurrency(fee.tuitionFee),
-            modifier = Modifier.weight(1.2f),
-            fontSize = 12.sp,
-            textAlign = TextAlign.End
-        )
-        Text(
-            formatCurrency(fee.discount),
-            modifier = Modifier.weight(1f),
-            fontSize = 12.sp,
-            textAlign = TextAlign.End
-        )
-        Text(
-            formatCurrency(fee.amountDue),
-            modifier = Modifier.weight(1.2f),
-            fontSize = 12.sp,
-            textAlign = TextAlign.End
-        )
-        Text(
-            formatCurrency(fee.amountPaid),
-            modifier = Modifier.weight(1.2f),
-            fontSize = 12.sp,
-            textAlign = TextAlign.End
-        )
-        Text(
-            formatCurrency(fee.amountOwed),
-            modifier = Modifier.weight(1f),
-            fontSize = 12.sp,
-            textAlign = TextAlign.End,
-            color = if (fee.amountOwed.toIntOrNull() ?: 0 > 0) PTITColors.redDefault else PTITColors.neutralDefault
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp, horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = index.toString(),
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(0.35f),
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Start
+            )
+            Text(
+                text = fee.semesterName,
+                modifier = Modifier.weight(1.35f),
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Start,
+            )
+            Text(
+                text = formatCurrency(fee.tuitionFee),
+                modifier = Modifier.weight(1.3f),
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                softWrap = false
+            )
+            Text(
+                text = formatCurrency(fee.discount),
+                modifier = Modifier.weight(1.0f),
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                softWrap = false
+            )
+            Text(
+                text = formatCurrency(fee.amountPaid),
+                modifier = Modifier.weight(1.3f),
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.End,
+                maxLines = 1,
+                softWrap = false
+            )
+        }
     }
-    Divider()
+    HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
 }
 
 @Composable
 fun SubtotalRow(fees: List<TuitionFeePerSemester>) {
     val totalTuitionFee = fees.sumOf { it.tuitionFee.toLongOrNull() ?: 0 }
     val totalDiscount = fees.sumOf { it.discount.toLongOrNull() ?: 0 }
-    val totalAmountDue = fees.sumOf { it.amountDue.toLongOrNull() ?: 0 }
     val totalAmountPaid = fees.sumOf { it.amountPaid.toLongOrNull() ?: 0 }
-    val totalAmountOwed = fees.sumOf { it.amountOwed.toLongOrNull() ?: 0 }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(PTITColors.warningContainer)
-            .padding(12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+            .background(Color(0xFFFFF9C4))
+            .padding(vertical = 12.dp, horizontal = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("", modifier = Modifier.weight(0.5f), fontWeight = FontWeight.Bold, fontSize = 12.sp)
-        Text("TỔNG", modifier = Modifier.weight(2f), fontWeight = FontWeight.Bold, fontSize = 12.sp)
         Text(
-            formatCurrency(totalTuitionFee.toString()),
-            modifier = Modifier.weight(1.2f),
+            text = "TỔNG",
+            modifier = Modifier.weight(1.7f),
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
-            textAlign = TextAlign.End
+            textAlign = TextAlign.Center
         )
         Text(
-            formatCurrency(totalDiscount.toString()),
-            modifier = Modifier.weight(1f),
+            text = formatCurrency(totalTuitionFee.toString()),
+            modifier = Modifier.weight(1.3f),
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
-            textAlign = TextAlign.End
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            softWrap = false
         )
         Text(
-            formatCurrency(totalAmountDue.toString()),
-            modifier = Modifier.weight(1.2f),
+            text = formatCurrency(totalDiscount.toString()),
+            modifier = Modifier.weight(1.0f),
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
-            textAlign = TextAlign.End
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            softWrap = false
         )
         Text(
-            formatCurrency(totalAmountPaid.toString()),
-            modifier = Modifier.weight(1.2f),
+            text = formatCurrency(totalAmountPaid.toString()),
+            modifier = Modifier.weight(1.3f),
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
-            textAlign = TextAlign.End
-        )
-        Text(
-            formatCurrency(totalAmountOwed.toString()),
-            modifier = Modifier.weight(1f),
-            fontWeight = FontWeight.Bold,
-            fontSize = 12.sp,
-            textAlign = TextAlign.End,
-            color = if (totalAmountOwed > 0) PTITColors.redDefault else PTITColors.neutralDefault
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            softWrap = false
         )
     }
-    Divider()
+    HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
 }
 
 @Composable
 fun GrandTotalRow(fees: List<TuitionFeePerSemester>) {
     val totalTuitionFee = fees.sumOf { it.tuitionFee.toLongOrNull() ?: 0 }
     val totalDiscount = fees.sumOf { it.discount.toLongOrNull() ?: 0 }
-    val totalAmountDue = fees.sumOf { it.amountDue.toLongOrNull() ?: 0 }
     val totalAmountPaid = fees.sumOf { it.amountPaid.toLongOrNull() ?: 0 }
-    val totalAmountOwed = fees.sumOf { it.amountOwed.toLongOrNull() ?: 0 }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(PTITColors.neutralMuted)
-            .padding(12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(vertical = 12.dp, horizontal = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("", modifier = Modifier.weight(0.5f), fontWeight = FontWeight.Bold, fontSize = 13.sp)
         Text(
-            "TỔNG CỘNG",
-            modifier = Modifier.weight(2f),
+            text = "TỔNG CỘNG",
+            modifier = Modifier.weight(1.7f),
             fontWeight = FontWeight.Bold,
             fontSize = 13.sp,
-            color = PTITColors.info
+            color = PTITColors.info,
+            textAlign = TextAlign.Center
         )
+
         Text(
-            formatCurrency(totalTuitionFee.toString()),
-            modifier = Modifier.weight(1.2f),
+            text = formatCurrency(totalTuitionFee.toString()),
+            modifier = Modifier.weight(1.3f),
             fontWeight = FontWeight.Bold,
             fontSize = 13.sp,
-            textAlign = TextAlign.End,
-            color = PTITColors.info
+            textAlign = TextAlign.Center,
+            color = PTITColors.info,
+            maxLines = 1,
+            softWrap = false
         )
+
         Text(
-            formatCurrency(totalDiscount.toString()),
-            modifier = Modifier.weight(1f),
+            text = formatCurrency(totalDiscount.toString()),
+            modifier = Modifier.weight(1.0f),
             fontWeight = FontWeight.Bold,
             fontSize = 13.sp,
-            textAlign = TextAlign.End,
-            color = PTITColors.info
+            textAlign = TextAlign.Center,
+            color = PTITColors.info,
+            maxLines = 1,
+            softWrap = false
         )
+
         Text(
-            formatCurrency(totalAmountDue.toString()),
-            modifier = Modifier.weight(1.2f),
+            text = formatCurrency(totalAmountPaid.toString()),
+            modifier = Modifier.weight(1.3f),
             fontWeight = FontWeight.Bold,
             fontSize = 13.sp,
-            textAlign = TextAlign.End,
-            color = PTITColors.info
-        )
-        Text(
-            formatCurrency(totalAmountPaid.toString()),
-            modifier = Modifier.weight(1.2f),
-            fontWeight = FontWeight.Bold,
-            fontSize = 13.sp,
-            textAlign = TextAlign.End,
-            color = PTITColors.info
-        )
-        Text(
-            formatCurrency(totalAmountOwed.toString()),
-            modifier = Modifier.weight(1f),
-            fontWeight = FontWeight.Bold,
-            fontSize = 13.sp,
-            textAlign = TextAlign.End,
-            color = if (totalAmountOwed > 0) PTITColors.redDefault else PTITColors.info
+            textAlign = TextAlign.Center,
+            color = PTITColors.info,
+            maxLines = 1,
+            softWrap = false
         )
     }
 }
@@ -610,7 +596,7 @@ fun DetailTuitionFeeTable(
                     )
                 }
 
-                Divider()
+                HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
 
                 data.data.payableList.forEachIndexed { index, item ->
                     PayableItemRow(index = index + 1, item = item)
@@ -676,7 +662,7 @@ fun DetailTuitionFeeTable(
                     )
                 }
 
-                Divider()
+                HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
 
                 data.data.paidList.forEachIndexed { index, item ->
                     PaidItemRow(index = index + 1, item = item)
@@ -722,7 +708,7 @@ fun PayableItemRow(index: Int, item: PayableItem) {
             textAlign = TextAlign.End
         )
     }
-    Divider()
+    HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
 }
 
 @Composable
@@ -749,7 +735,7 @@ fun PaidItemRow(index: Int, item: PaidItem) {
             textAlign = TextAlign.End
         )
     }
-    Divider()
+    HorizontalDivider(thickness = 0.5.dp, color = Color.LightGray)
 }
 
 fun formatCurrency(value: String): String {

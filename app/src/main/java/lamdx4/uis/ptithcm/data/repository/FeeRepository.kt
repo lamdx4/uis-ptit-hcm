@@ -122,7 +122,7 @@ class FeeRepository @Inject constructor(
 
         return try {
             val res =
-                this.client.post("https://uis.ptithcm.edu.vn/api/report/w-locdshockylichthisinhvien") {
+                this.client.post("https://uis.ptithcm.edu.vn/api/rms/w-locdschitiethocphisvtheohocky") {
                     contentType(ContentType.Application.Json)
                     setBody(
                         """
