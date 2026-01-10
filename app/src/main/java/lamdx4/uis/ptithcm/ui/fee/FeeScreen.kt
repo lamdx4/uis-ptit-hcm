@@ -13,7 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -188,7 +187,10 @@ fun FeeScreen(
                                 val targetUrl = "https://uis.ptithcm.edu.vn/#/hocphi"
 
                                 // cần Encode URL vì nó có ký tự đặc biệt (#, /)
-                                val encodedUrl = java.net.URLEncoder.encode(targetUrl, java.nio.charset.StandardCharsets.UTF_8.toString())
+                                val encodedUrl = java.net.URLEncoder.encode(
+                                    targetUrl,
+                                    java.nio.charset.StandardCharsets.UTF_8.toString()
+                                )
 
                                 // Điều hướng
                                 navController.navigate("export_webview?url=$encodedUrl")
