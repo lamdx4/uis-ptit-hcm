@@ -1,6 +1,5 @@
 package lamdx4.uis.ptithcm.ui.login
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,7 +10,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import lamdx4.uis.ptithcm.data.SessionManager
 import lamdx4.uis.ptithcm.data.local.LoginPrefs
 import lamdx4.uis.ptithcm.data.repository.AuthRepository
 import javax.inject.Inject
@@ -28,8 +26,7 @@ data class LoginUiState(
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val loginPrefs: LoginPrefs,
-    private val sessionManager: SessionManager
+    private val loginPrefs: LoginPrefs
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -69,14 +66,6 @@ class LoginViewModel @Inject constructor(
                 val result = authRepository.login2(username, password)
                 result.onSuccess { res ->
                     _uiState.update { it.copy(loading = false, success = true, error = null) }
-
-                    val rawCookie = authRepository.getCapturedCookie()
-                    if (rawCookie.isNotEmpty()) {
-                        sessionManager.saveCookie(rawCookie)
-                        Log.d("LoginVM", "Đã bắt được Cookie: $rawCookie")
-                    } else {
-                        Log.e("LoginVM", "Vẫn không bắt được Cookie! Kiểm tra lại AuthRepository")
-                    }
 
                     loginPrefs.saveLoginInfo(
                         res.accessToken,

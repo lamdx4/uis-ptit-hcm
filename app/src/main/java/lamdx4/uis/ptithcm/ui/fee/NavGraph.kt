@@ -21,22 +21,17 @@ fun NavGraphBuilder.feeNavGraph(
     }
 
     composable(
-        route = "export_webview?url={url}&cookie={cookie}",
+        route = "export_webview?url={url}",
         arguments = listOf(
-            navArgument("url") { type = NavType.StringType },
-            navArgument("cookie") {
-                type = NavType.StringType
-                nullable = true
-                defaultValue = ""
-            }
+            navArgument("url") { type = NavType.StringType }
         )
     ) { backStackEntry ->
-        val url = backStackEntry.arguments?.getString("url") ?: ""
-        val cookie = backStackEntry.arguments?.getString("cookie") ?: ""
+        // Lấy URL từ navigation (đã tự động decode)
+        val url = backStackEntry.arguments?.getString("url") ?: "https://uis.ptithcm.edu.vn/"
 
+        // Gọi màn hình ExportWebScreen
         ExportWebScreen(
             url = url,
-            cookies = cookie,
             onBack = {
                 navController.popBackStack()
             }

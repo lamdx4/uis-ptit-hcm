@@ -35,7 +35,6 @@ class AuthRepository @Inject constructor(
         const val TYPE_LOGIN = "SSO"
     }
 
-    var tempCookie: String = ""
 
     suspend fun login(username: String, password: String): Result<LoginResponse> {
         return try {
@@ -47,14 +46,6 @@ class AuthRepository @Inject constructor(
                     ).formUrlEncode()
                 )
             }
-
-            val setCookies = response.headers.getAll("Set-Cookie")
-            if (!setCookies.isNullOrEmpty()) {
-                val sessionCookie = setCookies.find { it.contains("ASP.NET_SessionId") }
-                    ?: setCookies[0] // Hoặc lấy cái đầu tiên
-                tempCookie = sessionCookie.split(";")[0]
-            }
-
             val json = Json.parseToJsonElement(response.bodyAsText()).jsonObject
             val token = json["access_token"]?.jsonPrimitive?.contentOrNull
             if (token != null) Result.success(response.body<LoginResponse>())
@@ -67,8 +58,6 @@ class AuthRepository @Inject constructor(
             Result.failure(e)
         }
     }
-
-    fun getCapturedCookie() = tempCookie
 
     suspend fun login2(
         username: String,

@@ -4,17 +4,25 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -57,9 +65,6 @@ fun FeeScreen(
 
     var selectedSemester by remember { mutableStateOf<TuitionFeeSemester?>(null) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
-
-//    val cookie by appViewModel.userCookie.collectAsState()
-//    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         refreshCoordinator.refreshEvent.collect { route ->
@@ -174,47 +179,28 @@ fun FeeScreen(
 //                                tint = Color.White
 //                            )
 //                        }
-
-//                        Spacer(modifier = Modifier.width(8.dp))
+//
+                        Spacer(modifier = Modifier.width(8.dp))
 
                         // Export Excel button
-//                        IconButton(
-//                            onClick = {
-//                                if (cookie.isNotEmpty()) {
-//                                    try {
-//                                        val targetUrl = "https://uis.ptithcm.edu.vn/#/hocphi"
-//                                        val encodedUrl = URLEncoder.encode(
-//                                            targetUrl,
-//                                            StandardCharsets.UTF_8.toString()
-//                                        )
-//                                        val encodedCookie = URLEncoder.encode(
-//                                            cookie,
-//                                            StandardCharsets.UTF_8.toString()
-//                                        )
-//                                        navController.navigate("export_screen?url=$encodedUrl&cookie=$encodedCookie")
-//                                    } catch (e: Exception) {
-//                                        Toast.makeText(
-//                                            context,
-//                                            "Lỗi điều hướng: ${e.message}",
-//                                            Toast.LENGTH_SHORT
-//                                        ).show()
-//                                    }
-//                                } else {
-//                                    Toast.makeText(
-//                                        context,
-//                                        "Vui lòng đăng nhập lại",
-//                                        Toast.LENGTH_SHORT
-//                                    ).show()
-//                                }
-//                            },
-//                            modifier = Modifier.padding(start = 8.dp)
-//                        ) {
-//                            Icon(
-//                                imageVector = Icons.Default.FileDownload,
-//                                contentDescription = "Mở web tải file",
-//                                tint = MaterialTheme.colorScheme.primary
-//                            )
-//                        }
+                        IconButton(
+                            onClick = {
+                                val targetUrl = "https://uis.ptithcm.edu.vn/#/hocphi"
+
+                                // cần Encode URL vì nó có ký tự đặc biệt (#, /)
+                                val encodedUrl = java.net.URLEncoder.encode(targetUrl, java.nio.charset.StandardCharsets.UTF_8.toString())
+
+                                // Điều hướng
+                                navController.navigate("export_webview?url=$encodedUrl")
+                            },
+                            modifier = Modifier.padding(start = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Public,
+                                contentDescription = "Mở web tải file",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
 

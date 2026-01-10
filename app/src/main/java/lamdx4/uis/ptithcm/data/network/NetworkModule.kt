@@ -69,9 +69,9 @@ object NetworkModule {
                 })
             }
 
-//            install(HttpCookies) {
-//                storage = AcceptAllCookiesStorage()
-//            }
+            install(HttpCookies) {
+                storage = AcceptAllCookiesStorage()
+            }
 
             install(Logging) {
                 logger = Logger.SIMPLE // hoặc Logger.DEFAULT
