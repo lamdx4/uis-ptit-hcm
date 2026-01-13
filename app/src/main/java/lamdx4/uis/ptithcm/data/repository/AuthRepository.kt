@@ -1,6 +1,5 @@
 package lamdx4.uis.ptithcm.data.repository
 
-import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -35,6 +34,7 @@ class AuthRepository @Inject constructor(
     companion object {
         const val TYPE_LOGIN = "SSO"
     }
+
 
     suspend fun login(username: String, password: String): Result<LoginResponse> {
         return try {

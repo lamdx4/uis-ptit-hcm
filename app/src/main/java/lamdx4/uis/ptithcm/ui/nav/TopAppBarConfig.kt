@@ -18,5 +18,6 @@ object TopAppBarConfig {
         "payment" to TopBarConfig("Thanh toán", showBack = true, showRefresh = false),
         "register" to TopBarConfig("Đăng ký môn học", showBack = true, showRefresh = true),
         "exam" to TopBarConfig("Lịch thi", showBack = true, showRefresh = true),
+        "fee" to TopBarConfig("Học phí", showBack = true, showRefresh = true),
     )
 }

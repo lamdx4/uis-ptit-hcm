@@ -62,10 +62,11 @@ class LoginViewModel @Inject constructor(
 
             _uiState.update { it.copy(loading = true, error = null) }
 
-            if (AuthRepository.TYPE_LOGIN == "SSO"){
+            if (AuthRepository.TYPE_LOGIN == "SSO") {
                 val result = authRepository.login2(username, password)
                 result.onSuccess { res ->
                     _uiState.update { it.copy(loading = false, success = true, error = null) }
+
                     loginPrefs.saveLoginInfo(
                         res.accessToken,
                         "none",
@@ -84,8 +85,7 @@ class LoginViewModel @Inject constructor(
                     }
                     Result.failure<Unit>(e)
                 }
-            }
-            else {
+            } else {
                 val result = authRepository.login(username, password)
                 result.onSuccess { res ->
                     _uiState.update { it.copy(loading = false, success = true, error = null) }
@@ -117,12 +117,15 @@ class LoginViewModel @Inject constructor(
     fun resetLoginState() {
         _uiState.value = LoginUiState()
     }
+
     fun onRememberMeChange(newValue: Boolean) {
         _uiState.update { it.copy(rememberMe = newValue) }
     }
+
     fun updateUsername(newUsername: String) {
         _uiState.update { it.copy(username = newUsername) }
     }
+
     fun updatePassword(newPassword: String) {
         _uiState.update { it.copy(password = newPassword) }
     }
