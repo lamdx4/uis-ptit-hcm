@@ -11,7 +11,9 @@ import lamdx4.uis.ptithcm.data.model.PrerequisitesTypeResponse
 import lamdx4.uis.ptithcm.util.CacheEntry
 import lamdx4.uis.ptithcm.util.invalidateBearerTokens
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class PrerequisiteRepository @Inject constructor(
     private val client: HttpClient
 ) : Cacheable {
@@ -86,7 +88,7 @@ class PrerequisiteRepository @Inject constructor(
 
         return try {
             val res =
-                this.client.post("https://uis.ptithcm.edu.vn/api/rms/w-locdstonghophocphisv") {
+                this.client.post("https://uis.ptithcm.edu.vn/api/rms/w-locdsloaitienquyet") {
                     contentType(ContentType.Application.Json)
                 }.body<List<PrerequisitesTypeResponse>>()
             cachedPrerequisitesType[cacheKey] = CacheEntry(res, now)
